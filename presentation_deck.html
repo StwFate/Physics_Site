@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA Interactive Presentation Deck</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.04); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+    .slide-transition {
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased m-0 p-2 sm:p-3 select-none overflow-hidden font-sans">
+
+  <!-- Main Presentation Shell (Fixed 460px height to fit within inline 500px viewport) -->
+  <div id="deck-container" class="relative w-full max-w-5xl mx-auto h-[460px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300">
+    
+    <!-- Top Deck Header Bar -->
+    <header class="h-11 border-b border-[var(--border)] px-4 flex items-center justify-between bg-[var(--background)]/60 backdrop-blur-md z-30 shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">AURA 2030</span>
+        </div>
+        <span class="text-[var(--border)]">|</span>
+        <span id="slide-title-header" class="text-xs font-medium text-[var(--muted-foreground)] truncate max-w-[200px] sm:max-w-xs">
+          Executive Overview
+        </span>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="flex items-center gap-1.5">
+        <!-- Laser Pointer Toggle -->
+        <button id="laser-btn" onclick="toggleLaser()" title="Laser Pointer (L)" class="p-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:bg-[var(--border)]/40 text-[var(--muted-foreground)] transition flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3m0 14v3M2 12h3m14 0h3"/>
+          </svg>
+          <span class="hidden sm:inline text-xs">Laser</span>
+        </button>
+
+        <!-- Speaker Notes Toggle -->
+        <button id="notes-btn" onclick="toggleNotes()" title="Speaker Notes (N)" class="p-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:bg-[var(--border)]/40 text-[var(--muted-foreground)] transition flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <span class="hidden sm:inline text-xs">Notes</span>
+        </button>
+
+        <!-- Audio Feedback Toggle -->
+        <button id="audio-btn" onclick="toggleAudio()" title="Sound Effects (M)" class="p-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:bg-[var(--border)]/40 text-[var(--muted-foreground)] transition">
+          <svg id="audio-icon-on" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+          <svg id="audio-icon-off" class="w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line x1="23" y1="9" x2="17" y2="15"/>
+            <line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button onclick="toggleFullscreen()" title="Fullscreen (F)" class="p-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:bg-[var(--border)]/40 text-[var(--muted-foreground)] transition">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 3 21 3 21 9"/>
+            <polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Slide Stage (Viewport) -->
+    <main id="slide-viewport" class="relative flex-1 overflow-hidden p-4 sm:p-6 flex flex-col justify-between">
+      
+      <!-- Interactive Dynamic Canvas Backdrop -->
+      <canvas id="bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-45"></canvas>
+
+      <!-- Laser Pointer Element -->
+      <div id="laser-dot" class="w-4 h-4 rounded-full bg-rose-500 shadow-[0_0_12px_#f43f5e] pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 z-50 hidden transition-opacity duration-75"></div>
+
+      <!-- Slide 0: Executive Hero & Vision -->
+      <div id="slide-0" class="slide-content h-full flex flex-col justify-between relative z-10 slide-transition">
+        <div class="flex items-center justify-between">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20 text-xs font-semibold">
+            <span>KEYNOTE ARCHITECTURE DECK</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--primary)]"></span>
+            <span>SERIES A STRATEGY</span>
+          </div>
+          <div class="text-xs text-[var(--muted-foreground)] font-mono">CONFIDENTIAL // 2030 RELEASE</div>
+        </div>
+
+        <div class="my-auto space-y-3">
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--foreground)] leading-tight">
+            Autonomous Neural Synthesis:
+            <span class="block bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 bg-clip-text text-transparent">
+              Beyond Reactive Chatbot Paradigms
+            </span>
+          </h1>
+          <p class="text-xs sm:text-sm text-[var(--muted-foreground)] max-w-2xl leading-relaxed">
+            Transitioning enterprise systems from conversational prompt-response loops to persistent, self-healing cognitive execution graphs operating with 99.4% tool reliability.
+          </p>
+
+          <div class="pt-2 flex flex-wrap gap-2.5 items-center">
+            <div class="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)]/80 text-xs">
+              <span class="text-[var(--muted-foreground)]">Model Speed:</span>
+              <strong class="text-[var(--foreground)] ml-1">12.4ms TTFT</strong>
+            </div>
+            <div class="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)]/80 text-xs">
+              <span class="text-[var(--muted-foreground)]">Autonomous Horizon:</span>
+              <strong class="text-[var(--foreground)] ml-1">120+ Steps</strong>
+            </div>
+            <div class="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)]/80 text-xs">
+              <span class="text-emerald-500 ml-1">-68% Watt/Token</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)] pt-2 border-t border-[var(--border)]/40">
+          <span>Presented by Autonomous Systems Group</span>
+          <span class="flex items-center gap-1 font-mono">Use Arrow Keys or Space to Navigate</span>
+        </div>
+      </div>
+
+      <!-- Slide 1: Live Interactive Benchmark Matrix -->
+      <div id="slide-1" class="slide-content h-full flex flex-col justify-between relative z-10 slide-transition hidden opacity-0">
+        <div class="flex items-center justify-between pb-1">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-[var(--foreground)] tracking-tight">System Benchmark Comparison</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Real-time telemetry across multi-agent benchmarks vs legacy LLMs</p>
+          </div>
+          <!-- Metric Selectors -->
+          <div class="flex rounded-lg border border-[var(--border)] p-0.5 bg-[var(--background)]/60 text-xs">
+            <button onclick="setMetric('latency')" id="btn-metric-latency" class="px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] shadow-xs transition">Latency</button>
+            <button onclick="setMetric('accuracy')" id="btn-metric-accuracy" class="px-2.5 py-1 rounded-md font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Accuracy</button>
+            <button onclick="setMetric('efficiency')" id="btn-metric-efficiency" class="px-2.5 py-1 rounded-md font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Cost/M</button>
+          </div>
+        </div>
+
+        <!-- Interactive Chart Visualizer -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-auto">
+          <!-- Graph Card -->
+          <div class="md:col-span-2 p-3.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 backdrop-blur flex flex-col justify-between h-[190px]">
+            <div class="flex justify-between items-center text-xs">
+              <span id="chart-metric-label" class="font-semibold text-[var(--foreground)]">Response Latency (lower is better)</span>
+              <span class="text-[var(--muted-foreground)] font-mono text-xs">Benchmark Run: #8849</span>
+            </div>
+
+            <!-- SVG dynamic bar visualization -->
+            <div class="space-y-3 my-auto">
+              <!-- Item 1 -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-medium text-[var(--foreground)]">AURA Autonomous Core</span>
+                  <span id="val-aura" class="font-mono font-bold text-emerald-500 text-xs">18 ms</span>
+                </div>
+                <div class="w-full bg-[var(--border)]/40 rounded-full h-2.5 overflow-hidden">
+                  <div id="bar-aura" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2.5 rounded-full transition-all duration-500" style="width: 22%"></div>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-medium text-[var(--foreground)]">Traditional Agent Stack</span>
+                  <span id="val-trad" class="font-mono text-[var(--muted-foreground)] text-xs">142 ms</span>
+                </div>
+                <div class="w-full bg-[var(--border)]/40 rounded-full h-2.5 overflow-hidden">
+                  <div id="bar-trad" class="bg-slate-400 h-2.5 rounded-full transition-all duration-500" style="width: 68%"></div>
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-medium text-[var(--foreground)]">Legacy Chained Prompting</span>
+                  <span id="val-legacy" class="font-mono text-[var(--muted-foreground)] text-xs">380 ms</span>
+                </div>
+                <div class="w-full bg-[var(--border)]/40 rounded-full h-2.5 overflow-hidden">
+                  <div id="bar-legacy" class="bg-rose-400/80 h-2.5 rounded-full transition-all duration-500" style="width: 95%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Slider to simulate concurrency load -->
+            <div class="flex items-center gap-3 pt-2 border-t border-[var(--border)] text-xs">
+              <span class="text-[var(--muted-foreground)] shrink-0 text-xs">Concurrency Load:</span>
+              <input type="range" id="load-slider" min="1" max="10" value="4" oninput="updateLoad(this.value)" class="w-full accent-[var(--primary)] cursor-pointer h-1.5 bg-[var(--border)] rounded-lg">
+              <span id="load-val" class="font-mono text-xs text-[var(--foreground)] font-bold w-12 text-right">40k QPS</span>
+            </div>
+          </div>
+
+          <!-- Highlight Key Stat Box -->
+          <div class="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 backdrop-blur flex flex-col justify-between h-[190px]">
+            <div>
+              <span class="text-xs uppercase tracking-wider text-[var(--muted-foreground)] font-semibold">Key Advantage</span>
+              <div id="stat-hero-number" class="text-2xl font-extrabold text-[var(--primary)] mt-1">7.8x</div>
+              <p id="stat-hero-desc" class="text-xs text-[var(--muted-foreground)] mt-1 leading-snug">
+                Faster execution speed through graph-level speculation.
+              </p>
+            </div>
+            <div class="p-2 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-[var(--foreground)]">
+              💡 Zero context degradation across 250k token trajectories.
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[var(--muted-foreground)]">
+          Tip: Adjust the Concurrency slider or toggle metrics above to observe dynamic load distribution.
+        </div>
+      </div>
+
+      <!-- Slide 2: Interactive Cognitive Topology Graph -->
+      <div id="slide-2" class="slide-content h-full flex flex-col justify-between relative z-10 slide-transition hidden opacity-0">
+        <div class="flex items-center justify-between pb-1">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-[var(--foreground)] tracking-tight">Cognitive Topology Engine</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Click any subsystem node to inspect runtime telemetry and execution traces</p>
+          </div>
+          <div class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            CLUSTER ACTIVE
+          </div>
+        </div>
+
+        <!-- Node Explorer Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-auto">
+          <!-- Node 1 -->
+          <div onclick="selectNode('perception')" id="node-perception" class="topology-node cursor-pointer p-3 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/10 hover:border-[var(--primary)] transition flex flex-col justify-between h-[160px] shadow-sm">
+            <div class="flex items-center justify-between">
+              <div class="p-1.5 rounded-lg bg-[var(--primary)]/20 text-[var(--primary)]">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-[var(--foreground)]">Perception Engine</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Multimodal Stream Ingestion</p>
+            </div>
+            <div class="text-xs font-mono text-[var(--primary)]">99.8% Sync</div>
+          </div>
+
+          <!-- Node 2 -->
+          <div onclick="selectNode('memory')" id="node-memory" class="topology-node cursor-pointer p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)]/60 transition flex flex-col justify-between h-[160px]">
+            <div class="flex items-center justify-between">
+              <div class="p-1.5 rounded-lg bg-[var(--border)] text-[var(--muted-foreground)]">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-[var(--foreground)]">Vector Memory</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Episodic & Procedural Graph</p>
+            </div>
+            <div class="text-xs font-mono text-[var(--muted-foreground)]">4.2M Vectors</div>
+          </div>
+
+          <!-- Node 3 -->
+          <div onclick="selectNode('reasoning')" id="node-reasoning" class="topology-node cursor-pointer p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)]/60 transition flex flex-col justify-between h-[160px]">
+            <div class="flex items-center justify-between">
+              <div class="p-1.5 rounded-lg bg-[var(--border)] text-[var(--muted-foreground)]">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-[var(--foreground)]">Planner Core</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Monte Carlo Tree Search</p>
+            </div>
+            <div class="text-xs font-mono text-[var(--muted-foreground)]">840 Ops/sec</div>
+          </div>
+
+          <!-- Node 4 -->
+          <div onclick="selectNode('tools')" id="node-tools" class="topology-node cursor-pointer p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)]/60 transition flex flex-col justify-between h-[160px]">
+            <div class="flex items-center justify-between">
+              <div class="p-1.5 rounded-lg bg-[var(--border)] text-[var(--muted-foreground)]">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-[var(--foreground)]">Sandboxed Runtime</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Isolated Tool Dispatch</p>
+            </div>
+            <div class="text-xs font-mono text-[var(--muted-foreground)]">0 Escape Bugs</div>
+          </div>
+        </div>
+
+        <!-- Node Telemetry Inspector Banner -->
+        <div id="node-inspector" class="p-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/80 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-[var(--foreground)]" id="inspector-name">Perception Engine</span>
+            <span class="text-[var(--muted-foreground)]">—</span>
+            <span class="text-[var(--muted-foreground)]" id="inspector-detail">Zero-copy streaming pipeline with automatic token pruning.</span>
+          </div>
+          <span class="font-mono text-emerald-500 font-semibold text-xs" id="inspector-status">HEALTHY // 0.4ms JITTER</span>
+        </div>
+      </div>
+
+      <!-- Slide 3: Live Interactive ROI Calculator -->
+      <div id="slide-3" class="slide-content h-full flex flex-col justify-between relative z-10 slide-transition hidden opacity-0">
+        <div class="flex items-center justify-between pb-1">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-[var(--foreground)] tracking-tight">Enterprise Impact Simulation</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Calculate savings and engineering velocity multiplier in real-time</p>
+          </div>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            FINANCIAL MODEL v3
+          </span>
+        </div>
+
+        <!-- Interactive Calculator Workspace -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 my-auto">
+          <!-- Sliders Box -->
+          <div class="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 space-y-3.5">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--foreground)] font-medium">Engineering Headcount</span>
+                <span id="roi-engineers-val" class="font-mono font-bold text-[var(--primary)] text-xs">120 Devs</span>
+              </div>
+              <input type="range" id="roi-engineers" min="10" max="500" value="120" step="5" oninput="calcROI()" class="w-full accent-[var(--primary)] cursor-pointer h-1.5 bg-[var(--border)] rounded-lg">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--foreground)] font-medium">Automated Workflows / Mo</span>
+                <span id="roi-tasks-val" class="font-mono font-bold text-[var(--primary)] text-xs">3,500 Workflows</span>
+              </div>
+              <input type="range" id="roi-tasks" min="500" max="20000" value="3500" step="250" oninput="calcROI()" class="w-full accent-[var(--primary)] cursor-pointer h-1.5 bg-[var(--border)] rounded-lg">
+            </div>
+
+            <div class="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-xs text-[var(--muted-foreground)] flex items-center justify-between">
+              <span>Standard Dev Hourly Cost:</span>
+              <span class="font-mono text-[var(--foreground)] font-semibold">$95 / hr</span>
+            </div>
+          </div>
+
+          <!-- Live Output KPI Tiles -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 flex flex-col justify-between">
+              <span class="text-xs text-[var(--muted-foreground)] font-semibold">Annual Savings</span>
+              <div id="roi-savings" class="text-xl sm:text-2xl font-black text-emerald-500">$3.99M</div>
+              <span class="text-xs text-emerald-500 font-medium">+312% ROI</span>
+            </div>
+
+            <div class="p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 flex flex-col justify-between">
+              <span class="text-xs text-[var(--muted-foreground)] font-semibold">Hours Returned</span>
+              <div id="roi-hours" class="text-xl sm:text-2xl font-black text-[var(--foreground)]">42,000h</div>
+              <span class="text-xs text-[var(--muted-foreground)]">350 hrs / dev / yr</span>
+            </div>
+
+            <div class="col-span-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 flex items-center justify-between">
+              <div>
+                <span class="text-xs text-[var(--muted-foreground)] font-semibold block">Sprint Velocity Gain</span>
+                <span id="roi-velocity" class="text-lg font-bold text-[var(--primary)]">4.3x Cycle Speed</span>
+              </div>
+              <div class="h-8 w-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
+                🚀
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[var(--muted-foreground)]">
+          Live algorithm accounts for context drift, review overhead, and continuous regression testing.
+        </div>
+      </div>
+
+      <!-- Slide 4: Audience Poll & Interactive Q&A -->
+      <div id="slide-4" class="slide-content h-full flex flex-col justify-between relative z-10 slide-transition hidden opacity-0">
+        <div class="flex items-center justify-between pb-1">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-[var(--foreground)] tracking-tight">Interactive Audience Consensus</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Cast your live vote to visualize what capability leaders prioritize first</p>
+          </div>
+          <span id="vote-status-badge" class="text-xs font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            VOTING OPEN
+          </span>
+        </div>
+
+        <!-- Poll Choices -->
+        <div class="space-y-2 my-auto max-w-2xl mx-auto w-full">
+          <!-- Option A -->
+          <div onclick="castVote(0)" id="poll-opt-0" class="cursor-pointer p-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)] transition relative overflow-hidden group">
+            <div id="poll-fill-0" class="absolute inset-y-0 left-0 bg-[var(--primary)]/15 transition-all duration-700" style="width: 44%"></div>
+            <div class="relative z-10 flex items-center justify-between text-xs">
+              <span class="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition">1. Autonomous Full-Stack Refactoring & CI Self-Healing</span>
+              <span id="poll-pct-0" class="font-mono font-bold text-[var(--foreground)]">44% (182)</span>
+            </div>
+          </div>
+
+          <!-- Option B -->
+          <div onclick="castVote(1)" id="poll-opt-1" class="cursor-pointer p-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)] transition relative overflow-hidden group">
+            <div id="poll-fill-1" class="absolute inset-y-0 left-0 bg-[var(--primary)]/15 transition-all duration-700" style="width: 29%"></div>
+            <div class="relative z-10 flex items-center justify-between text-xs">
+              <span class="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition">2. Real-Time Deep Multimodal Research & Synthesis</span>
+              <span id="poll-pct-1" class="font-mono font-bold text-[var(--foreground)]">29% (120)</span>
+            </div>
+          </div>
+
+          <!-- Option C -->
+          <div onclick="castVote(2)" id="poll-opt-2" class="cursor-pointer p-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)] transition relative overflow-hidden group">
+            <div id="poll-fill-2" class="absolute inset-y-0 left-0 bg-[var(--primary)]/15 transition-all duration-700" style="width: 18%"></div>
+            <div class="relative z-10 flex items-center justify-between text-xs">
+              <span class="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition">3. Autonomous Customer Operations & Incident Escalation</span>
+              <span id="poll-pct-2" class="font-mono font-bold text-[var(--foreground)]">18% (74)</span>
+            </div>
+          </div>
+
+          <!-- Option D -->
+          <div onclick="castVote(3)" id="poll-opt-3" class="cursor-pointer p-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)] transition relative overflow-hidden group">
+            <div id="poll-fill-3" class="absolute inset-y-0 left-0 bg-[var(--primary)]/15 transition-all duration-700" style="width: 9%"></div>
+            <div class="relative z-10 flex items-center justify-between text-xs">
+              <span class="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition">4. Predictive Financial & Resource Planning</span>
+              <span id="poll-pct-3" class="font-mono font-bold text-[var(--foreground)]">9% (38)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+          <span>Click any row to simulate audience vote tally</span>
+          <span class="font-mono">Total Responses: <strong id="poll-total" class="text-[var(--foreground)]">414</strong></span>
+        </div>
+      </div>
+
+      <!-- Slide 5: Strategic Roadmap & Conclusion -->
+      <div id="slide-5" class="slide-content h-full flex flex-col justify-between relative z-10 slide-transition hidden opacity-0">
+        <div class="flex items-center justify-between pb-1">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-[var(--foreground)] tracking-tight">Execution Roadmap & Milestones</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Path toward widespread autonomous deployment</p>
+          </div>
+          <span class="text-xs font-mono text-emerald-500 font-semibold">ON SCHEDULE</span>
+        </div>
+
+        <!-- Milestones Timeline -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-auto">
+          <div class="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 flex flex-col justify-between h-[170px]">
+            <div>
+              <span class="text-xs font-mono font-semibold text-emerald-500">PHASE 1 (COMPLETED)</span>
+              <h3 class="font-bold text-sm text-[var(--foreground)] mt-1">Foundational Mesh</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-1 leading-relaxed">
+                Deterministic tool sandbox with sub-20ms sandboxing and memory graphs.
+              </p>
+            </div>
+            <div class="text-xs text-[var(--foreground)] font-mono font-semibold">✓ 100k Verified Evals</div>
+          </div>
+
+          <div class="p-3.5 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/10 flex flex-col justify-between h-[170px] shadow-sm">
+            <div>
+              <span class="text-xs font-mono font-semibold text-[var(--primary)]">PHASE 2 (CURRENT)</span>
+              <h3 class="font-bold text-sm text-[var(--foreground)] mt-1">Autonomous Cohorts</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-1 leading-relaxed">
+                Multi-agent negotiation protocols, self-healing pull requests, and real-time trace telemetry.
+              </p>
+            </div>
+            <div class="text-xs text-[var(--primary)] font-mono font-semibold">● In Private Beta</div>
+          </div>
+
+          <div class="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--background)]/70 flex flex-col justify-between h-[170px]">
+            <div>
+              <span class="text-xs font-mono font-semibold text-indigo-400">PHASE 3 (2030 VISION)</span>
+              <h3 class="font-bold text-sm text-[var(--foreground)] mt-1">Self-Optimizing System</h3>
+              <p class="text-xs text-[var(--muted-foreground)] mt-1 leading-relaxed">
+                Continuous weight synthesis, hardware-accelerated speculation, and zero human supervision.
+              </p>
+            </div>
+            <div class="text-xs text-[var(--muted-foreground)] font-mono font-semibold">○ Scheduled Launch</div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+          <span>Thank you for your partnership and vision.</span>
+          <button onclick="jumpToSlide(0)" class="text-xs text-[var(--primary)] hover:underline font-semibold">
+            Restart Deck ↺
+          </button>
+        </div>
+      </div>
+
+      <!-- Speaker Notes Drawer (Toggled) -->
+      <div id="notes-drawer" class="absolute inset-x-4 bottom-4 p-3.5 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-2xl z-40 hidden transition-all duration-200">
+        <div class="flex items-center justify-between pb-2 border-b border-[var(--border)] mb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span class="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider">Speaker Cues & Talking Points</span>
+          </div>
+          <button onclick="toggleNotes()" class="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕ Close</button>
+        </div>
+        <p id="notes-content" class="text-xs text-[var(--foreground)] leading-relaxed">
+        </p>
+      </div>
+
+    </main>
+
+    <!-- Bottom Deck Navigation Bar -->
+    <footer class="h-11 border-t border-[var(--border)] px-4 flex items-center justify-between bg-[var(--background)]/60 backdrop-blur-md z-30 shrink-0">
+      
+      <!-- Slide Counter and Timer -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1 text-xs font-mono text-[var(--muted-foreground)]">
+          <span id="current-slide-num" class="font-bold text-[var(--foreground)]">1</span>
+          <span>/</span>
+          <span id="total-slides-num">6</span>
+        </div>
+        <span class="text-[var(--border)]">|</span>
+        <!-- Live Elapsed Presenter Timer -->
+        <div class="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] font-mono">
+          <button onclick="toggleTimer()" title="Pause/Resume Timer" class="hover:text-[var(--foreground)]">
+            <span id="timer-indicator" class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          </button>
+          <span id="timer-display">00:00</span>
+        </div>
+      </div>
+
+      <!-- Quick Thumbnail Jump Dots -->
+      <div id="slide-dots" class="flex items-center gap-1.5">
+      </div>
+
+      <!-- Navigation Arrows -->
+      <div class="flex items-center gap-1.5">
+        <button id="prev-btn" onclick="prevSlide()" title="Previous (Left Arrow)" class="p-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/50 text-[var(--foreground)] transition disabled:opacity-30 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button id="next-btn" onclick="nextSlide()" title="Next (Right Arrow / Space)" class="px-2.5 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition font-medium text-xs flex items-center gap-1">
+          <span>Next</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+    </footer>
+
+  </div>
+
+  <script>
+    const TOTAL_SLIDES = 6;
+    let currentSlide = 0;
+    let laserActive = false;
+    let notesActive = false;
+    let audioActive = true;
+    let audioCtx = null;
+    let timerSeconds = 0;
+    let timerRunning = true;
+    let timerInterval = null;
+
+    const SLIDE_TITLES = [
+      "Executive Overview",
+      "Benchmark Comparison",
+      "Cognitive Topology",
+      "Enterprise ROI Model",
+      "Audience Consensus",
+      "Strategic Roadmap"
+    ];
+
+    const SPEAKER_NOTES = [
+      "Welcome the leadership team. Emphasize that 2030 isn't about larger text completion models, but rather reliable goal execution with deterministic sandboxing. Hook them with the 120+ step autonomous horizon.",
+      "Highlight the 7.8x speed advantage. Invite the audience to note the latency curve under 40k QPS load. Stress that legacy chained prompting fails catastrophically at enterprise scale.",
+      "Explain the decoupled modular architecture: Vector Memory feeds the Monte Carlo Planner Core, which verifies safety before delegating to the Sandboxed Runtime. Click each node to show telemetry.",
+      "Walk through the ROI simulator. Adjust the headcount slider to their organization's size (e.g. 150 devs). Point to the 42,000 engineering hours reclaimed for high-leverage innovation.",
+      "Engage the audience! Invite them to vote on the highest impact capability. Call out that Autonomous Code Refactoring consistently dominates initial enterprise adoption.",
+      "Reiterate the milestone path. Phase 1 is already proven; Phase 2 is scaling right now. Close with our commitment to partner with their enterprise team."
+    ];
+
+    function playBeep(freq = 520, duration = 0.04, type = 'sine') {
+      if (!audioActive) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.exponentialRampToValueAtTime?.(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function updateSlide() {
+      for (let i = 0; i < TOTAL_SLIDES; i++) {
+        const el = document.getElementById(`slide-${i}`);
+        if (!el) continue;
+        if (i === currentSlide) {
+          el.classList.remove('hidden');
+          setTimeout(() => {
+            el.classList.remove('opacity-0');
+            el.classList.remove('translate-y-2');
+          }, 10);
+        } else {
+          el.classList.add('opacity-0');
+          el.classList.add('translate-y-2');
+          el.classList.add('hidden');
+        }
+      }
+
+      document.getElementById('slide-title-header').textContent = SLIDE_TITLES[currentSlide];
+      document.getElementById('current-slide-num').textContent = currentSlide + 1;
+      document.getElementById('prev-btn').disabled = (currentSlide === 0);
+
+      const nextBtnText = currentSlide === TOTAL_SLIDES - 1 ? 'Finish' : 'Next';
+      document.getElementById('next-btn').querySelector('span').textContent = nextBtnText;
+
+      document.getElementById('notes-content').textContent = SPEAKER_NOTES[currentSlide];
+      renderDots();
+      playBeep(currentSlide === 0 ? 440 : 540 + currentSlide * 40, 0.05);
+    }
+
+    function nextSlide() {
+      if (currentSlide < TOTAL_SLIDES - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function jumpToSlide(idx) {
+      if (idx >= 0 && idx < TOTAL_SLIDES) {
+        currentSlide = idx;
+        updateSlide();
+      }
+    }
+
+    function renderDots() {
+      const container = document.getElementById('slide-dots');
+      container.innerHTML = '';
+      for (let i = 0; i < TOTAL_SLIDES; i++) {
+        const dot = document.createElement('button');
+        dot.className = `w-2 h-2 rounded-full transition-all duration-300 ${i === currentSlide ? 'w-5 bg-[var(--primary)]' : 'bg-[var(--border)] hover:bg-[var(--muted-foreground)]'}`;
+        dot.title = `Jump to Slide ${i + 1}: ${SLIDE_TITLES[i]}`;
+        dot.onclick = () => jumpToSlide(i);
+        container.appendChild(dot);
+      }
+    }
+
+    function toggleLaser() {
+      laserActive = !laserActive;
+      const btn = document.getElementById('laser-btn');
+      const dot = document.getElementById('laser-dot');
+      if (laserActive) {
+        btn.classList.add('bg-rose-500/20', 'text-rose-500', 'border-rose-500/40');
+        dot.classList.remove('hidden');
+        playBeep(880, 0.08);
+      } else {
+        btn.classList.remove('bg-rose-500/20', 'text-rose-500', 'border-rose-500/40');
+        dot.classList.add('hidden');
+        playBeep(330, 0.04);
+      }
+    }
+
+    document.getElementById('deck-container').addEventListener('mousemove', (e) => {
+      if (!laserActive) return;
+      const rect = document.getElementById('slide-viewport').getBoundingClientRect();
+      const dot = document.getElementById('laser-dot');
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+    });
+
+    function toggleNotes() {
+      notesActive = !notesActive;
+      const drawer = document.getElementById('notes-drawer');
+      const btn = document.getElementById('notes-btn');
+      if (notesActive) {
+        drawer.classList.remove('hidden');
+        btn.classList.add('bg-[var(--primary)]/20', 'text-[var(--primary)]');
+        playBeep(600, 0.04);
+      } else {
+        drawer.classList.add('hidden');
+        btn.classList.remove('bg-[var(--primary)]/20', 'text-[var(--primary)]');
+      }
+    }
+
+    function toggleAudio() {
+      audioActive = !audioActive;
+      document.getElementById('audio-icon-on').classList.toggle('hidden', !audioActive);
+      document.getElementById('audio-icon-off').classList.toggle('hidden', audioActive);
+      if (audioActive) playBeep(700, 0.04);
+    }
+
+    function toggleFullscreen() {
+      const el = document.getElementById('deck-container');
+      if (!document.fullscreenElement) {
+        el.requestFullscreen?.().catch(() => {});
+      } else {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    }
+
+    let currentMetric = 'latency';
+    const benchmarkData = {
+      latency: { label: "Response Latency (lower is better)", aura: "18 ms", trad: "142 ms", legacy: "380 ms", wAura: "20%", wTrad: "65%", wLegacy: "95%", hero: "7.8x", heroDesc: "Faster response cycle through graph-level speculation." },
+      accuracy: { label: "Complex Reasoning Accuracy (higher is better)", aura: "98.4%", trad: "72.1%", legacy: "54.0%", wAura: "98%", wTrad: "72%", wLegacy: "54%", hero: "98.4%", heroDesc: "Near-zero hallucination rate on multi-hop tool execution." },
+      efficiency: { label: "Cost Per Million Operations ($ / lower is better)", aura: "$0.42", trad: "$3.80", legacy: "$12.50", wAura: "15%", wTrad: "55%", wLegacy: "90%", hero: "89%", heroDesc: "Reduction in operational compute and LLM token expenditures." }
+    };
+
+    function setMetric(m) {
+      currentMetric = m;
+      ['latency', 'accuracy', 'efficiency'].forEach(key => {
+        const btn = document.getElementById(`btn-metric-${key}`);
+        if (key === m) {
+          btn.className = "px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] shadow-xs transition";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-md font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition";
+        }
+      });
+
+      const d = benchmarkData[m];
+      document.getElementById('chart-metric-label').textContent = d.label;
+      document.getElementById('val-aura').textContent = d.aura;
+      document.getElementById('val-trad').textContent = d.trad;
+      document.getElementById('val-legacy').textContent = d.legacy;
+      document.getElementById('bar-aura').style.width = d.wAura;
+      document.getElementById('bar-trad').style.width = d.wTrad;
+      document.getElementById('bar-legacy').style.width = d.wLegacy;
+      document.getElementById('stat-hero-number').textContent = d.hero;
+      document.getElementById('stat-hero-desc').textContent = d.heroDesc;
+      playBeep(650, 0.03);
+    }
+
+    function updateLoad(val) {
+      document.getElementById('load-val').textContent = `${val * 10}k QPS`;
+      const mult = val / 4;
+      if (currentMetric === 'latency') {
+        const msAura = Math.round(18 * (1 + mult * 0.1));
+        const msTrad = Math.round(142 * (1 + mult * 0.5));
+        const msLegacy = Math.round(380 * (1 + mult * 0.9));
+        document.getElementById('val-aura').textContent = `${msAura} ms`;
+        document.getElementById('val-trad').textContent = `${msTrad} ms`;
+        document.getElementById('val-legacy').textContent = `${msLegacy} ms`;
+      }
+    }
+
+    const nodeDetails = {
+      perception: { name: "Perception Engine", detail: "Zero-copy streaming pipeline with automatic token pruning.", status: "HEALTHY // 0.4ms JITTER" },
+      memory: { name: "Vector Memory", detail: "Hierarchical HNSW index storing episodic context and tool schemas.", status: "SYNCED // 4.2M KEYS" },
+      reasoning: { name: "Planner Core", detail: "Monte Carlo Tree Search with dual-verification speculative rollouts.", status: "NOMINAL // 99.4% HIT" },
+      tools: { name: "Sandboxed Runtime", detail: "Micro-VM isolates with strict egress security filters and live checkpoints.", status: "ISOLATED // 0 FAULTS" }
+    };
+
+    function selectNode(key) {
+      ['perception', 'memory', 'reasoning', 'tools'].forEach(n => {
+        const el = document.getElementById(`node-${n}`);
+        if (n === key) {
+          el.className = "topology-node cursor-pointer p-3 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/10 transition flex flex-col justify-between h-[160px] shadow-sm";
+        } else {
+          el.className = "topology-node cursor-pointer p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--primary)]/60 transition flex flex-col justify-between h-[160px]";
+        }
+      });
+
+      const info = nodeDetails[key];
+      document.getElementById('inspector-name').textContent = info.name;
+      document.getElementById('inspector-detail').textContent = info.detail;
+      document.getElementById('inspector-status').textContent = info.status;
+      playBeep(720, 0.04);
+    }
+
+    function calcROI() {
+      const devs = parseInt(document.getElementById('roi-engineers').value, 10);
+      const tasks = parseInt(document.getElementById('roi-tasks').value, 10);
+      document.getElementById('roi-engineers-val').textContent = `${devs} Devs`;
+      document.getElementById('roi-tasks-val').textContent = `${tasks.toLocaleString()} Workflows`;
+
+      const hoursSavedPerYear = Math.round(devs * 350 + (tasks * 0.4));
+      const annualSavingsDollars = (hoursSavedPerYear * 95);
+      const millions = (annualSavingsDollars / 1000000).toFixed(2);
+      const velocityX = (2.2 + (tasks / 4000) * 1.5).toFixed(1);
+
+      document.getElementById('roi-savings').textContent = `$${millions}M`;
+      document.getElementById('roi-hours').textContent = `${hoursSavedPerYear.toLocaleString()}h`;
+      document.getElementById('roi-velocity').textContent = `${velocityX}x Cycle Speed`;
+    }
+
+    let pollVotes = [182, 120, 74, 38];
+    let userHasVoted = false;
+
+    function castVote(idx) {
+      if (!userHasVoted) {
+        pollVotes[idx] += 1;
+        userHasVoted = true;
+        document.getElementById('vote-status-badge').textContent = 'VOTE RECORDED ✓';
+        document.getElementById('vote-status-badge').className = 'text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        playBeep(880, 0.08, 'triangle');
+      } else {
+        pollVotes[idx] += 1;
+        playBeep(520, 0.03);
+      }
+
+      const total = pollVotes.reduce((a, b) => a + b, 0);
+      document.getElementById('poll-total').textContent = total;
+
+      for (let i = 0; i < 4; i++) {
+        const pct = Math.round((pollVotes[i] / total) * 100);
+        document.getElementById(`poll-fill-${i}`).style.width = `${pct}%`;
+        document.getElementById(`poll-pct-${i}`).textContent = `${pct}% (${pollVotes[i]})`;
+      }
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function toggleTimer() {
+      timerRunning = !timerRunning;
+      const indicator = document.getElementById('timer-indicator');
+      if (timerRunning) {
+        indicator.className = 'inline-block w-1.5 h-1.5 rounded-full bg-emerald-500';
+      } else {
+        indicator.className = 'inline-block w-1.5 h-1.5 rounded-full bg-amber-400';
+      }
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        if (timerRunning) {
+          timerSeconds++;
+          document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+        }
+      }, 1000);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'l') {
+        toggleLaser();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'm') {
+        toggleAudio();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = 35;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: (Math.random() - 0.5) * 0.45,
+          radius: Math.random() * 1.8 + 1
+        });
+      }
+    }
+
+    function renderCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const isLight = document.documentElement.classList.contains('light');
+      const dotColor = isLight ? 'rgba(79, 70, 229, 0.45)' : 'rgba(129, 140, 248, 0.45)';
+      const lineColor = isLight ? 'rgba(99, 102, 241, 0.08)' : 'rgba(165, 180, 252, 0.08)';
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = dotColor;
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 85) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(renderCanvas);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      initParticles();
+      requestAnimationFrame(renderCanvas);
+      updateSlide();
+      calcROI();
+      startTimer();
+    });
+  </script>
+</body>
+</html>
