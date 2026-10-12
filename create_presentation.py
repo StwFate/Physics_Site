@@ -481,18 +481,18 @@ def build_presentation():
     p2.font.color.rgb = c_slate_800
 
     # =========================================================================
-    # SLIDE 4: CAR #2 OVERVIEW (2021 Toyota Corolla LE)
+    # SLIDE 4: CAR #2 OVERVIEW (2012 Jeep Wrangler Unlimited Sport 4WD)
     # =========================================================================
     slide4 = prs.slides.add_slide(blank_layout)
     apply_canvas_background(slide4)
-    add_slide_header(slide4, 4, "Car #2 Overview: 2021 Toyota Corolla LE", "Alternative Vehicle Choice")
+    add_slide_header(slide4, 4, "Car #2 Overview: 2012 Jeep Wrangler Unlimited Sport", "Alternative Vehicle Choice")
 
     # Left Column: Framed Car Image + Spec Highlights
     card4_l = add_card(slide4, Inches(0.8), Inches(1.5), Inches(5.6), Inches(5.4))
     
-    toyota_img = "Car_Buying_Project/images/toyota_corolla.jpg"
-    if os.path.exists(toyota_img):
-        slide4.shapes.add_picture(toyota_img, Inches(1.05), Inches(1.75), width=Inches(5.1), height=Inches(3.1))
+    jeep_img = "Car_Buying_Project/images/jeep_wrangler.jpg"
+    if os.path.exists(jeep_img):
+        slide4.shapes.add_picture(jeep_img, Inches(1.05), Inches(1.75), width=Inches(5.1), height=Inches(3.1))
 
     # Two Metric Callouts under photo
     m1_4 = add_card(slide4, Inches(1.05), Inches(5.05), Inches(2.45), Inches(1.6), c_blue_tint, c_blue_border)
@@ -506,14 +506,14 @@ def build_presentation():
     p.font.bold = True
     p.font.color.rgb = c_blue_primary
     p2 = tf.add_paragraph()
-    p2.text = "$14,500"
+    p2.text = "$8,995"
     p2.alignment = PP_ALIGN.CENTER
     p2.font.name = font_title
     p2.font.size = Pt(22)
     p2.font.bold = True
     p2.font.color.rgb = c_slate_900
     p3 = tf.add_paragraph()
-    p3.text = "Well under $20K budget"
+    p3.text = "Highly affordable deal"
     p3.alignment = PP_ALIGN.CENTER
     p3.font.name = font_body
     p3.font.size = Pt(9.5)
@@ -530,14 +530,14 @@ def build_presentation():
     p.font.bold = True
     p.font.color.rgb = c_amber
     p2 = tf.add_paragraph()
-    p2.text = "$51.35"
+    p2.text = "$87.53"
     p2.alignment = PP_ALIGN.CENTER
     p2.font.name = font_title
     p2.font.size = Pt(22)
     p2.font.bold = True
     p2.font.color.rgb = c_slate_900
     p3 = tf.add_paragraph()
-    p3.text = "13.2 Gal × $3.89/gal"
+    p3.text = "22.5 Gal × $3.89/gal"
     p3.alignment = PP_ALIGN.CENTER
     p3.font.name = font_body
     p3.font.size = Pt(9.5)
@@ -551,13 +551,13 @@ def build_presentation():
     tf.margin_right = Inches(0.3)
     tf.margin_top = Inches(0.18)
     p = tf.paragraphs[0]
-    p.text = "TECHNOLOGY & INFOTAINMENT"
+    p.text = "UTILITY & CONVENIENCE FEATURES"
     p.font.name = font_title
     p.font.size = Pt(10)
     p.font.bold = True
     p.font.color.rgb = c_blue_primary
     p2 = tf.add_paragraph()
-    p2.text = "• Apple CarPlay, Android Auto & Amazon Alexa compatibility\n• 8-inch high-resolution touchscreen infotainment display\n• Integrated backup camera with projected guidelines\n• Remote keyless entry & Bluetooth hands-free phone system"
+    p2.text = "• Durable wash-out interior with removable floor drain plugs\n• Command-Trac shift-on-the-fly 4WD system for extreme terrain\n• Removable doors & fold-down soft top convertible versatility\n• Heavy-duty roll bar audio sound system & auxiliary input"
     p2.font.name = font_body
     p2.font.size = Pt(10.5)
     p2.font.color.rgb = c_slate_800
@@ -569,13 +569,13 @@ def build_presentation():
     tf.margin_right = Inches(0.3)
     tf.margin_top = Inches(0.18)
     p = tf.paragraphs[0]
-    p.text = "ACTIVE SAFETY (TOYOTA SAFETY SENSE 2.0)"
+    p.text = "ACTIVE SAFETY & RUGGED TRACTION"
     p.font.name = font_title
     p.font.size = Pt(10)
     p.font.bold = True
     p.font.color.rgb = c_emerald
     p2 = tf.add_paragraph()
-    p2.text = "• Pre-Collision System with Daytime/Low-Light Pedestrian Detection\n• Lane Departure Alert with Steering Assist & Lane Tracing\n• Full-Speed Dynamic Radar Cruise Control & Road Sign Assist\n• 10 advanced airbags & Star Safety System"
+    p2.text = "• ESC (Electronic Stability Control) & ERM (Electronic Roll Mitigation)\n• HSA (Hill Start Assist) for smooth inclines without roll-back\n• 4-Wheel Anti-lock Braking System (ABS) & all-terrain traction control\n• Advanced multistage front airbag system & high-strength steel frame"
     p2.font.name = font_body
     p2.font.size = Pt(10.5)
     p2.font.color.rgb = c_slate_800
@@ -593,7 +593,7 @@ def build_presentation():
     p.font.bold = True
     p.font.color.rgb = c_slate_900
     p2 = tf.add_paragraph()
-    p2.text = "\"Industry-leading mechanical dependability, class-leading 38 MPG highway fuel efficiency reducing weekly gas costs, lower teenage insurance premiums, and outstanding resale value.\""
+    p2.text = "\"It is a great deal at its price ($8,995). It provides authentic 4WD all-weather capability, legendary durability, and the lowest acquisition cost under the $20,000 project limit.\""
     p2.font.name = font_body
     p2.font.italic = True
     p2.font.size = Pt(10.5)
@@ -604,7 +604,7 @@ def build_presentation():
     # =========================================================================
     slide5 = prs.slides.add_slide(blank_layout)
     apply_canvas_background(slide5)
-    add_slide_header(slide5, 5, "Car #2 Financing Breakdown: Toyota Corolla", "Comparative Loan Analysis", c_emerald_tint, c_emerald, c_emerald_border)
+    add_slide_header(slide5, 5, "Car #2 Financing Breakdown: Jeep Wrangler", "Comparative Loan Analysis", c_emerald_tint, c_emerald, c_emerald_border)
 
     # Top Row: Side-by-Side Loan Cards
     # Loan C (Parents) - Left
@@ -625,7 +625,7 @@ def build_presentation():
     tf.margin_left = Inches(0.3)
     tf.margin_right = Inches(0.3)
     p = tf.paragraphs[0]
-    p.text = "$292.42 / month"
+    p.text = "$181.40 / month"
     p.font.name = font_title
     p.font.size = Pt(24)
     p.font.bold = True
@@ -634,10 +634,10 @@ def build_presentation():
 
     specs_c = [
         ("Terms", "4.2% Simple APR / 5 Years (60 Months)"),
-        ("Interest Formula", "I = $14,500 × 0.042 × 5 = $3,045.00"),
-        ("Total Repayment", "$14,500 + $3,045.00 = $17,545.00"),
-        ("Monthly Payment", "$17,545.00 ÷ 60 months = $292.42 / mo"),
-        ("Interest Benefit", "Saves $2,142.23 in total interest vs. Bank!")
+        ("Interest Formula", "I = $8,995 × 0.042 × 5 = $1,888.95"),
+        ("Total Repayment", "$8,995 + $1,888.95 = $10,883.95"),
+        ("Monthly Payment", "$10,883.95 ÷ 60 months = $181.40 / mo"),
+        ("Interest Benefit", "Saves $1,330.84 in total interest vs. Bank!")
     ]
     for lbl, val in specs_c:
         p_row = tf.add_paragraph()
@@ -671,7 +671,7 @@ def build_presentation():
     tf.margin_left = Inches(0.3)
     tf.margin_right = Inches(0.3)
     p = tf.paragraphs[0]
-    p.text = "$273.43 / month"
+    p.text = "$169.65 / month"
     p.font.name = font_title
     p.font.size = Pt(24)
     p.font.bold = True
@@ -680,10 +680,10 @@ def build_presentation():
 
     specs_d = [
         ("Terms", "5.1% Compounded Daily (365) / 6 Years (72 Mos)"),
-        ("Compound Formula", "$14,500 × (1 + 0.051/365)^2190"),
-        ("Total Repayment", "$19,687.23 principal + interest"),
-        ("Total Interest Paid", "$19,687.23 - $14,500 = $5,187.23"),
-        ("Monthly Payment", "$19,687.23 ÷ 72 months = $273.43 / mo")
+        ("Compound Formula", "$8,995 × (1 + 0.051/365)^2190"),
+        ("Total Repayment", "$12,214.79 principal + interest"),
+        ("Total Interest Paid", "$12,214.79 - $8,995 = $3,219.79"),
+        ("Monthly Payment", "$12,214.79 ÷ 72 months = $169.65 / mo")
     ]
     for lbl, val in specs_d:
         p_row = tf.add_paragraph()
@@ -714,7 +714,7 @@ def build_presentation():
     p.font.bold = True
     p.font.color.rgb = c_slate_900
     p2 = tf.add_paragraph()
-    p2.text = "Commercial daily compounding causes over $5,187 to be lost strictly to interest."
+    p2.text = "Commercial daily compounding causes over $3,219 to be lost strictly to interest."
     p2.font.name = font_body
     p2.font.size = Pt(9.5)
     p2.font.color.rgb = c_slate_600
@@ -732,7 +732,7 @@ def build_presentation():
     p.font.bold = True
     p.font.color.rgb = c_emerald
     p2 = tf.add_paragraph()
-    p2.text = "• Lowest Monthly Payment: Loan D has the lower monthly payment ($273.43/mo vs. $292.42/mo — $18.99 cheaper per month).\n• Lowest Total Interest Paid: Loan C saves $2,142.23 in total interest ($3,045.00 vs. $5,187.23).\n• Recommendation: I choose Loan C. Paying $18.99 more per month saves over $2,142 in interest and finishes 12 months sooner."
+    p2.text = "• Lowest Monthly Payment: Loan D has the lower monthly payment ($169.65/mo vs. $181.40/mo — $11.75 cheaper per month).\n• Lowest Total Interest Paid: Loan C saves $1,330.84 in total interest ($1,888.95 vs. $3,219.79).\n• Recommendation: I choose Loan C. Paying $11.75 more per month saves over $1,330 in interest and finishes 12 months sooner."
     p2.font.name = font_body
     p2.font.size = Pt(10.5)
     p2.font.color.rgb = c_slate_800
@@ -762,7 +762,7 @@ def build_presentation():
     p.space_after = Pt(4)
 
     p2 = tf.add_paragraph()
-    p2.text = "• Chosen Vehicle & Loan: 2023 Nissan Rogue S AWD with Loan A ($229.42 / mo) or Loan B ($214.56 / mo).\n• Baseline Transportation Budget (11%): $150.48 / month ($1,368.00 gross income × 0.11).\n• Does it fit into your initial budget? No. The vehicle payment alone exceeds the initial $150.48 budget by $64.08 to $78.94 per month before factoring in insurance."
+    p2.text = "• Primary Vehicle Option: 2023 Nissan Rogue S AWD with Loan A ($229.42 / mo) or Loan B ($214.56 / mo).\n• Budget Alternative Option: 2012 Jeep Wrangler Unlimited with Loan C ($181.40 / mo) or Loan D ($169.65 / mo).\n• Baseline Transportation Budget (11%): $150.48 / month ($1,368.00 gross income × 0.11).\n• Does it fit into your initial budget? No. Neither car fits unassisted, but the Jeep is remarkably close (exceeding by only $19.17/mo on Loan D vs. $78.94/mo for the Rogue)."
     p2.font.name = font_body
     p2.font.size = Pt(10.5)
     p2.font.color.rgb = c_slate_800
