@@ -1,17 +1,20 @@
 # Career Project design adaptation
 
-Google Slides: https://docs.google.com/presentation/d/1l9VCjH4sSSVv2xEAc-5KPMn_x0KNHLkEMbHqnfK2IrA/edit
+Editable Google Slides: https://docs.google.com/presentation/d/119mlE6DndsjdIFaa9lUKlmRqGYXJBa2agGwPyOOm5r8/edit
 
 Seven slides follow the official title/job/car/loan/car/loan/follow-up order.
-The visual reference is `C:/Users/Venus/Downloads/Career Project (2).pdf`.
-The palette, fonts, title decorations, photo frames, information strips, tables,
-and callouts follow that reference. Text, car photos, and spacing were adapted.
+The design follows `Career Project (2).pdf`, with the project content and photo
+crop adjusted to fit.
 
-`career_style_deck.py` generates the seven decorative background layers and a
-compact content configuration. `career_style_native.js` builds editable text
-from that configuration. Photos and decorative frames are part of the fixed
-background layers; change them in the Python source and regenerate the layers.
-No serialized Google Slides API command dump is needed.
+The deck has no flattened visual backgrounds or grouped visual elements. It has
+109 individual decorative and layout shapes, 113 editable text boxes, and seven
+separate photo image objects. Photo borders and panels are editable shapes too.
 
-All seven final PDF pages were visually reviewed after the heading and safety
-list fit repairs. The PPTX is an export of the final native Google Slides file.
+`career_style_visuals.py` rebuilds the shape requests and extracts the individual
+photo PNGs from the retained high-resolution reference renders in
+`career_style_assets/`. Run it with an output path to create the compact native
+Slides request manifest. The manifest is generated data and is not part of the
+source files.
+
+`Buying_My_First_Car_Career_Style.pptx` is the editable PowerPoint source used to
+create the native Google Slides copy.
