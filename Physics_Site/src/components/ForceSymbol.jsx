@@ -17,8 +17,10 @@ export const FORCE_REGISTRY = {
   Ftens: { id: 'Ftens', label: 'Tension', sub: 'T', fullSub: 'tens', color: 'text-yellow-700' },
   net: { id: 'Fnet', label: 'Net Force', sub: 'net', fullSub: 'net', color: 'text-blue-700' },
   Fnet: { id: 'Fnet', label: 'Net Force', sub: 'net', fullSub: 'net', color: 'text-blue-700' },
-  1_alt: { id: 'F1', label: 'Force 1', sub: '1', fullSub: '1', color: 'text-rose-600' },
-  2_alt: { id: 'F2', label: 'Force 2', sub: '2', fullSub: '2', color: 'text-blue-600' },
+  F1: { id: 'F1', label: 'Force 1', sub: '1', fullSub: '1', color: 'text-rose-600' },
+  F2: { id: 'F2', label: 'Force 2', sub: '2', fullSub: '2', color: 'text-blue-600' },
+  '1_alt': { id: 'F1', label: 'Force 1', sub: '1', fullSub: '1', color: 'text-rose-600' },
+  '2_alt': { id: 'F2', label: 'Force 2', sub: '2', fullSub: '2', color: 'text-blue-600' },
 }
 
 export default function ForceSymbol({
