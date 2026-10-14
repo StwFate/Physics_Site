@@ -330,6 +330,47 @@ export default function FBDModule() {
                   <Plus className="w-4 h-4" />
                 </button>
               )}
+
+              {/* FLOATING FORCE PICKER POPOVER (Snugly anchored right at the '+' button) */}
+              {activePopover && (
+                <div
+                  ref={popoverRef}
+                  className={`absolute z-40 bg-white border border-slate-300 rounded-lg p-2 shadow-xl w-48 animate-in fade-in zoom-in-95 duration-100 ${
+                    activePopover === 'up'
+                      ? 'bottom-full mb-3 left-1/2 -translate-x-1/2'
+                      : activePopover === 'down'
+                      ? 'top-full mt-3 left-1/2 -translate-x-1/2'
+                      : activePopover === 'left'
+                      ? 'right-full mr-3 top-1/2 -translate-y-1/2'
+                      : 'left-full ml-3 top-1/2 -translate-y-1/2'
+                  }`}
+                >
+                  <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-700">
+                    <span>Add {activePopover.toUpperCase()} Force</span>
+                    <button
+                      onClick={() => setActivePopover(null)}
+                      className="text-slate-400 hover:text-slate-700 p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    {FORCE_TYPES.map((f) => (
+                      <button
+                        key={f.code}
+                        onClick={() => handleSelectForce(activePopover, f.code)}
+                        className="w-full px-2 py-1.5 rounded text-left text-xs font-medium text-slate-700 hover:bg-slate-100 flex items-center justify-between transition-colors"
+                      >
+                        <span>{f.label}</span>
+                        <span className="font-mono text-[10px] text-slate-500 font-bold">
+                          {f.symbol}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* UPWARD VECTOR */}
@@ -514,46 +555,7 @@ export default function FBDModule() {
               </div>
             )}
 
-            {/* FLOATING FORCE PICKER POPOVER */}
-            {activePopover && (
-              <div
-                ref={popoverRef}
-                className={`absolute z-30 bg-white border border-slate-300 rounded-lg p-2.5 shadow-xl w-52 animate-in fade-in zoom-in-95 duration-100 ${
-                  activePopover === 'up'
-                    ? 'bottom-full mb-6 left-1/2 -translate-x-1/2'
-                    : activePopover === 'down'
-                    ? 'top-full mt-6 left-1/2 -translate-x-1/2'
-                    : activePopover === 'left'
-                    ? 'right-full mr-6 top-1/2 -translate-y-1/2'
-                    : 'left-full ml-6 top-1/2 -translate-y-1/2'
-                }`}
-              >
-                <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-600">
-                  <span>Add {activePopover.toUpperCase()} Force</span>
-                  <button
-                    onClick={() => setActivePopover(null)}
-                    className="text-slate-400 hover:text-slate-700"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
 
-                <div className="space-y-1">
-                  {FORCE_TYPES.map((f) => (
-                    <button
-                      key={f.code}
-                      onClick={() => handleSelectForce(activePopover, f.code)}
-                      className="w-full px-2 py-1.5 rounded text-left text-xs font-medium text-slate-700 hover:bg-slate-100 flex items-center justify-between transition-colors"
-                    >
-                      <span>{f.label}</span>
-                      <span className="font-mono text-[10px] text-slate-500 font-bold">
-                        {f.symbol}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Reset All Forces Link */}
