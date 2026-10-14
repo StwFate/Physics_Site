@@ -1,0 +1,954 @@
+{
+  "metadata": {
+    "title": "Solve It! (Newton's Second Law)",
+    "subtitle": "Unbalanced Forces, Acceleration, and Friction",
+    "topic": "Newtonian Dynamics - Newton's Second Law (Fnet = m * a)",
+    "source": "The Physics Classroom",
+    "launchUrl": "https://www.physicsclassroom.com/concept-builder/newtons-laws/solve-it-newtons-secton-law/launch",
+    "embedUrl": "https://www.physicsclassroom.com/html-module/solve-it-newtons-secton-law/1/SolveItFmaV2p1p1.html",
+    "version": "2.1.1",
+    "gravitationalFieldStrength_g": 9.8,
+    "gravitationalUnit": "N/kg",
+    "evaluationTolerance": 0.02,
+    "toleranceDescription": "A student answer is marked correct if it is within +/- 2% of the calculated answer (0.98 * CA <= SR <= 1.02 * CA).",
+    "mediaDirectory": "Media/solve-it/",
+    "totalProblemTemplates": 8,
+    "levels": [
+      "Apprentice",
+      "Master",
+      "Wizard"
+    ]
+  },
+  "levelDefinitions": {
+    "Apprentice": {
+      "name": "Apprentice Level",
+      "badge": "Apprentice.png",
+      "description": "Analyze a problem involving a rightward-moving object acted upon by a leftward friction force.",
+      "totalProblems": 2,
+      "problemIds": [
+        1,
+        2
+      ],
+      "blanksCount": 6,
+      "quantities": [
+        {
+          "symbol": "Fnorm",
+          "label": "Normal Force",
+          "unit": "N",
+          "direction": "up"
+        },
+        {
+          "symbol": "Fgrav",
+          "label": "Gravity Force",
+          "unit": "N",
+          "direction": "down"
+        },
+        {
+          "symbol": "Ffrict",
+          "label": "Friction Force",
+          "unit": "N",
+          "direction": "left"
+        },
+        {
+          "symbol": "m",
+          "label": "Mass",
+          "unit": "kg"
+        },
+        {
+          "symbol": "a",
+          "label": "Acceleration",
+          "unit": "m/s/s",
+          "direction": "left"
+        },
+        {
+          "symbol": "Fnet",
+          "label": "Net Force",
+          "unit": "N",
+          "direction": "left"
+        }
+      ]
+    },
+    "Master": {
+      "name": "Master Level",
+      "badge": "Master.png",
+      "description": "Analyze a problem involving a rightward force accelerating an object; friction is present.",
+      "totalProblems": 3,
+      "problemIds": [
+        3,
+        4,
+        5
+      ],
+      "blanksCount": 7,
+      "quantities": [
+        {
+          "symbol": "Fnorm",
+          "label": "Normal Force",
+          "unit": "N",
+          "direction": "up"
+        },
+        {
+          "symbol": "Fgrav",
+          "label": "Gravity Force",
+          "unit": "N",
+          "direction": "down"
+        },
+        {
+          "symbol": "Ffrict",
+          "label": "Friction Force",
+          "unit": "N",
+          "direction": "left"
+        },
+        {
+          "symbol": "Fapp",
+          "label": "Applied Force",
+          "unit": "N",
+          "direction": "right"
+        },
+        {
+          "symbol": "m",
+          "label": "Mass",
+          "unit": "kg"
+        },
+        {
+          "symbol": "a",
+          "label": "Acceleration",
+          "unit": "m/s/s",
+          "direction": "right"
+        },
+        {
+          "symbol": "Fnet",
+          "label": "Net Force",
+          "unit": "N",
+          "direction": "right"
+        }
+      ]
+    },
+    "Wizard": {
+      "name": "Wizard Level",
+      "badge": "Wizard.png",
+      "description": "Analyze a problem involving a rightward force accelerating an object; involves a coefficient of friction (\u00b5).",
+      "totalProblems": 3,
+      "problemIds": [
+        6,
+        7,
+        8
+      ],
+      "blanksCount": 8,
+      "quantities": [
+        {
+          "symbol": "Fnorm",
+          "label": "Normal Force",
+          "unit": "N",
+          "direction": "up"
+        },
+        {
+          "symbol": "Fgrav",
+          "label": "Gravity Force",
+          "unit": "N",
+          "direction": "down"
+        },
+        {
+          "symbol": "Ffrict",
+          "label": "Friction Force",
+          "unit": "N",
+          "direction": "left"
+        },
+        {
+          "symbol": "Fapp",
+          "label": "Applied Force",
+          "unit": "N",
+          "direction": "right"
+        },
+        {
+          "symbol": "mu",
+          "label": "Coefficient of Friction (\u00b5)",
+          "unit": "no unit"
+        },
+        {
+          "symbol": "m",
+          "label": "Mass",
+          "unit": "kg"
+        },
+        {
+          "symbol": "a",
+          "label": "Acceleration",
+          "unit": "m/s/s",
+          "direction": "right"
+        },
+        {
+          "symbol": "Fnet",
+          "label": "Net Force",
+          "unit": "N",
+          "direction": "right"
+        }
+      ]
+    }
+  },
+  "problemTemplates": [
+    {
+      "id": 1,
+      "level": "Apprentice",
+      "problemNumberInLevel": 1,
+      "title": "Decelerating Box: Known Friction and Mass",
+      "questionType": "Single Opposing Force",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help1",
+      "template": "Analyze this: A frictional force of {Ffrict} N acts upon a {mass} kg rightward-moving box to accelerate it leftward. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "left",
+        "state": "slowing down"
+      },
+      "givens": [
+        "Ffrict",
+        "mass"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "a",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randA": {
+          "description": "Mass generator parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randB": {
+          "description": "Friction generator parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(100.0 * (5.0 + randA * 10.0)) / 100.0",
+        "massRange": [
+          5.0,
+          15.0
+        ],
+        "massUnit": "kg",
+        "frictionFormula": "Math.floor(mass * 9.8 * (0.7 + 0.2 * randB) * 10.0) / 10.0",
+        "frictionRange": [
+          24.5,
+          132.3
+        ],
+        "frictionUnit": "N"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "friction",
+        "A4_mass": "mass",
+        "A5_acceln": "Math.floor((friction / mass) * 100.0) / 100.0",
+        "A6_Fnet": "friction"
+      },
+      "calculationHints": [
+        "Step 1: Identify the explicitly given values from the problem statement: Friction force Ffrict = {Ffrict} N, and Mass m = {mass} kg.",
+        "Step 2: Relate mass to gravity force using Fgrav = m * g (where g = 9.8 N/kg).",
+        "Step 3: Because vertical motion is balanced (no vertical acceleration), the normal force equals gravity: Fnorm = Fgrav.",
+        "Step 4: Analyze the horizontal forces: Only friction acts horizontally. Thus, the net unbalanced force is entirely the friction force: Fnet = Ffrict.",
+        "Step 5: Apply Newton's Second Law to calculate acceleration: a = Fnet / m = Ffrict / m (directed leftward)."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 8.5,
+          "friction": 66.6,
+          "questionText": "Analyze this: A frictional force of 66.6 N acts upon a 8.50 kg rightward-moving box to accelerate it leftward. Complete the diagram.",
+          "answers": {
+            "Fnorm": 83.3,
+            "Fgrav": 83.3,
+            "Ffrict": 66.6,
+            "mass": 8.5,
+            "acceln": 7.84,
+            "Fnet": 66.6
+          }
+        },
+        {
+          "mass": 12.4,
+          "friction": 102.1,
+          "questionText": "Analyze this: A frictional force of 102.1 N acts upon a 12.40 kg rightward-moving box to accelerate it leftward. Complete the diagram.",
+          "answers": {
+            "Fnorm": 121.52,
+            "Fgrav": 121.52,
+            "Ffrict": 102.1,
+            "mass": 12.4,
+            "acceln": 8.23,
+            "Fnet": 102.1
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "level": "Apprentice",
+      "problemNumberInLevel": 2,
+      "title": "Decelerating Box: Known Acceleration and Mass",
+      "questionType": "Single Opposing Force",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help2",
+      "template": "Analyze this: A frictional force acts upon a {mass} kg rightward-moving box to accelerate it leftward at {acceln} m/s/s. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "left",
+        "state": "slowing down"
+      },
+      "givens": [
+        "mass",
+        "acceln"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "Ffrict",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randA": {
+          "description": "Mass generator parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randC": {
+          "description": "Acceleration generator parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(100.0 * (12.0 + randA * 20.0)) / 100.0",
+        "massRange": [
+          12.0,
+          32.0
+        ],
+        "massUnit": "kg",
+        "accelnFormula": "Math.floor((5.0 + 3.0 * randC) * 100.0) / 100.0",
+        "accelnRange": [
+          5.0,
+          8.0
+        ],
+        "accelnUnit": "m/s/s"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "mass * acceln",
+        "A4_mass": "mass",
+        "A5_acceln": "acceln",
+        "A6_Fnet": "mass * acceln"
+      },
+      "calculationHints": [
+        "Step 1: Identify givens from the problem statement: Mass m = {mass} kg, and leftward Acceleration a = {acceln} m/s/s.",
+        "Step 2: Relate mass and gravitational force: Fgrav = m * g = {mass} * 9.8 N.",
+        "Step 3: Vertical forces balance on the horizontal surface, so Fnorm = Fgrav.",
+        "Step 4: Use Newton's Second Law to calculate the net unbalanced force: Fnet = m * a.",
+        "Step 5: Since friction is the only horizontal force acting to cause this acceleration, Ffrict = Fnet = m * a."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 18.5,
+          "acceln": 6.4,
+          "questionText": "Analyze this: A frictional force acts upon a 18.50 kg rightward-moving box to accelerate it leftward at 6.40 m/s/s. Complete the diagram.",
+          "answers": {
+            "Fnorm": 181.3,
+            "Fgrav": 181.3,
+            "Ffrict": 118.4,
+            "mass": 18.5,
+            "acceln": 6.4,
+            "Fnet": 118.4
+          }
+        },
+        {
+          "mass": 25.2,
+          "acceln": 7.15,
+          "questionText": "Analyze this: A frictional force acts upon a 25.20 kg rightward-moving box to accelerate it leftward at 7.15 m/s/s. Complete the diagram.",
+          "answers": {
+            "Fnorm": 246.96,
+            "Fgrav": 246.96,
+            "Ffrict": 180.18,
+            "mass": 25.2,
+            "acceln": 7.15,
+            "Fnet": 180.18
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "level": "Master",
+      "problemNumberInLevel": 1,
+      "title": "Opposing Forces: Find Net Force and Acceleration",
+      "questionType": "Opposing Forces (Fapp vs Ffrict)",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help3",
+      "template": "Analyze this: A rightward force of {Fapp} N is applied to a {mass}-kg object to accelerate it to the right. The friction force between the object and the surface is {Ffrict} N. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "right",
+        "state": "speeding up"
+      },
+      "givens": [
+        "Fapp",
+        "mass",
+        "Ffrict"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "a",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randA": {
+          "description": "Mass generator parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randB": {
+          "description": "Force generator parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(100.0 * (3.0 + randA * 4.0)) / 100.0",
+        "massRange": [
+          3.0,
+          7.0
+        ],
+        "massUnit": "kg",
+        "FappFormula": "Math.floor((80.0 + 20.0 * randB) * 10.0) / 10.0",
+        "FappRange": [
+          80.0,
+          100.0
+        ],
+        "FappUnit": "N",
+        "FfrictFormula": "Math.floor(mass * 9.8 * (0.5 + randB * 0.4) * 10.0) / 10.0",
+        "FfrictRange": [
+          14.7,
+          61.7
+        ],
+        "FfrictUnit": "N"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "Ffrict",
+        "A4_Fapp": "Fapp",
+        "A5_mass": "mass",
+        "A6_acceln": "(Fapp - Ffrict) / mass",
+        "A7_Fnet": "Fapp - Ffrict"
+      },
+      "calculationHints": [
+        "Step 1: Identify the three directly stated values: Applied force Fapp = {Fapp} N, Mass m = {mass} kg, and Friction force Ffrict = {Ffrict} N.",
+        "Step 2: Calculate gravity: Fgrav = m * g = {mass} * 9.8 N. Since vertical motion is balanced, Fnorm = Fgrav.",
+        "Step 3: Determine horizontal net force: Fapp and Ffrict are in opposite directions. The net force is their difference: Fnet = Fapp - Ffrict.",
+        "Step 4: Use Newton's Second Law to determine acceleration: a = Fnet / m = (Fapp - Ffrict) / m."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 4.5,
+          "Fapp": 92.0,
+          "Ffrict": 32.5,
+          "questionText": "Analyze this: A rightward force of 92.0 N is applied to a 4.50-kg object to accelerate it to the right. The friction force between the object and the surface is 32.5 N. Complete the diagram.",
+          "answers": {
+            "Fnorm": 44.1,
+            "Fgrav": 44.1,
+            "Ffrict": 32.5,
+            "Fapp": 92.0,
+            "mass": 4.5,
+            "acceln": 13.22,
+            "Fnet": 59.5
+          }
+        },
+        {
+          "mass": 5.8,
+          "Fapp": 86.4,
+          "Ffrict": 39.8,
+          "questionText": "Analyze this: A rightward force of 86.4 N is applied to a 5.80-kg object to accelerate it to the right. The friction force between the object and the surface is 39.8 N. Complete the diagram.",
+          "answers": {
+            "Fnorm": 56.84,
+            "Fgrav": 56.84,
+            "Ffrict": 39.8,
+            "Fapp": 86.4,
+            "mass": 5.8,
+            "acceln": 8.03,
+            "Fnet": 46.6
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "level": "Master",
+      "problemNumberInLevel": 2,
+      "title": "Opposing Forces: Find Unknown Friction Force",
+      "questionType": "Opposing Forces (Fapp vs Ffrict)",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help4",
+      "template": "Analyze this: A rightward force of {Fapp} N is applied to a {mass}-kg object to accelerate it to the right at {acceln} m/s/s. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "right",
+        "state": "speeding up"
+      },
+      "givens": [
+        "Fapp",
+        "mass",
+        "acceln"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "Ffrict",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randA": {
+          "description": "Mass and accel parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randC": {
+          "description": "Force parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(10.0 * (12.0 + randA * 5.0)) / 10.0",
+        "massRange": [
+          12.0,
+          17.0
+        ],
+        "massUnit": "kg",
+        "FappFormula": "Math.floor(350.0 + 200.0 * randC)",
+        "FappRange": [
+          350.0,
+          550.0
+        ],
+        "FappUnit": "N",
+        "accelnFormula": "Math.floor(10.0 * (12.0 + randA * 3.0)) / 10.0",
+        "accelnRange": [
+          12.0,
+          15.0
+        ],
+        "accelnUnit": "m/s/s"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "Fapp - mass * acceln",
+        "A4_Fapp": "Fapp",
+        "A5_mass": "mass",
+        "A6_acceln": "acceln",
+        "A7_Fnet": "mass * acceln"
+      },
+      "calculationHints": [
+        "Step 1: Identify givens: Applied force Fapp = {Fapp} N, Mass m = {mass} kg, and Acceleration a = {acceln} m/s/s.",
+        "Step 2: Relate vertical forces: Fgrav = m * g = {mass} * 9.8 N. On a level horizontal plane, Fnorm = Fgrav.",
+        "Step 3: Calculate net force using Newton's Second Law: Fnet = m * a.",
+        "Step 4: Analyze opposing horizontal forces: The rightward force exceeds leftward friction by Fnet (Fnet = Fapp - Ffrict).",
+        "Step 5: Solve for friction: Ffrict = Fapp - Fnet = Fapp - (m * a)."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 14.2,
+          "Fapp": 420.0,
+          "acceln": 13.3,
+          "questionText": "Analyze this: A rightward force of 420 N is applied to a 14.2-kg object to accelerate it to the right at 13.3 m/s/s. Complete the diagram.",
+          "answers": {
+            "Fnorm": 139.16,
+            "Fgrav": 139.16,
+            "Ffrict": 231.14,
+            "Fapp": 420.0,
+            "mass": 14.2,
+            "acceln": 13.3,
+            "Fnet": 188.86
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "level": "Master",
+      "problemNumberInLevel": 3,
+      "title": "Opposing Forces: Find Required Applied Force",
+      "questionType": "Opposing Forces (Fapp vs Ffrict)",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help5",
+      "template": "Analyze this: A rightward force is applied to a {mass}-kg object to accelerate it to the right at {acceln} m/s/s. The friction force between the object and the surface is {Ffrict} N. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "right",
+        "state": "speeding up"
+      },
+      "givens": [
+        "mass",
+        "acceln",
+        "Ffrict"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "Fapp",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randB": {
+          "description": "Mass parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randC": {
+          "description": "Accel and friction parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(100.0 * (6.0 + randB * 2.0)) / 100.0",
+        "massRange": [
+          6.0,
+          8.0
+        ],
+        "massUnit": "kg",
+        "accelnFormula": "Math.floor((12.0 + 8.0 * randC) * 10.0) / 10.0",
+        "accelnRange": [
+          12.0,
+          20.0
+        ],
+        "accelnUnit": "m/s/s",
+        "FfrictFormula": "Math.floor(mass * 9.8 * (0.4 + randC * 0.2) * 10.0) / 10.0",
+        "FfrictRange": [
+          23.5,
+          47.0
+        ],
+        "FfrictUnit": "N"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "Ffrict",
+        "A4_Fapp": "Ffrict + mass * acceln",
+        "A5_mass": "mass",
+        "A6_acceln": "acceln",
+        "A7_Fnet": "mass * acceln"
+      },
+      "calculationHints": [
+        "Step 1: Identify givens: Mass m = {mass} kg, Acceleration a = {acceln} m/s/s, and Friction force Ffrict = {Ffrict} N.",
+        "Step 2: Relate vertical forces: Fgrav = m * g = {mass} * 9.8 N, and Fnorm = Fgrav.",
+        "Step 3: Calculate net force from mass and acceleration: Fnet = m * a.",
+        "Step 4: Connect net force to horizontal opposing forces: Fnet = Fapp - Ffrict.",
+        "Step 5: Solve for applied force: Fapp = Ffrict + Fnet = Ffrict + (m * a)."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 7.1,
+          "acceln": 16.4,
+          "Ffrict": 35.5,
+          "questionText": "Analyze this: A rightward force is applied to a 7.10-kg object to accelerate it to the right at 16.4 m/s/s. The friction force between the object and the surface is 35.5 N. Complete the diagram.",
+          "answers": {
+            "Fnorm": 69.58,
+            "Fgrav": 69.58,
+            "Ffrict": 35.5,
+            "Fapp": 151.94,
+            "mass": 7.1,
+            "acceln": 16.4,
+            "Fnet": 116.44
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "level": "Wizard",
+      "problemNumberInLevel": 1,
+      "title": "Coefficient of Friction: Given Accel & Mu, Find Applied Force",
+      "questionType": "Coefficient of Friction (\u00b5) Dynamics",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help6",
+      "template": "Analyze this: A rightward force is applied to a {mass}-kg object to accelerate it to the right at {acceln} m/s/s. The coefficient of friction for the object and the surface is {mu}. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "right",
+        "state": "speeding up"
+      },
+      "givens": [
+        "mass",
+        "acceln",
+        "mu"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "Ffrict",
+        "Fapp",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randA": {
+          "description": "Mass parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randB": {
+          "description": "Accel and mu parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(100.0 * (6.0 + randA * 2.0)) / 100.0",
+        "massRange": [
+          6.0,
+          8.0
+        ],
+        "massUnit": "kg",
+        "accelnFormula": "Math.floor((12.0 + 8.0 * randB) * 10.0) / 10.0",
+        "accelnRange": [
+          12.0,
+          20.0
+        ],
+        "accelnUnit": "m/s/s",
+        "muFormula": "Math.floor((0.4 + randB * 0.2) * 1000.0) / 1000.0",
+        "muRange": [
+          0.4,
+          0.6
+        ],
+        "muUnit": "no unit"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "mu * mass * 9.8",
+        "A4_Fapp": "mass * acceln + mu * mass * 9.8",
+        "A5_mu": "mu",
+        "A6_mass": "mass",
+        "A7_acceln": "acceln",
+        "A8_Fnet": "mass * acceln"
+      },
+      "calculationHints": [
+        "Step 1: Identify the three stated values: Mass m = {mass} kg, Acceleration a = {acceln} m/s/s, and Coefficient of friction \u00b5 = {mu}.",
+        "Step 2: Calculate gravity: Fgrav = m * g = {mass} * 9.8 N. Vertical equilibrium gives Fnorm = Fgrav.",
+        "Step 3: Calculate friction force using the coefficient of friction: Ffrict = \u00b5 * Fnorm = {mu} * ({mass} * 9.8).",
+        "Step 4: Use Newton's Second Law for net force: Fnet = m * a.",
+        "Step 5: Solve for the applied force: Fapp = Fnet + Ffrict = (m * a) + (\u00b5 * Fnorm)."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 7.01,
+          "acceln": 12.2,
+          "mu": 0.405,
+          "questionText": "Analyze this: A rightward force is applied to a 7.01-kg object to accelerate it to the right at 12.2 m/s/s. The coefficient of friction for the object and the surface is 0.405. Complete the diagram.",
+          "answers": {
+            "Fnorm": 68.698,
+            "Fgrav": 68.698,
+            "Ffrict": 27.82,
+            "Fapp": 113.34,
+            "mu": 0.405,
+            "mass": 7.01,
+            "acceln": 12.2,
+            "Fnet": 85.52
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "level": "Wizard",
+      "problemNumberInLevel": 2,
+      "title": "Coefficient of Friction: Given Applied Force & Mu, Find Acceleration",
+      "questionType": "Coefficient of Friction (\u00b5) Dynamics",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help7",
+      "template": "Analyze this: A rightward force of {Fapp} N is applied to a {mass}-kg object to accelerate it to the right. The coefficient of friction for the object and the surface is {mu}. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "right",
+        "state": "speeding up"
+      },
+      "givens": [
+        "Fapp",
+        "mass",
+        "mu"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "Ffrict",
+        "a",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randA": {
+          "description": "Mass parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randC": {
+          "description": "Applied force and mu parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(10.0 * (18.0 + randA * 12.0)) / 10.0",
+        "massRange": [
+          18.0,
+          30.0
+        ],
+        "massUnit": "kg",
+        "FappFormula": "Math.floor(280.0 + 80.0 * randC)",
+        "FappRange": [
+          280.0,
+          360.0
+        ],
+        "FappUnit": "N",
+        "muFormula": "Math.floor((0.4 + randC * 0.2) * 1000.0) / 1000.0",
+        "muRange": [
+          0.4,
+          0.6
+        ],
+        "muUnit": "no unit"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "mu * mass * 9.8",
+        "A4_Fapp": "Fapp",
+        "A5_mu": "mu",
+        "A6_mass": "mass",
+        "A7_acceln": "(Fapp - mu * mass * 9.8) / mass",
+        "A8_Fnet": "Fapp - mu * mass * 9.8"
+      },
+      "calculationHints": [
+        "Step 1: Identify stated values: Applied force Fapp = {Fapp} N, Mass m = {mass} kg, and Coefficient of friction \u00b5 = {mu}.",
+        "Step 2: Relate mass and vertical gravity: Fgrav = m * g = {mass} * 9.8 N. Vertical equilibrium gives Fnorm = Fgrav.",
+        "Step 3: Calculate friction force: Ffrict = \u00b5 * Fnorm = {mu} * ({mass} * 9.8).",
+        "Step 4: Find net horizontal force: Fnet = Fapp - Ffrict.",
+        "Step 5: Calculate acceleration using Newton's Second Law: a = Fnet / m = (Fapp - Ffrict) / m."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 24.5,
+          "Fapp": 320.0,
+          "mu": 0.48,
+          "questionText": "Analyze this: A rightward force of 320 N is applied to a 24.5-kg object to accelerate it to the right. The coefficient of friction for the object and the surface is 0.480. Complete the diagram.",
+          "answers": {
+            "Fnorm": 240.1,
+            "Fgrav": 240.1,
+            "Ffrict": 115.25,
+            "Fapp": 320.0,
+            "mu": 0.48,
+            "mass": 24.5,
+            "acceln": 8.36,
+            "Fnet": 204.75
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "level": "Wizard",
+      "problemNumberInLevel": 3,
+      "title": "Coefficient of Friction: Given Force & Accel, Find Mu",
+      "questionType": "Coefficient of Friction (\u00b5) Dynamics",
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Newtons-Second-Law-Problems/conceptBuilderHelp/help8",
+      "template": "Analyze this: A rightward force of {Fapp} N is applied to a {mass}-kg object to accelerate it to the right at {acceln} m/s/s. Complete the diagram.",
+      "motion": {
+        "velocityDirection": "right",
+        "accelerationDirection": "right",
+        "state": "speeding up"
+      },
+      "givens": [
+        "Fapp",
+        "mass",
+        "acceln"
+      ],
+      "unknownsToSolve": [
+        "Fnorm",
+        "Fgrav",
+        "Ffrict",
+        "mu",
+        "Fnet"
+      ],
+      "randomRanges": {
+        "randB": {
+          "description": "Mass parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "randC": {
+          "description": "Accel and force parameter [0, 1)",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "massFormula": "Math.floor(100.0 * (5.00 + randB * 3.00)) / 100.0",
+        "massRange": [
+          5.0,
+          8.0
+        ],
+        "massUnit": "kg",
+        "accelnFormula": "Math.floor((3.0 + randC * 2.0) * 100.0) / 100.0",
+        "accelnRange": [
+          3.0,
+          5.0
+        ],
+        "accelnUnit": "m/s/s",
+        "FappFormula": "Math.floor(10.0 * (mass * acceln * (1.30 + 0.400 * randC))) / 10.0",
+        "FappRange": [
+          19.5,
+          68.0
+        ],
+        "FappUnit": "N"
+      },
+      "exactSolutionFormulas": {
+        "A1_Fnorm": "mass * 9.8",
+        "A2_Fgrav": "mass * 9.8",
+        "A3_Ffrict": "Fapp - mass * acceln",
+        "A4_Fapp": "Fapp",
+        "A5_mu": "(Fapp - mass * acceln) / (mass * 9.8)",
+        "A6_mass": "mass",
+        "A7_acceln": "acceln",
+        "A8_Fnet": "mass * acceln"
+      },
+      "calculationHints": [
+        "Step 1: Identify stated givens: Applied force Fapp = {Fapp} N, Mass m = {mass} kg, and Acceleration a = {acceln} m/s/s.",
+        "Step 2: Relate mass and vertical gravity: Fgrav = m * g = {mass} * 9.8 N. Vertical equilibrium gives Fnorm = Fgrav.",
+        "Step 3: Calculate net force: Fnet = m * a.",
+        "Step 4: Find friction force from horizontal net force: Fnet = Fapp - Ffrict => Ffrict = Fapp - Fnet = Fapp - (m * a).",
+        "Step 5: Solve for the coefficient of friction \u00b5: From Ffrict = \u00b5 * Fnorm, we get \u00b5 = Ffrict / Fnorm = (Fapp - m * a) / (m * 9.8)."
+      ],
+      "sampleInstances": [
+        {
+          "mass": 6.2,
+          "acceln": 4.1,
+          "Fapp": 38.6,
+          "questionText": "Analyze this: A rightward force of 38.6 N is applied to a 6.20-kg object to accelerate it to the right at 4.10 m/s/s. Complete the diagram.",
+          "answers": {
+            "Fnorm": 60.76,
+            "Fgrav": 60.76,
+            "Ffrict": 13.18,
+            "Fapp": 38.6,
+            "mu": 0.217,
+            "mass": 6.2,
+            "acceln": 4.1,
+            "Fnet": 25.42
+          }
+        }
+      ]
+    }
+  ]
+}
