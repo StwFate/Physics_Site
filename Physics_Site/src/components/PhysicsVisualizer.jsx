@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Play, Pause, RotateCcw } from 'lucide-react'
+import ForceSymbol from './ForceSymbol'
 
 export default function PhysicsVisualizer({
   fNet = 0,
@@ -78,7 +79,9 @@ export default function PhysicsVisualizer({
         <div className="flex items-center gap-3 font-mono text-slate-600">
           <span>a: <strong className={accel !== 0 ? 'text-blue-700' : 'text-emerald-700'}>{accel.toFixed(2)} m/s²</strong></span>
           <span>v: <strong className="text-slate-800">{velocity.toFixed(1)} m/s</strong></span>
-          <span>F_net: <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>{fNet.toFixed(1)} N</strong></span>
+          <span className="flex items-center gap-1">
+            <ForceSymbol type="Fnet" />: <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>{fNet.toFixed(1)} N</strong>
+          </span>
         </div>
       </div>
 
@@ -107,7 +110,11 @@ export default function PhysicsVisualizer({
             {/* Left force arrow */}
             {forces.filter(f => f.dir === 'left').map((f, i) => (
               <div key={i} className="absolute right-full top-1/2 -translate-y-1/2 flex items-center pr-1 pointer-events-none">
-                <span className="text-[10px] text-rose-600 font-mono font-bold mr-1">{f.name}</span>
+                {f.name.startsWith('F_') ? (
+                  <ForceSymbol sub={f.name.replace('F_', '')} className="text-[11px] text-rose-600 mr-1" />
+                ) : (
+                  <span className="text-[10px] text-rose-600 font-mono font-bold mr-1">{f.name}</span>
+                )}
                 <div className="h-0.5 bg-rose-600 relative" style={{ width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px` }}>
                   <div className="absolute left-0 -top-1 border-t-4 border-r-4 border-b-4 border-transparent border-r-rose-600"></div>
                 </div>
@@ -120,7 +127,11 @@ export default function PhysicsVisualizer({
                 <div className="h-0.5 bg-blue-600 relative" style={{ width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px` }}>
                   <div className="absolute right-0 -top-1 border-t-4 border-l-4 border-b-4 border-transparent border-l-blue-600"></div>
                 </div>
-                <span className="text-[10px] text-blue-600 font-mono font-bold ml-1">{f.name}</span>
+                {f.name.startsWith('F_') ? (
+                  <ForceSymbol sub={f.name.replace('F_', '')} className="text-[11px] text-blue-600 ml-1" />
+                ) : (
+                  <span className="text-[10px] text-blue-600 font-mono font-bold ml-1">{f.name}</span>
+                )}
               </div>
             ))}
           </div>
@@ -137,9 +148,13 @@ export default function PhysicsVisualizer({
       <div className="flex items-center justify-between mt-2.5">
         <p className="text-xs text-slate-600">
           {fNet === 0 ? (
-            <span className="text-emerald-700 font-medium">✓ Forces are balanced (F_net = 0). Constant velocity.</span>
+            <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
+              ✓ Forces are balanced (<ForceSymbol type="Fnet" /> = 0). Constant velocity.
+            </span>
           ) : (
-            <span className="text-amber-700 font-medium">⚠ Forces are unbalanced (F_net ≠ 0). Acceleration occurs.</span>
+            <span className="text-amber-700 font-medium inline-flex items-center gap-1">
+              ⚠ Forces are unbalanced (<ForceSymbol type="Fnet" /> ≠ 0). Acceleration occurs.
+            </span>
           )}
         </p>
         <div className="flex items-center gap-2">
