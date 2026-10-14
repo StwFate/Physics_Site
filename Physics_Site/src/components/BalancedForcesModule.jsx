@@ -285,16 +285,18 @@ export default function BalancedForcesModule() {
                     <p className="text-slate-700 leading-relaxed">{currentQ.explanation}</p>
                   </div>
                 ) : (
-                  <div className="p-3 rounded border border-rose-200 bg-rose-50 text-rose-900 text-xs space-y-1">
+                  <div className="p-3 rounded border border-rose-200 bg-rose-50 text-rose-900 text-xs space-y-1.5">
                     <div className="flex items-center gap-1.5 font-bold text-rose-700">
                       <XCircle className="w-4 h-4" />
-                      <span>Incorrect</span>
+                      <span>Not quite — Try Again!</span>
                     </div>
-                    <p className="text-slate-700 leading-relaxed">
-                      Correct: <strong>{currentQ.motionAnswer}</strong> with{' '}
-                      <strong>{currentQ.forceAnswer} Forces</strong>.
+                    <p className="text-slate-700 leading-relaxed text-[11px]">
+                      Analyze the force balance and direction of motion:
                     </p>
-                    <p className="text-slate-600 text-[11px] pt-1">{currentQ.explanation}</p>
+                    <ul className="list-disc pl-4 text-slate-600 text-[11px] space-y-0.5">
+                      <li>If forces cancel out (<span className="font-serif italic">F</span><sub className="font-sans font-bold">net</sub> = 0), velocity is <strong>constant</strong> (Newton's 1st Law).</li>
+                      <li>If an unbalanced net force aligns with motion, it <strong>speeds up</strong>; if opposing motion, it <strong>slows down</strong>.</li>
+                    </ul>
                   </div>
                 )}
 
