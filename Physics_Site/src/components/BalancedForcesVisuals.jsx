@@ -1,33 +1,149 @@
 import React from 'react'
-import ForceSymbol from './ForceSymbol'
-import { ArrowRight, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowRight, ArrowLeft } from 'lucide-react'
+
+// Parses force label or code into structured typographic tokens:
+// e.g. "FN" -> [{ type: 'force', sub: 'N' }]
+// e.g. "Fa1 + Fa2" -> [{ type: 'force', sub: 'a1' }, { type: 'text', val: ' + ' }, { type: 'force', sub: 'a2' }]
+// e.g. "Ff (Brakes)" -> [{ type: 'force', sub: 'f' }, { type: 'text', val: ' (brakes)' }]
+export function parseForceTokens(label, code) {
+  const str = (label || code || '').trim()
+
+  if (str === 'Fa1 + Fa2') {
+    return [
+      { type: 'force', sub: 'a1' },
+      { type: 'text', val: ' + ' },
+      { type: 'force', sub: 'a2' }
+    ]
+  }
+  if (str === 'Fg + Fair') {
+    return [
+      { type: 'force', sub: 'g' },
+      { type: 'text', val: ' + ' },
+      { type: 'force', sub: 'air' }
+    ]
+  }
+  if (str === 'Ff + Fair') {
+    return [
+      { type: 'force', sub: 'f' },
+      { type: 'text', val: ' + ' },
+      { type: 'force', sub: 'air' }
+    ]
+  }
+  if (str.toLowerCase().includes('(brakes)')) {
+    return [
+      { type: 'force', sub: 'f' },
+      { type: 'text', val: ' (brakes)' }
+    ]
+  }
+  if (str.toLowerCase().includes('(drive)')) {
+    return [
+      { type: 'force', sub: 'a' },
+      { type: 'text', val: ' (drive)' }
+    ]
+  }
+
+  // Common physics symbols mapping
+  const lower = str.toLowerCase()
+  if (code === 'Fnorm' || lower === 'fn' || lower === 'fnorm') return [{ type: 'force', sub: 'N' }]
+  if (code === 'Fgrav' || lower === 'fg' || lower === 'fgrav') return [{ type: 'force', sub: 'g' }]
+  if (code === 'Fapp' || lower === 'fa' || lower === 'fapp') return [{ type: 'force', sub: 'a' }]
+  if (code === 'Ffrict' || lower === 'ff' || lower === 'ffrict') return [{ type: 'force', sub: 'f' }]
+  if (code === 'Fair' || lower === 'fair') return [{ type: 'force', sub: 'air' }]
+  if (code === 'Ftens' || lower === 'ft' || lower === 'ftens') return [{ type: 'force', sub: 'T' }]
+  if (code === 'Fspring' || lower === 'fs' || lower === 'fspring') return [{ type: 'force', sub: 's' }]
+  if (code === 'Fthrust' || lower === 'fthrust') return [{ type: 'force', sub: 'thrust' }]
+  if (code === 'Fdrag' || lower === 'fdrag') return [{ type: 'force', sub: 'drag' }]
+  if (code === 'Fnet' || lower === 'fnet') return [{ type: 'force', sub: 'net' }]
+
+  if (str.startsWith('F_')) {
+    return [{ type: 'force', sub: str.replace('F_', '') }]
+  }
+  if (str.startsWith('F') && str.length > 1) {
+    return [{ type: 'force', sub: str.slice(1) }]
+  }
+
+  return [{ type: 'text', val: str }]
+}
+
+// Renders authentic physics typography with italic serif 'F' and lowered subscript
+export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
+  const tokens = parseForceTokens(label, code)
+
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={anchor}
+      fill="#dc2626"
+      className="select-none"
+    >
+      {tokens.map((tok, idx) => {
+        if (tok.type === 'force') {
+          return (
+            <React.Fragment key={idx}>
+              <tspan
+                fontFamily="Georgia, Cambria, 'Times New Roman', serif"
+                fontStyle="italic"
+                fontSize="16"
+                fontWeight="700"
+              >
+                F
+              </tspan>
+              <tspan
+                fontFamily="system-ui, -apple-system, sans-serif"
+                fontStyle="normal"
+                fontSize="11"
+                fontWeight="700"
+                dy="4"
+              >
+                {tok.sub}
+              </tspan>
+            </React.Fragment>
+          )
+        }
+        return (
+          <tspan
+            key={idx}
+            fontFamily="system-ui, -apple-system, sans-serif"
+            fontStyle="normal"
+            fontSize="12"
+            fontWeight="600"
+            dy={idx > 0 && tokens[idx - 1].type === 'force' ? -4 : 0}
+          >
+            {tok.val}
+          </tspan>
+        )
+      })}
+    </text>
+  )
+}
 
 // 1. Force Diagram SVG Renderer
 export function ForceDiagramView({ renderData, motionDirection }) {
   const forces = renderData?.forces || []
-  const cx = 150
-  const cy = 130
+  const cx = 190
+  const cy = 140
   const boxSize = 50
 
   const getLength = (mag) => {
-    if (mag === 'small') return 45
+    if (mag === 'small') return 50
     if (mag === 'large') return 105
     return 75 // medium
   }
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center p-2">
-      <svg viewBox="0 0 300 260" className="w-full max-w-[320px] h-60 select-none">
+      <svg viewBox="0 0 380 280" className="w-full max-w-[380px] h-64 select-none">
         <defs>
           <marker
             id="arrowhead-red"
-            markerWidth="7"
-            markerHeight="7"
-            refX="6"
-            refY="3.5"
+            markerWidth="8"
+            markerHeight="8"
+            refX="7"
+            refY="4"
             orient="auto"
           >
-            <polygon points="0 0, 7 3.5, 0 7" fill="#dc2626" />
+            <polygon points="0 0, 8 4, 0 8" fill="#dc2626" />
           </marker>
         </defs>
 
@@ -46,30 +162,35 @@ export function ForceDiagramView({ renderData, motionDirection }) {
         {/* Center Mass Point */}
         <circle cx={cx} cy={cy} r="4.5" fill="#0f172a" />
 
-        {/* Dynamic Force Arrows */}
+        {/* Dynamic Force Arrows & Non-overlapping Subscript Labels */}
         {forces.map((f, i) => {
           const len = getLength(f.magnitude)
           let x2 = cx
           let y2 = cy
           let lx = cx
           let ly = cy
+          let anchor = 'start'
 
           if (f.dir === 'up') {
             y2 = cy - len
-            lx = cx + 8
-            ly = y2 + 16
+            lx = cx
+            ly = y2 - 10
+            anchor = 'middle'
           } else if (f.dir === 'down') {
             y2 = cy + len
-            lx = cx + 8
-            ly = y2 - 8
+            lx = cx
+            ly = y2 + 22
+            anchor = 'middle'
           } else if (f.dir === 'left') {
             x2 = cx - len
-            lx = x2 + 6
-            ly = cy - 8
+            lx = x2 - 12
+            ly = cy + 5
+            anchor = 'end'
           } else if (f.dir === 'right') {
             x2 = cx + len
-            lx = x2 - 28
-            ly = cy - 8
+            lx = x2 + 12
+            ly = cy + 5
+            anchor = 'start'
           }
 
           return (
@@ -83,16 +204,13 @@ export function ForceDiagramView({ renderData, motionDirection }) {
                 strokeWidth="3"
                 markerEnd="url(#arrowhead-red)"
               />
-              <text
+              <SvgForceLabel
+                label={f.label}
+                code={f.code}
                 x={lx}
                 y={ly}
-                fill="#dc2626"
-                fontSize="12"
-                fontWeight="700"
-                fontFamily="system-ui, sans-serif"
-              >
-                {f.label || f.code}
-              </text>
+                anchor={anchor}
+              />
             </g>
           )
         })}
@@ -235,8 +353,8 @@ export function VelocityTimeGraphView({ renderData }) {
         <text x="280" y="196" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">t (s)</text>
         <text x="8" y="25" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">v (m/s)</text>
         <text x="22" y="114" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">0</text>
-        <text x="18" y="55" fill="#64748b" fontSize="10" fontFamily="monospace">+v</text>
-        <text x="18" y="175" fill="#64748b" fontSize="10" fontFamily="monospace">-v</text>
+        <text x="18" y="55" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">+v</text>
+        <text x="18" y="175" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">-v</text>
 
         {/* Velocity lines */}
         {curveType === 'constant_pos' && (
