@@ -339,6 +339,7 @@ export default function BalancedForcesModule() {
         label={`${formatQuestionId(currentQ.id)} Motion Model`}
         forces={simForces}
         isSubmitted={isSubmitted}
+        motionDirection={currentQ?.motionDirection}
       />
     </div>
   )
