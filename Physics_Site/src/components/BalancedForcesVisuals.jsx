@@ -124,11 +124,12 @@ export function ForceDiagramView({ renderData, motionDirection }) {
   const cx = 200
   const cy = 150
   const boxSize = 52
+  const halfBox = boxSize / 2
 
   const getLength = (mag) => {
-    if (mag === 'small') return 50
-    if (mag === 'large') return 105
-    return 75 // medium
+    if (mag === 'small') return 40
+    if (mag === 'large') return 85
+    return 60 // medium
   }
 
   return (
@@ -165,6 +166,8 @@ export function ForceDiagramView({ renderData, motionDirection }) {
         {/* Dynamic Force Arrows & Non-overlapping Subscript Labels */}
         {forces.map((f, i) => {
           const len = getLength(f.magnitude)
+          let x1 = cx
+          let y1 = cy
           let x2 = cx
           let y2 = cy
           let lx = cx
@@ -172,22 +175,34 @@ export function ForceDiagramView({ renderData, motionDirection }) {
           let anchor = 'start'
 
           if (f.dir === 'up') {
-            y2 = cy - len
+            x1 = cx
+            y1 = cy - halfBox
+            x2 = cx
+            y2 = y1 - len
             lx = cx
             ly = y2 - 12
             anchor = 'middle'
           } else if (f.dir === 'down') {
-            y2 = cy + len
+            x1 = cx
+            y1 = cy + halfBox
+            x2 = cx
+            y2 = y1 + len
             lx = cx
             ly = y2 + 28
             anchor = 'middle'
           } else if (f.dir === 'left') {
-            x2 = cx - len
+            y1 = cy
+            x1 = cx - halfBox
+            y2 = cy
+            x2 = x1 - len
             lx = x2 - 14
             ly = cy + 7
             anchor = 'end'
           } else if (f.dir === 'right') {
-            x2 = cx + len
+            y1 = cy
+            x1 = cx + halfBox
+            y2 = cy
+            x2 = x1 + len
             lx = x2 + 14
             ly = cy + 7
             anchor = 'start'
@@ -196,8 +211,8 @@ export function ForceDiagramView({ renderData, motionDirection }) {
           return (
             <g key={i}>
               <line
-                x1={cx}
-                y1={cy}
+                x1={x1}
+                y1={y1}
                 x2={x2}
                 y2={y2}
                 stroke="#dc2626"
