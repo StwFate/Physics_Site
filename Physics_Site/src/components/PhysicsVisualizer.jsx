@@ -9,6 +9,7 @@ export default function PhysicsVisualizer({
   label = 'Object Motion Simulation',
   forces = []
 }) {
+  const formattedLabel = label ? label.charAt(0).toUpperCase() + label.slice(1) : ''
   const [isPlaying, setIsPlaying] = useState(false)
   const [position, setPosition] = useState(50)
   const [velocity, setVelocity] = useState(initialVelocity)
@@ -73,7 +74,7 @@ export default function PhysicsVisualizer({
       <div className="flex items-center justify-between mb-2.5 text-xs">
         <span className="font-semibold text-slate-800 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-          {label} ({isVertical ? 'Vertical Motion Model' : 'Horizontal Track Model'})
+          {formattedLabel} ({isVertical ? 'Vertical Motion Model' : 'Horizontal Track Model'})
         </span>
         <div className="flex items-center gap-3 font-mono text-slate-600">
           <span>

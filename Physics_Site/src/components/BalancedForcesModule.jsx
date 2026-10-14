@@ -45,6 +45,11 @@ export default function BalancedForcesModule() {
 
   const currentQ = questions[currentIndex] || questions[0]
 
+  const formatQuestionId = (id) => {
+    if (!id) return ''
+    return id.charAt(0).toUpperCase() + id.slice(1)
+  }
+
   useEffect(() => {
     setSelectedMotion(null)
     setSelectedForce(null)
@@ -201,7 +206,7 @@ export default function BalancedForcesModule() {
               <ChevronLeft className="w-3.5 h-3.5" /> Prev
             </button>
             <span className="font-mono text-slate-400 text-xs">
-              {currentQ.id} {completedQuestions[currentQ.id] && '⭐'}
+              {formatQuestionId(currentQ.id)} {completedQuestions[currentQ.id] && '⭐'}
             </span>
             <button
               onClick={handleNext}
@@ -331,7 +336,7 @@ export default function BalancedForcesModule() {
         fNet={fNet}
         mass={10}
         initialVelocity={initialV}
-        label={`${currentQ.id} Motion Model`}
+        label={`${formatQuestionId(currentQ.id)} Motion Model`}
         forces={simForces}
       />
     </div>
