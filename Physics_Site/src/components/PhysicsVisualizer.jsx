@@ -8,32 +8,48 @@ export default function PhysicsVisualizer({
   initialVelocity = 0,
   label = 'Object Motion Simulation',
   forces = [],
-  isSubmitted = false
+  isSubmitted = false,
+  motionDirection = 'rightward'
 }) {
   const formattedLabel = label ? label.charAt(0).toUpperCase() + label.slice(1) : ''
   const [isPlaying, setIsPlaying] = useState(false)
   const [position, setPosition] = useState(50)
-  const [velocity, setVelocity] = useState(initialVelocity)
+
+  const isVertical =
+    motionDirection === 'up' ||
+    motionDirection === 'upward' ||
+    motionDirection === 'down' ||
+    motionDirection === 'downward'
+
+  const getDirectedVelocity = (v, dir) => {
+    const isNeg = dir === 'left' || dir === 'leftward' || dir === 'negative' || dir === 'down' || dir === 'downward'
+    const isPos = dir === 'right' || dir === 'rightward' || dir === 'positive' || dir === 'up' || dir === 'upward'
+    if (isNeg && v > 0) return -v
+    if (isPos && v < 0) return -v
+    return v
+  }
+
+  const effectiveInitialVelocity = getDirectedVelocity(initialVelocity, motionDirection)
+  const [velocity, setVelocity] = useState(effectiveInitialVelocity)
   const animFrameRef = useRef(null)
-  const stateRef = useRef({ pos: 50, vel: initialVelocity })
+  const stateRef = useRef({ pos: 50, vel: effectiveInitialVelocity })
 
   const accel = mass > 0 ? fNet / mass : 0
-  const isVertical = forces.some((f) => f.dir === 'up' || f.dir === 'down')
 
   useEffect(() => {
-    stateRef.current = { pos: 50, vel: initialVelocity }
+    stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
     setPosition(50)
-    setVelocity(initialVelocity)
-  }, [initialVelocity, fNet, mass])
+    setVelocity(effectiveInitialVelocity)
+  }, [effectiveInitialVelocity, fNet, mass])
 
   useEffect(() => {
     if (!isSubmitted) {
       setIsPlaying(false)
-      stateRef.current = { pos: 50, vel: initialVelocity }
+      stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
       setPosition(50)
-      setVelocity(initialVelocity)
+      setVelocity(effectiveInitialVelocity)
     }
-  }, [isSubmitted, initialVelocity])
+  }, [isSubmitted, effectiveInitialVelocity])
 
   useEffect(() => {
     if (!isPlaying) {
@@ -47,7 +63,17 @@ export default function PhysicsVisualizer({
       const dt = Math.min((time - lastTime) / 1000, 0.1)
       lastTime = time
 
-      const curVel = stateRef.current.vel + accel * dt
+      let curVel = stateRef.current.vel + accel * dt
+
+      // If decelerating under opposing net force, come to a natural stop at 0
+      if ((stateRef.current.vel > 0 && curVel < 0) || (stateRef.current.vel < 0 && curVel > 0)) {
+        curVel = 0
+        stateRef.current.vel = 0
+        setVelocity(0)
+        setIsPlaying(false)
+        return
+      }
+
       let curPos = stateRef.current.pos + curVel * dt * 8
 
       // Natural boundary loop/wrap-around
@@ -74,9 +100,9 @@ export default function PhysicsVisualizer({
 
   const handleReset = () => {
     setIsPlaying(false)
-    stateRef.current = { pos: 50, vel: initialVelocity }
+    stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
     setPosition(50)
-    setVelocity(initialVelocity)
+    setVelocity(effectiveInitialVelocity)
   }
 
   return (
@@ -192,9 +218,12 @@ export default function PhysicsVisualizer({
         </div>
       ) : (
         /* Horizontal Motion Track (Carts / Crates) */
-        <div className="relative h-24 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-end">
+        <div className="relative h-36 bg-slate-50 rounded border border-slate-200 overflow-hidden flex flex-col justify-end">
+          {/* Ground Track Line */}
+          <div className="absolute inset-x-0 bottom-9 h-0.5 bg-slate-300"></div>
+
           {/* Tick marks */}
-          <div className="absolute inset-x-0 bottom-0 h-4 border-t border-slate-200 flex justify-between px-4 text-[10px] text-slate-400 font-mono select-none">
+          <div className="absolute inset-x-0 bottom-0 h-5 border-t border-slate-200 flex justify-between px-4 text-[10px] text-slate-400 font-mono select-none">
             <span>0m</span>
             <span>25m</span>
             <span>50m</span>
@@ -204,9 +233,33 @@ export default function PhysicsVisualizer({
 
           {/* The Cart Object */}
           <div
-            className="absolute bottom-4 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
+            className="absolute bottom-9 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
             style={{ left: `${position}%` }}
           >
+            {/* Upward force vector (e.g. Normal Force FN) */}
+            {isSubmitted && forces
+              .filter((f) => f.dir === 'up')
+              .map((f, i) => (
+                <div
+                  key={i}
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center pb-1 pointer-events-none"
+                >
+                  <ForceSymbol
+                    code={f.name}
+                    sub={f.name.replace('F_', '')}
+                    className="text-[11px] text-blue-600 mb-0.5"
+                  />
+                  <div
+                    className="w-0.5 bg-blue-600 relative"
+                    style={{
+                      height: `${Math.min(Math.max(f.value * 0.7, 15), 35)}px`
+                    }}
+                  >
+                    <div className="absolute -top-1 -left-1 border-b-4 border-l-4 border-r-4 border-transparent border-b-blue-600"></div>
+                  </div>
+                </div>
+              ))}
+
             <div className="relative w-14 h-10 flex items-center justify-center">
               {/* Box Body */}
               <div className="w-12 h-8 bg-slate-800 rounded border border-slate-900 shadow-sm flex items-center justify-center text-[11px] font-bold text-white">
@@ -267,6 +320,30 @@ export default function PhysicsVisualizer({
               <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
             </div>
+
+            {/* Downward force vector (e.g. Gravity Fg) */}
+            {isSubmitted && forces
+              .filter((f) => f.dir === 'down')
+              .map((f, i) => (
+                <div
+                  key={i}
+                  className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center pt-0.5 pointer-events-none z-10"
+                >
+                  <div
+                    className="w-0.5 bg-rose-600 relative"
+                    style={{
+                      height: `${Math.min(Math.max(f.value * 0.7, 15), 24)}px`
+                    }}
+                  >
+                    <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
+                  </div>
+                  <ForceSymbol
+                    code={f.name}
+                    sub={f.name.replace('F_', '')}
+                    className="text-[11px] text-rose-600 mt-0.5"
+                  />
+                </div>
+              ))}
           </div>
         </div>
       )}
