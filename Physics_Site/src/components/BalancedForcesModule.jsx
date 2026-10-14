@@ -70,11 +70,10 @@ export default function BalancedForcesModule() {
       setCompletedQuestions(newCompleted)
       localStorage.setItem('physix_balanced_completed', JSON.stringify(newCompleted))
 
-      // Trigger confetti if this completes all questions in the level
       const levelQuestions = questions.map(q => q.id)
       const allDone = levelQuestions.every(id => newCompleted[id])
       if (allDone) {
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } })
       }
     }
   }
@@ -129,19 +128,19 @@ export default function BalancedForcesModule() {
     : 'DIAGRAM'
 
   return (
-    <div className="space-y-6">
-      {/* Top Bar: Level Selector & Progress Tracker */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Level Tabs */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+    <div className="space-y-4">
+      {/* Level Selector & Progress Bar */}
+      <div className="bg-white border border-slate-200 rounded-lg p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+        {/* Minimalist Level Tabs */}
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md border border-slate-200">
           {['Apprentice', 'Master', 'Wizard'].map((lvl) => (
             <button
               key={lvl}
               onClick={() => handleLevelChange(lvl)}
-              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+              className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 currentLevel === lvl
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-slate-900 shadow-sm font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {lvl}
@@ -149,161 +148,158 @@ export default function BalancedForcesModule() {
           ))}
         </div>
 
-        {/* Progress Stars */}
+        {/* Level Progress */}
         <div className="flex items-center gap-3">
-          <div className="text-right">
-            <div className="text-xs text-slate-400 font-medium">Level Progress</div>
-            <div className="text-sm font-bold text-white font-mono">
-              {completedInLevel} / {questions.length} Mastered
-            </div>
-          </div>
-          <div className="w-24 sm:w-32 bg-slate-800 h-2.5 rounded-full overflow-hidden">
+          <span className="text-xs text-slate-500 font-medium font-mono">
+            {completedInLevel} / {questions.length} Mastered
+          </span>
+          <div className="w-28 bg-slate-100 h-2 rounded overflow-hidden border border-slate-200">
             <div
-              className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-300"
+              className="bg-blue-600 h-full transition-all duration-300"
               style={{ width: `${questions.length > 0 ? (completedInLevel / questions.length) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
       </div>
 
-      {/* Main Question Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Visual Representation (Diagram / Graph / Data Table) */}
-        <div className="lg:col-span-6 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+      {/* Main Question Workspace */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Left Column: Visual Representation */}
+        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-lg p-5 flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex items-center justify-between mb-3 text-xs">
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold font-mono">
+            <div className="flex items-center justify-between mb-2.5 text-xs">
+              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono font-medium">
                 Question {currentIndex + 1} of {questions.length} • Group {currentQ.groupId}
               </span>
-              <span className="text-slate-400 font-medium">
-                Type: <strong className="text-slate-200">{reprLabel}</strong>
+              <span className="text-slate-500 font-medium">
+                Type: <strong className="text-slate-800">{reprLabel}</strong>
               </span>
             </div>
 
-            <h3 className="text-sm sm:text-base font-semibold text-slate-100 mb-4 leading-relaxed">
+            <p className="text-sm font-medium text-slate-900 mb-4 leading-relaxed">
               {currentQ.stem}
-            </h3>
+            </p>
 
             {/* Media Asset Display */}
-            <div className="relative bg-slate-950 rounded-xl border border-slate-800 p-4 flex items-center justify-center min-h-[220px] overflow-hidden group">
+            <div className="relative bg-slate-50 rounded border border-slate-200 p-4 flex items-center justify-center min-h-[220px]">
               <img
                 src={`./media/balanced-forces/${currentQ.image}`}
                 alt={`Question ${currentQ.id} diagram`}
-                className="max-h-56 max-w-full object-contain rounded transition-transform group-hover:scale-105"
+                className="max-h-56 max-w-full object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none'
                 }}
               />
-              <div className="absolute top-2 right-2 px-2 py-1 bg-slate-900/80 rounded text-[10px] text-slate-400 font-mono capitalize">
+              <div className="absolute top-2 right-2 px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600 font-mono capitalize">
                 Motion: {currentQ.motionDirection}
               </div>
             </div>
           </div>
 
-          {/* Question Navigation Footer */}
-          <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-800 text-xs">
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-xs">
             <button
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-slate-300 font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-medium transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" /> Previous
+              <ChevronLeft className="w-3.5 h-3.5" /> Prev
             </button>
             <span className="font-mono text-slate-400 text-xs">
-              ID #{currentQ.id} {completedQuestions[currentQ.id] && '⭐'}
+              #{currentQ.id} {completedQuestions[currentQ.id] && '⭐'}
             </span>
             <button
               onClick={handleNext}
               disabled={currentIndex === questions.length - 1}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-slate-300 font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-medium transition-colors"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              Next <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Right Column: Interactive Prompts & Evaluation */}
-        <div className="lg:col-span-6 space-y-5">
+        {/* Right Column: Prompts & Feedback */}
+        <div className="lg:col-span-6 space-y-4">
           {/* Prompt 1: Motion State */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-400" />
-              Prompt 1: What is the state of motion?
-            </h4>
-            <div className="grid grid-cols-3 gap-2.5">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+            <div className="text-xs font-semibold text-slate-700 mb-2.5 flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-blue-600" />
+              1. What is the state of motion?
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               {['Speeding Up', 'Slowing Down', 'Constant Speed'].map((opt) => (
                 <button
                   key={opt}
                   onClick={() => !isSubmitted && setSelectedMotion(opt)}
                   disabled={isSubmitted}
-                  className={`p-3 rounded-xl border text-xs sm:text-sm font-semibold transition-all flex flex-col items-center justify-center gap-1.5 ${
+                  className={`py-2 px-2.5 rounded border text-xs font-medium transition-all text-center ${
                     selectedMotion === opt
-                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-md shadow-cyan-500/20'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-800/40'
+                      ? 'bg-blue-50 border-blue-600 text-blue-700 font-semibold shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
-                  <span>{opt}</span>
+                  {opt}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Prompt 2: Force State */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-cyan-400" />
-              Prompt 2: Are the forces balanced or unbalanced?
-            </h4>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+            <div className="text-xs font-semibold text-slate-700 mb-2.5 flex items-center gap-1.5">
+              <Scale className="w-3.5 h-3.5 text-blue-600" />
+              2. Are the forces balanced or unbalanced?
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               {['Balanced', 'Unbalanced'].map((opt) => (
                 <button
                   key={opt}
                   onClick={() => !isSubmitted && setSelectedForce(opt)}
                   disabled={isSubmitted}
-                  className={`p-3 rounded-xl border text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                  className={`py-2 px-2.5 rounded border text-xs font-medium transition-all text-center ${
                     selectedForce === opt
-                      ? 'bg-blue-600/30 border-blue-400 text-blue-200 shadow-md shadow-blue-500/20'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-800/40'
+                      ? 'bg-blue-50 border-blue-600 text-blue-700 font-semibold shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
-                  <span>{opt} Forces</span>
+                  {opt} Forces
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Action & Feedback Box */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
+          {/* Evaluate & Result Card */}
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-3">
             {!isSubmitted ? (
               <button
                 onClick={handleSubmit}
                 disabled={!selectedMotion || !selectedForce}
-                className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-40 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/25 transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-semibold rounded text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5"
               >
-                <span>Check My Answer</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Check Answer</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-3 animate-in fade-in">
                 {isCorrect ? (
-                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                    <div className="text-xs sm:text-sm space-y-1">
-                      <div className="font-bold text-emerald-400">Spot on! Star Earned ⭐</div>
-                      <p className="text-slate-300 leading-relaxed">{currentQ.explanation}</p>
+                  <div className="p-3 rounded border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-emerald-700">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Correct! Star Earned ⭐</span>
                     </div>
+                    <p className="text-slate-700 leading-relaxed">{currentQ.explanation}</p>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-3">
-                    <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-                    <div className="text-xs sm:text-sm space-y-1">
-                      <div className="font-bold text-rose-400">Not quite right!</div>
-                      <p className="text-slate-300 leading-relaxed">
-                        Correct: <strong>{currentQ.motionAnswer}</strong> with{' '}
-                        <strong>{currentQ.forceAnswer} Forces</strong>.
-                      </p>
-                      <p className="text-slate-400 text-xs mt-1">{currentQ.explanation}</p>
+                  <div className="p-3 rounded border border-rose-200 bg-rose-50 text-rose-900 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-rose-700">
+                      <XCircle className="w-4 h-4" />
+                      <span>Incorrect</span>
                     </div>
+                    <p className="text-slate-700 leading-relaxed">
+                      Correct: <strong>{currentQ.motionAnswer}</strong> with{' '}
+                      <strong>{currentQ.forceAnswer} Forces</strong>.
+                    </p>
+                    <p className="text-slate-600 text-[11px] pt-1">{currentQ.explanation}</p>
                   </div>
                 )}
 
@@ -314,16 +310,16 @@ export default function BalancedForcesModule() {
                       setSelectedMotion(null)
                       setSelectedForce(null)
                     }}
-                    className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    className="flex-1 py-1.5 px-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded text-xs font-medium flex items-center justify-center gap-1 transition-colors"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" /> Try Again
+                    <RotateCcw className="w-3 h-3" /> Try Again
                   </button>
                   {currentIndex < questions.length - 1 && (
                     <button
                       onClick={handleNext}
-                      className="flex-1 py-2.5 px-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md"
+                      className="flex-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded text-xs flex items-center justify-center gap-1 transition-colors shadow-sm"
                     >
-                      Next Question <ArrowRight className="w-3.5 h-3.5" />
+                      Next <ArrowRight className="w-3 h-3" />
                     </button>
                   )}
                 </div>
@@ -333,12 +329,12 @@ export default function BalancedForcesModule() {
         </div>
       </div>
 
-      {/* Real-time Interactive Motion Simulator Sandbox */}
+      {/* Physics Simulation */}
       <PhysicsVisualizer
         fNet={fNet}
         mass={10}
         initialVelocity={initialV}
-        label={`Visual Physics Simulation • Question ${currentQ.id} Dynamic Model`}
+        label={`Question ${currentQ.id} Motion Model`}
         forces={simForces}
       />
     </div>
