@@ -193,16 +193,18 @@ export default function SolveItModule() {
         return
       }
 
-      const minVal = 0.98 * expected
-      const maxVal = 1.02 * expected
+      const absExpected = Math.abs(expected)
+      const absUser = Math.abs(userVal)
 
       let isWithinTolerance = false
-      if (Math.abs(expected) < 0.001) {
-        isWithinTolerance = Math.abs(userVal) < 0.05
-      } else if (expected < 0) {
-        isWithinTolerance = userVal <= minVal && userVal >= maxVal
+      if (absExpected < 0.001) {
+        isWithinTolerance = absUser < 0.05
       } else {
-        isWithinTolerance = userVal >= minVal && userVal <= maxVal
+        const signedMatch = expected < 0
+          ? userVal <= 0.98 * expected && userVal >= 1.02 * expected
+          : userVal >= 0.98 * expected && userVal <= 1.02 * expected
+        const magnitudeMatch = absUser >= 0.98 * absExpected && absUser <= 1.02 * absExpected
+        isWithinTolerance = signedMatch || magnitudeMatch
       }
 
       results[key] = isWithinTolerance
