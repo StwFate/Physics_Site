@@ -84,7 +84,7 @@ export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
               <tspan
                 fontFamily="Georgia, Cambria, 'Times New Roman', serif"
                 fontStyle="italic"
-                fontSize="16"
+                fontSize="21"
                 fontWeight="700"
               >
                 F
@@ -92,9 +92,9 @@ export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
               <tspan
                 fontFamily="system-ui, -apple-system, sans-serif"
                 fontStyle="normal"
-                fontSize="11"
+                fontSize="14"
                 fontWeight="700"
-                dy="4"
+                dy="5"
               >
                 {tok.sub}
               </tspan>
@@ -106,9 +106,9 @@ export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
             key={idx}
             fontFamily="system-ui, -apple-system, sans-serif"
             fontStyle="normal"
-            fontSize="12"
+            fontSize="14"
             fontWeight="600"
-            dy={idx > 0 && tokens[idx - 1].type === 'force' ? -4 : 0}
+            dy={idx > 0 && tokens[idx - 1].type === 'force' ? -5 : 0}
           >
             {tok.val}
           </tspan>
@@ -121,9 +121,9 @@ export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
 // 1. Force Diagram SVG Renderer
 export function ForceDiagramView({ renderData, motionDirection }) {
   const forces = renderData?.forces || []
-  const cx = 190
-  const cy = 140
-  const boxSize = 50
+  const cx = 200
+  const cy = 150
+  const boxSize = 52
 
   const getLength = (mag) => {
     if (mag === 'small') return 50
@@ -133,7 +133,7 @@ export function ForceDiagramView({ renderData, motionDirection }) {
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center p-2">
-      <svg viewBox="0 0 380 280" className="w-full max-w-[380px] h-64 select-none">
+      <svg viewBox="0 0 400 300" className="w-full max-w-[400px] h-68 select-none">
         <defs>
           <marker
             id="arrowhead-red"
@@ -174,22 +174,22 @@ export function ForceDiagramView({ renderData, motionDirection }) {
           if (f.dir === 'up') {
             y2 = cy - len
             lx = cx
-            ly = y2 - 10
+            ly = y2 - 12
             anchor = 'middle'
           } else if (f.dir === 'down') {
             y2 = cy + len
             lx = cx
-            ly = y2 + 22
+            ly = y2 + 28
             anchor = 'middle'
           } else if (f.dir === 'left') {
             x2 = cx - len
-            lx = x2 - 12
-            ly = cy + 5
+            lx = x2 - 14
+            ly = cy + 7
             anchor = 'end'
           } else if (f.dir === 'right') {
             x2 = cx + len
-            lx = x2 + 12
-            ly = cy + 5
+            lx = x2 + 14
+            ly = cy + 7
             anchor = 'start'
           }
 
