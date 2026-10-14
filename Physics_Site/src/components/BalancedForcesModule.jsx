@@ -1,17 +1,29 @@
-import React, { useState, useEffect } from 'react'
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Zap, Scale, ChevronLeft, ChevronRight } from 'lucide-react'
+import React, { useState, useEffect, useMemo } from 'react'
+import {
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  RotateCcw,
+  Zap,
+  Scale,
+  ChevronLeft,
+  ChevronRight,
+  Shuffle
+} from 'lucide-react'
 import confetti from 'canvas-confetti'
-import balancedData from '../data/balancedForcesQuestions.json'
 import PhysicsVisualizer from './PhysicsVisualizer'
+import BalancedForcesVisuals from './BalancedForcesVisuals'
+import { generateBalancedQuestions } from '../utils/balancedForcesGenerator'
 
-const LEVEL_QUESTION_IDS = {
-  Apprentice: [1, 2, 5, 7, 9, 10, 13, 14],
-  Master: [1, 2, 5, 7, 10, 13, 17, 18, 19, 20, 23, 24, 25, 26],
-  Wizard: [1, 5, 11, 13, 17, 18, 19, 20, 23, 24, 25, 26, 29, 30, 31, 32, 35, 37, 41, 42],
+const LEVEL_COUNTS = {
+  Apprentice: 8,
+  Master: 14,
+  Wizard: 20
 }
 
 export default function BalancedForcesModule() {
   const [currentLevel, setCurrentLevel] = useState('Apprentice')
+  const [seed, setSeed] = useState(0)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedMotion, setSelectedMotion] = useState(null)
   const [selectedForce, setSelectedForce] = useState(null)
@@ -26,33 +38,27 @@ export default function BalancedForcesModule() {
     }
   })
 
-  // Filter curated questions for the chosen level: 8 Apprentice, 14 Master, 20 Wizard
-  const targetIds = LEVEL_QUESTION_IDS[currentLevel] || LEVEL_QUESTION_IDS.Apprentice
-  const questions = targetIds
-    .map((id) => (balancedData.questions || []).find((q) => q.id === id))
-    .filter(Boolean)
+  // Procedurally generate unique questions for the active level
+  const questions = useMemo(() => {
+    return generateBalancedQuestions(currentLevel, seed)
+  }, [currentLevel, seed])
 
-  const currentQ = questions[currentIndex] || questions[0] || {
-    id: 1,
-    groupId: 1,
-    stem: 'Loading...',
-    image: 'Q1.jpg',
-    motionDirection: 'rightward',
-    representationType: 'force_diagram',
-    motionAnswer: 'Constant Speed',
-    forceAnswer: 'Balanced',
-    explanation: ''
-  }
+  const currentQ = questions[currentIndex] || questions[0]
 
   useEffect(() => {
     setSelectedMotion(null)
     setSelectedForce(null)
     setIsSubmitted(false)
     setIsCorrect(false)
-  }, [currentIndex, currentLevel])
+  }, [currentIndex, currentLevel, seed])
 
   const handleLevelChange = (lvl) => {
     setCurrentLevel(lvl)
+    setCurrentIndex(0)
+  }
+
+  const handleShuffle = () => {
+    setSeed((s) => s + 1)
     setCurrentIndex(0)
   }
 
@@ -71,8 +77,8 @@ export default function BalancedForcesModule() {
       setCompletedQuestions(newCompleted)
       localStorage.setItem('physix_balanced_completed', JSON.stringify(newCompleted))
 
-      const levelQuestions = questions.map(q => q.id)
-      const allDone = levelQuestions.every(id => newCompleted[id])
+      const levelQuestions = questions.map((q) => q.id)
+      const allDone = levelQuestions.every((id) => newCompleted[id])
       if (allDone) {
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } })
       }
@@ -91,51 +97,32 @@ export default function BalancedForcesModule() {
     }
   }
 
-  const completedInLevel = questions.filter(q => completedQuestions[q.id]).length
+  const completedInLevel = questions.filter((q) => completedQuestions[q.id]).length
 
-  // Calculate visualizer forces based on question
-  let fNet = 0
-  let initialV = 0
-  let simForces = []
-  const isLeftward = currentQ.motionDirection && currentQ.motionDirection.toLowerCase().includes('left')
+  // Simulation parameters directly from dynamic question physics
+  const fNet = currentQ?.simParams?.fNet !== undefined
+    ? currentQ.simParams.fNet
+    : (currentQ?.forceAnswer === 'Balanced' ? 0 : 25)
+  const initialV = currentQ?.simParams?.initialV !== undefined
+    ? currentQ.simParams.initialV
+    : 5
+  const simForces = currentQ?.simParams?.forces || [
+    { name: 'F_1', value: 25, dir: 'right' },
+    { name: 'F_2', value: 25, dir: 'left' }
+  ]
 
-  if (currentQ.forceAnswer === 'Balanced') {
-    fNet = 0
-    initialV = isLeftward ? -5 : 5
-    simForces = [
-      { name: 'F_1', value: 30, dir: 'left' },
-      { name: 'F_2', value: 30, dir: 'right' }
-    ]
-  } else {
-    // Unbalanced
-    if (currentQ.motionAnswer === 'Speeding Up') {
-      fNet = isLeftward ? -25 : 25
-      initialV = isLeftward ? -2 : 2
-      simForces = isLeftward
-        ? [{ name: 'F_net', value: 45, dir: 'left' }, { name: 'f', value: 15, dir: 'right' }]
-        : [{ name: 'F_net', value: 45, dir: 'right' }, { name: 'f', value: 15, dir: 'left' }]
-    } else {
-      // Slowing Down
-      fNet = isLeftward ? 25 : -25
-      initialV = isLeftward ? -7 : 7
-      simForces = isLeftward
-        ? [{ name: 'f', value: 35, dir: 'right' }]
-        : [{ name: 'f', value: 35, dir: 'left' }]
-    }
-  }
-
-  const reprLabel = currentQ.representationType
-    ? currentQ.representationType.replace('_', ' ').toUpperCase()
+  const reprLabel = currentQ?.representationType
+    ? currentQ.representationType.replace(/_/g, ' ').toUpperCase()
     : 'DIAGRAM'
 
   return (
     <div className="space-y-4">
-      {/* Level Selector & Progress Bar */}
+      {/* Level Selector & Control Bar */}
       <div className="bg-white border border-slate-200 rounded-lg p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
         {/* Minimalist Level Tabs */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md border border-slate-200">
           {['Apprentice', 'Master', 'Wizard'].map((lvl) => {
-            const count = LEVEL_QUESTION_IDS[lvl]?.length || 0
+            const count = LEVEL_COUNTS[lvl] || 0
             return (
               <button
                 key={lvl}
@@ -152,15 +139,26 @@ export default function BalancedForcesModule() {
           })}
         </div>
 
-        {/* Level Progress */}
+        {/* Right side controls: Regenerate & Progress */}
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleShuffle}
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded text-xs font-medium transition-colors shadow-2xs"
+            title="Generate new randomized variations"
+          >
+            <Shuffle className="w-3.5 h-3.5 text-blue-600" />
+            <span>Shuffle</span>
+          </button>
+
           <span className="text-xs text-slate-500 font-medium font-mono">
             {completedInLevel} / {questions.length} Mastered
           </span>
-          <div className="w-28 bg-slate-100 h-2 rounded overflow-hidden border border-slate-200">
+          <div className="w-24 bg-slate-100 h-2 rounded overflow-hidden border border-slate-200">
             <div
               className="bg-blue-600 h-full transition-all duration-300"
-              style={{ width: `${questions.length > 0 ? (completedInLevel / questions.length) * 100 : 0}%` }}
+              style={{
+                width: `${questions.length > 0 ? (completedInLevel / questions.length) * 100 : 0}%`
+              }}
             ></div>
           </div>
         </div>
@@ -173,7 +171,7 @@ export default function BalancedForcesModule() {
           <div>
             <div className="flex items-center justify-between mb-2.5 text-xs">
               <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono font-medium">
-                Question {currentIndex + 1} of {questions.length} • Group {currentQ.groupId}
+                Question {currentIndex + 1} of {questions.length} • {currentLevel}
               </span>
               <span className="text-slate-500 font-medium">
                 Type: <strong className="text-slate-800">{reprLabel}</strong>
@@ -184,17 +182,10 @@ export default function BalancedForcesModule() {
               {currentQ.stem}
             </p>
 
-            {/* Media Asset Display */}
-            <div className="relative bg-slate-50 rounded border border-slate-200 p-4 flex items-center justify-center min-h-[220px]">
-              <img
-                src={`./media/balanced-forces/${currentQ.image}`}
-                alt={`Question ${currentQ.id} diagram`}
-                className="max-h-56 max-w-full object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none'
-                }}
-              />
-              <div className="absolute top-2 right-2 px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600 font-mono capitalize">
+            {/* Dynamic Generated Visual Representation */}
+            <div className="relative bg-slate-50 rounded border border-slate-200 p-3 flex flex-col items-center justify-center min-h-[230px]">
+              <BalancedForcesVisuals question={currentQ} />
+              <div className="absolute top-2.5 right-2.5 px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-700 font-mono font-medium capitalize shadow-2xs">
                 Motion: {currentQ.motionDirection}
               </div>
             </div>
@@ -210,7 +201,7 @@ export default function BalancedForcesModule() {
               <ChevronLeft className="w-3.5 h-3.5" /> Prev
             </button>
             <span className="font-mono text-slate-400 text-xs">
-              #{currentQ.id} {completedQuestions[currentQ.id] && '⭐'}
+              {currentQ.id} {completedQuestions[currentQ.id] && '⭐'}
             </span>
             <button
               onClick={handleNext}
@@ -338,7 +329,7 @@ export default function BalancedForcesModule() {
         fNet={fNet}
         mass={10}
         initialVelocity={initialV}
-        label={`Question ${currentQ.id} Motion Model`}
+        label={`${currentQ.id} Motion Model`}
         forces={simForces}
       />
     </div>
