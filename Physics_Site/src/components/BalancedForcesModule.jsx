@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { CheckCircle2, XCircle, HelpCircle, ArrowRight, RotateCcw, Award, Zap, Scale, MoveRight, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Zap, Scale, ChevronLeft, ChevronRight } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import balancedData from '../data/balancedForcesQuestions.json'
 import PhysicsVisualizer from './PhysicsVisualizer'
@@ -11,7 +11,6 @@ export default function BalancedForcesModule() {
   const [selectedForce, setSelectedForce] = useState(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
-  const [showExplanation, setShowExplanation] = useState(false)
   const [completedQuestions, setCompletedQuestions] = useState(() => {
     try {
       const saved = localStorage.getItem('physix_balanced_completed')
@@ -21,21 +20,34 @@ export default function BalancedForcesModule() {
     }
   })
 
-  // Filter questions for the chosen level
-  const questions = balancedData.questions.filter((q) => {
-    if (currentLevel === 'Apprentice') return q.group <= 4
-    if (currentLevel === 'Master') return q.group <= 8
-    return q.group <= 12
+  // Filter questions for the chosen level based on availableInLevels or groupId
+  const questions = (balancedData.questions || []).filter((q) => {
+    if (currentLevel === 'Apprentice') {
+      return q.availableInLevels ? q.availableInLevels.includes('Apprentice') : q.groupId <= 4
+    }
+    if (currentLevel === 'Master') {
+      return q.availableInLevels ? q.availableInLevels.includes('Master') : q.groupId <= 8
+    }
+    return true
   })
 
-  const currentQ = questions[currentIndex] || questions[0]
+  const currentQ = questions[currentIndex] || questions[0] || {
+    id: 1,
+    groupId: 1,
+    stem: 'Loading...',
+    image: 'Q1.jpg',
+    motionDirection: 'rightward',
+    representationType: 'force_diagram',
+    motionAnswer: 'Constant Speed',
+    forceAnswer: 'Balanced',
+    explanation: ''
+  }
 
   useEffect(() => {
     setSelectedMotion(null)
     setSelectedForce(null)
     setIsSubmitted(false)
     setIsCorrect(false)
-    setShowExplanation(false)
   }, [currentIndex, currentLevel])
 
   const handleLevelChange = (lvl) => {
@@ -46,8 +58,8 @@ export default function BalancedForcesModule() {
   const handleSubmit = () => {
     if (!selectedMotion || !selectedForce) return
 
-    const correctMotion = currentQ.correctAnswer.motionState
-    const correctForce = currentQ.correctAnswer.forceState
+    const correctMotion = currentQ.motionAnswer
+    const correctForce = currentQ.forceAnswer
 
     const correct = selectedMotion === correctMotion && selectedForce === correctForce
     setIsCorrect(correct)
@@ -58,7 +70,7 @@ export default function BalancedForcesModule() {
       setCompletedQuestions(newCompleted)
       localStorage.setItem('physix_balanced_completed', JSON.stringify(newCompleted))
 
-      // Trigger confetti if this marks full level completion
+      // Trigger confetti if this completes all questions in the level
       const levelQuestions = questions.map(q => q.id)
       const allDone = levelQuestions.every(id => newCompleted[id])
       if (allDone) {
@@ -85,31 +97,36 @@ export default function BalancedForcesModule() {
   let fNet = 0
   let initialV = 0
   let simForces = []
+  const isLeftward = currentQ.motionDirection && currentQ.motionDirection.toLowerCase().includes('left')
 
-  if (currentQ.correctAnswer.forceState === 'Balanced') {
+  if (currentQ.forceAnswer === 'Balanced') {
     fNet = 0
-    initialV = currentQ.motionDirection === 'Leftward' ? -5 : 5
+    initialV = isLeftward ? -5 : 5
     simForces = [
       { name: 'F_1', value: 30, dir: 'left' },
       { name: 'F_2', value: 30, dir: 'right' }
     ]
   } else {
     // Unbalanced
-    if (currentQ.correctAnswer.motionState === 'Speeding Up') {
-      fNet = currentQ.motionDirection === 'Leftward' ? -20 : 20
-      initialV = currentQ.motionDirection === 'Leftward' ? -2 : 2
-      simForces = currentQ.motionDirection === 'Leftward'
+    if (currentQ.motionAnswer === 'Speeding Up') {
+      fNet = isLeftward ? -25 : 25
+      initialV = isLeftward ? -2 : 2
+      simForces = isLeftward
         ? [{ name: 'F_net', value: 45, dir: 'left' }, { name: 'f', value: 15, dir: 'right' }]
         : [{ name: 'F_net', value: 45, dir: 'right' }, { name: 'f', value: 15, dir: 'left' }]
     } else {
       // Slowing Down
-      fNet = currentQ.motionDirection === 'Leftward' ? 25 : -25
-      initialV = currentQ.motionDirection === 'Leftward' ? -7 : 7
-      simForces = currentQ.motionDirection === 'Leftward'
+      fNet = isLeftward ? 25 : -25
+      initialV = isLeftward ? -7 : 7
+      simForces = isLeftward
         ? [{ name: 'f', value: 35, dir: 'right' }]
         : [{ name: 'f', value: 35, dir: 'left' }]
     }
   }
+
+  const reprLabel = currentQ.representationType
+    ? currentQ.representationType.replace('_', ' ').toUpperCase()
+    : 'DIAGRAM'
 
   return (
     <div className="space-y-6">
@@ -143,7 +160,7 @@ export default function BalancedForcesModule() {
           <div className="w-24 sm:w-32 bg-slate-800 h-2.5 rounded-full overflow-hidden">
             <div
               className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-300"
-              style={{ width: `${(completedInLevel / questions.length) * 100}%` }}
+              style={{ width: `${questions.length > 0 ? (completedInLevel / questions.length) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
@@ -156,14 +173,14 @@ export default function BalancedForcesModule() {
           <div>
             <div className="flex items-center justify-between mb-3 text-xs">
               <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold font-mono">
-                Question {currentIndex + 1} of {questions.length} • Group {currentQ.group}
+                Question {currentIndex + 1} of {questions.length} • Group {currentQ.groupId}
               </span>
               <span className="text-slate-400 font-medium">
-                Type: <strong className="text-slate-200">{currentQ.representation}</strong>
+                Type: <strong className="text-slate-200">{reprLabel}</strong>
               </span>
             </div>
 
-            <h3 className="text-sm sm:text-base font-semibold text-slate-100 mb-4">
+            <h3 className="text-sm sm:text-base font-semibold text-slate-100 mb-4 leading-relaxed">
               {currentQ.stem}
             </h3>
 
@@ -174,12 +191,11 @@ export default function BalancedForcesModule() {
                 alt={`Question ${currentQ.id} diagram`}
                 className="max-h-56 max-w-full object-contain rounded transition-transform group-hover:scale-105"
                 onError={(e) => {
-                  // Fallback if image fails to load
                   e.target.style.display = 'none'
                 }}
               />
-              <div className="absolute top-2 right-2 px-2 py-1 bg-slate-900/80 rounded text-[10px] text-slate-400 font-mono">
-                Direction: {currentQ.motionDirection}
+              <div className="absolute top-2 right-2 px-2 py-1 bg-slate-900/80 rounded text-[10px] text-slate-400 font-mono capitalize">
+                Motion: {currentQ.motionDirection}
               </div>
             </div>
           </div>
@@ -283,8 +299,8 @@ export default function BalancedForcesModule() {
                     <div className="text-xs sm:text-sm space-y-1">
                       <div className="font-bold text-rose-400">Not quite right!</div>
                       <p className="text-slate-300 leading-relaxed">
-                        Correct: <strong>{currentQ.correctAnswer.motionState}</strong> with{' '}
-                        <strong>{currentQ.correctAnswer.forceState} Forces</strong>.
+                        Correct: <strong>{currentQ.motionAnswer}</strong> with{' '}
+                        <strong>{currentQ.forceAnswer} Forces</strong>.
                       </p>
                       <p className="text-slate-400 text-xs mt-1">{currentQ.explanation}</p>
                     </div>

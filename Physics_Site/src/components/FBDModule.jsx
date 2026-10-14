@@ -463,7 +463,7 @@ export default function FBDModule() {
                       </ul>
                     )}
                     <div className="text-[11px] text-slate-400 pt-1 border-t border-rose-500/20">
-                      <strong>Key Concept:</strong> {currentScenario.feedback.misconception}
+                      <strong>Key Concept:</strong> {currentScenario.misconceptions?.[0]?.explanation || currentScenario.balance?.explanation || 'Consider all contact and non-contact forces acting upon the object.'}
                     </div>
                   </div>
                 )}
