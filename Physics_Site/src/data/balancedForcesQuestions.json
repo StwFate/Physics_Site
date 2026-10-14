@@ -1,0 +1,1739 @@
+{
+  "metadata": {
+    "title": "Balanced vs. Unbalanced Forces",
+    "topic": "Newton's Laws of Motion - Concept Builder",
+    "source": "The Physics Classroom",
+    "launchUrl": "https://www.physicsclassroom.com/concept-builder/newtons-laws/balanced-vs-unbalanced-forces/launch",
+    "embedUrl": "https://www.physicsclassroom.com/html-module/balanced-vs-unbalanced-forces/1/BalancedUnbalancedForcesV2p2p1.html",
+    "totalQuestions": 44,
+    "totalQuestionGroups": 12,
+    "levels": [
+      "Apprentice",
+      "Master",
+      "Wizard"
+    ],
+    "mediaDirectory": "Media/balanced-forces/"
+  },
+  "levelDefinitions": {
+    "Apprentice": {
+      "name": "Force Apprentice",
+      "description": "Examines free-body force diagrams (FBDs) for horizontal and vertical motion to identify balanced vs. unbalanced forces and determine motion state.",
+      "questionGroups": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "totalQuestions": 16,
+      "questionIds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "sessionGroupCount": 4
+    },
+    "Master": {
+      "name": "Force Master",
+      "description": "Extends Apprentice questions with Position-Time graphs (slopes) and Ticker Tape / Dot diagrams (dot spacing) to connect force balance with kinematics.",
+      "questionGroups": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "totalQuestions": 28,
+      "questionIds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ],
+      "sessionGroupCount": 8
+    },
+    "Wizard": {
+      "name": "Force Wizard",
+      "description": "Complete mastery across all representations: Force diagrams, Position-Time graphs, Dot diagrams, Velocity-Time graphs, and Numerical Data Tables.",
+      "questionGroups": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "totalQuestions": 44,
+      "questionIds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44
+      ],
+      "sessionGroupCount": 12
+    }
+  },
+  "physicsRules": {
+    "newtonsFirstLaw": {
+      "title": "Newton's First Law (Balanced Forces)",
+      "summary": "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.",
+      "condition": "F_net = 0 N (All forces cancel out in all directions)",
+      "motionConsequence": "Constant velocity (constant speed in a straight line). Acceleration a = 0 m/s^2.",
+      "keyPrinciple": "A force is NOT required to keep an object moving. If forces are balanced, the object continues moving at constant speed."
+    },
+    "newtonsSecondLaw": {
+      "title": "Newton's Second Law (Unbalanced Forces & Acceleration)",
+      "summary": "An unbalanced force causes an object to accelerate: a = F_net / m. Acceleration always occurs in the exact direction of the net force.",
+      "condition": "F_net != 0 N",
+      "speedingUpCondition": "Net force is in the SAME direction as velocity (motion). Acceleration is parallel to velocity.",
+      "slowingDownCondition": "Net force is OPPOSITE to the direction of velocity (motion). Acceleration opposes velocity."
+    },
+    "coreMisconceptions": [
+      {
+        "misconception": "An object moving to the right must have a rightward net force.",
+        "correction": "Forces do not cause motion; forces cause CHANGES in motion (acceleration). An object moving right with balanced forces continues moving right at constant speed. An object moving right with a leftward net force slows down while continuing to move right."
+      },
+      {
+        "misconception": "Balanced forces mean the object cannot be moving (must be stationary).",
+        "correction": "Balanced forces mean acceleration is zero. An object with balanced forces can be at rest OR moving at a constant speed in a straight line."
+      },
+      {
+        "misconception": "Upward motion requires an upward net force.",
+        "correction": "An object thrown upward or moving upward can experience a net downward force (e.g. gravity), which causes it to slow down."
+      }
+    ],
+    "representations": {
+      "forceDiagrams": {
+        "rule": "Arrow length represents force magnitude. Opposing arrows of equal length cancel out (balanced). If one opposing arrow is longer, net force points in that direction.",
+        "analysisSteps": [
+          "1. Check vertical forces: Equal up and down arrows cancel (balanced vertically).",
+          "2. Check horizontal forces: If right and left arrows are equal, or if there are no horizontal forces, horizontal forces are balanced.",
+          "3. If net force is 0, the forces are balanced and the object moves at constant speed.",
+          "4. If net force is in direction of motion, object is speeding up (unbalanced).",
+          "5. If net force opposes direction of motion, object is slowing down (unbalanced)."
+        ]
+      },
+      "positionTimeGraphs": {
+        "rule": "The slope of a position-time graph represents velocity (v = dx/dt).",
+        "analysisSteps": [
+          "Straight line: constant slope -> constant velocity -> constant speed -> balanced forces (F_net = 0).",
+          "Curved line getting steeper: slope magnitude increases -> speeding up -> unbalanced forces.",
+          "Curved line getting flatter: slope magnitude decreases -> slowing down -> unbalanced forces."
+        ]
+      },
+      "dotDiagrams": {
+        "rule": "Dots represent object position at equal time intervals (e.g. every 1 second).",
+        "analysisSteps": [
+          "Read the diagram in the direction of motion (left-to-right for rightward motion, right-to-left for leftward motion).",
+          "Equal spacing between dots -> equal distance in equal time -> constant speed -> balanced forces.",
+          "Increasing spacing in motion direction -> greater distance per interval -> speeding up -> unbalanced forces.",
+          "Decreasing spacing in motion direction -> smaller distance per interval -> slowing down -> unbalanced forces."
+        ]
+      },
+      "velocityTimeGraphs": {
+        "rule": "The slope of a velocity-time graph represents acceleration (a = dv/dt).",
+        "analysisSteps": [
+          "Horizontal line: slope = 0 -> acceleration = 0 -> constant velocity / constant speed -> balanced forces.",
+          "Line sloped away from time axis (v=0): |v| increases over time -> speeding up -> unbalanced forces.",
+          "Line sloped toward time axis (v=0): |v| decreases over time -> slowing down -> unbalanced forces."
+        ]
+      },
+      "numericalDataTables": {
+        "rule": "Analyze changes in position (dx) or changes in velocity (v).",
+        "analysisSteps": [
+          "Position-Time Table: Examine change in position (dx) for equal dt intervals. Constant dx -> constant speed (balanced). Increasing dx -> speeding up (unbalanced). Decreasing dx -> slowing down (unbalanced).",
+          "Velocity-Time Table: Examine absolute value |v| over time. Constant |v| -> constant speed (balanced). Increasing |v| -> speeding up (unbalanced). Decreasing |v| -> slowing down (unbalanced)."
+        ]
+      }
+    }
+  },
+  "questionGroups": [
+    {
+      "groupId": 1,
+      "title": "Force Diagrams: Balanced Horizontal Forces",
+      "category": "Force Diagram",
+      "representationType": "force_diagram",
+      "applicableLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help1",
+      "fundamentals": "Force diagrams depict force strength and direction by vector arrows. Equal length opposing arrows cancel out. When all forces balance, the object moves with constant speed in a straight line.",
+      "howToThink": "Compare the opposing force arrows. Equal opposing vertical forces and either no horizontal forces or equal opposing horizontal forces mean net force is zero. The object neither speeds up nor slows down; it maintains constant speed.",
+      "questionIds": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "groupId": 2,
+      "title": "Force Diagrams: Opposing Unequal Horizontal Forces",
+      "category": "Force Diagram",
+      "representationType": "force_diagram",
+      "applicableLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help2",
+      "fundamentals": "When horizontal forces are unequal in strength, an unbalanced net force exists in the direction of the longer arrow. This unbalanced force causes acceleration.",
+      "howToThink": "If the right force is bigger than the left force, net force is rightward: speeds up a rightward-moving object and slows down a leftward-moving object. If the left force is bigger, net force is leftward: speeds up a leftward-moving object and slows down a rightward-moving object.",
+      "questionIds": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "groupId": 3,
+      "title": "Force Diagrams: Single Horizontal Force",
+      "category": "Force Diagram",
+      "representationType": "force_diagram",
+      "applicableLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help3",
+      "fundamentals": "For horizontal forces to balance, every force must be countered by an equal and opposite force. A single unopposed horizontal force always creates an unbalanced net force.",
+      "howToThink": "First check the direction of motion. If the single horizontal force points in the direction of motion, the object speeds up. If it points opposite to motion, the object slows down. In all cases, forces are unbalanced.",
+      "questionIds": [
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "groupId": 4,
+      "title": "Force Diagrams: Vertical Motion and Forces",
+      "category": "Force Diagram",
+      "representationType": "force_diagram",
+      "applicableLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help4",
+      "fundamentals": "Vertical force diagrams compare upward forces (e.g. tension, normal force) against downward forces (gravity). Unequal arrows result in a vertical net force.",
+      "howToThink": "If upward force exceeds downward force, net force is upward: speeds up an upward-moving object and slows down a downward-moving object. If downward force exceeds upward force, net force is downward: speeds up a downward-moving object and slows down an upward-moving object.",
+      "questionIds": [
+        13,
+        14,
+        15,
+        16
+      ]
+    },
+    {
+      "groupId": 5,
+      "title": "Position-Time Graphs: Constant Velocity",
+      "category": "Position-Time Graph",
+      "representationType": "position_time_graph",
+      "applicableLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help5",
+      "fundamentals": "The slope of a position-time graph is velocity. A straight line has constant slope, meaning constant velocity (constant speed). Constant velocity means forces are balanced.",
+      "howToThink": "Observe the line shape. A straight diagonal line indicates a constant slope and thus constant speed. Because there is no change in velocity, acceleration is zero and forces must be balanced.",
+      "questionIds": [
+        17,
+        18
+      ]
+    },
+    {
+      "groupId": 6,
+      "title": "Position-Time Graphs: Accelerated Motion (Curved Lines)",
+      "category": "Position-Time Graph",
+      "representationType": "position_time_graph",
+      "applicableLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help6",
+      "fundamentals": "Curved position-time graphs indicate changing slope (changing velocity). Acceleration requires an unbalanced force.",
+      "howToThink": "A line becoming steeper over time shows increasing speed (speeding up). A line becoming flatter over time shows decreasing speed (slowing down). In both cases, the changing velocity means forces are unbalanced.",
+      "questionIds": [
+        19,
+        20,
+        21,
+        22
+      ]
+    },
+    {
+      "groupId": 7,
+      "title": "Dot Diagrams: Constant Speed",
+      "category": "Dot Diagram",
+      "representationType": "dot_diagram",
+      "applicableLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help7",
+      "fundamentals": "A dot diagram shows an object's position at consecutive regular time intervals. Equal spacing means equal distance traveled per interval (constant speed).",
+      "howToThink": "Check the spacing between adjacent dots. If the spacing is uniform across the diagram, the object moves at constant speed and experiences balanced forces.",
+      "questionIds": [
+        23,
+        24
+      ]
+    },
+    {
+      "groupId": 8,
+      "title": "Dot Diagrams: Changing Speed",
+      "category": "Dot Diagram",
+      "representationType": "dot_diagram",
+      "applicableLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help8",
+      "fundamentals": "Changing dot spacing indicates acceleration caused by an unbalanced force. Reading order depends on motion direction.",
+      "howToThink": "Read the diagram in the direction the object is moving. If dots get further apart, the object covers more distance each interval (speeding up). If dots get closer together, it covers less distance (slowing down). Both indicate unbalanced forces.",
+      "questionIds": [
+        25,
+        26,
+        27,
+        28
+      ]
+    },
+    {
+      "groupId": 9,
+      "title": "Velocity-Time Graphs: Constant Velocity (Horizontal Line)",
+      "category": "Velocity-Time Graph",
+      "representationType": "velocity_time_graph",
+      "applicableLevels": [
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help9",
+      "fundamentals": "The slope of a velocity-time graph is acceleration. A horizontal line has zero slope, meaning zero acceleration and constant speed.",
+      "howToThink": "A horizontal line indicates velocity is unchanging over time. Whether positive or negative, the speed is constant. Acceleration is zero, which means the forces acting upon the object are balanced.",
+      "questionIds": [
+        29,
+        30
+      ]
+    },
+    {
+      "groupId": 10,
+      "title": "Velocity-Time Graphs: Accelerated Motion (Sloped Lines)",
+      "category": "Velocity-Time Graph",
+      "representationType": "velocity_time_graph",
+      "applicableLevels": [
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help10",
+      "fundamentals": "A sloped velocity-time line indicates non-zero acceleration and unbalanced forces. Speeding up moves away from v=0; slowing down moves toward v=0.",
+      "howToThink": "Look at whether the line approaches or moves away from the time axis (v=0). Moving away from the time axis means speed (|v|) is increasing (speeding up). Moving toward the time axis means speed is decreasing (slowing down). Both require an unbalanced force.",
+      "questionIds": [
+        31,
+        32,
+        33,
+        34
+      ]
+    },
+    {
+      "groupId": 11,
+      "title": "Position-Time Numerical Data Tables",
+      "category": "Data Table",
+      "representationType": "position_time_table",
+      "applicableLevels": [
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help11",
+      "fundamentals": "Numerical position-time data reveals speed through consecutive differences in position (dx per second). Constant dx indicates constant speed; changing dx indicates acceleration.",
+      "howToThink": "Calculate the displacement (|dx|) between consecutive 1-second intervals. If |dx| is constant (e.g. 10m each second), speed is constant and forces are balanced. If |dx| grows larger, object is speeding up (unbalanced). If |dx| shrinks, object is slowing down (unbalanced).",
+      "questionIds": [
+        35,
+        36,
+        37,
+        38,
+        39,
+        40
+      ]
+    },
+    {
+      "groupId": 12,
+      "title": "Velocity-Time Numerical Data Tables",
+      "category": "Data Table",
+      "representationType": "velocity_time_table",
+      "applicableLevels": [
+        "Wizard"
+      ],
+      "helpUrl": "https://www.physicsclassroom.com/Concept-Builders/Newtons-Laws/Balanced-Unbalanced-Forces/conceptBuilderHelp/help12",
+      "fundamentals": "Numerical velocity-time tables display velocity values at consecutive time steps. Signs indicate direction; magnitude (|v|) indicates speed.",
+      "howToThink": "Focus on the magnitude (absolute value) of the velocity values. If |v| stays the same, speed is constant and forces are balanced. If |v| increases over time, the object is speeding up (unbalanced forces). If |v| decreases over time, the object is slowing down (unbalanced forces).",
+      "questionIds": [
+        41,
+        42,
+        43,
+        44
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "groupId": 1,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a rightward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q1.jpg",
+      "imagePath": "Media/balanced-forces/Q1.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Free-body diagram of a box with equal-length upward and downward arrows. No horizontal arrows are present.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (vertical forces equal and cancel; zero horizontal forces)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The upward and downward force arrows have identical lengths, meaning the vertical forces balance each other (F_net,y = 0 N). There are no horizontal forces acting on the object (F_net,x = 0 N). Thus, the net force is zero and the forces are balanced. According to Newton's First Law, an object in motion with balanced forces maintains its state of motion at a constant speed. An unopposed rightward motion does not require a rightward force."
+    },
+    {
+      "id": 2,
+      "groupId": 1,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a leftward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q2.jpg",
+      "imagePath": "Media/balanced-forces/Q2.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Free-body diagram of a box with equal-length upward and downward arrows. No horizontal arrows are present.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (vertical forces equal and cancel; zero horizontal forces)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The upward and downward forces have equal magnitudes and cancel each other out. With zero horizontal forces, the overall net force on the object is 0 N. Because the forces are balanced, the leftward-moving object continues in its state of motion without acceleration, traveling at constant speed."
+    },
+    {
+      "id": 3,
+      "groupId": 1,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a rightward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q3.jpg",
+      "imagePath": "Media/balanced-forces/Q3.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Free-body diagram of a box with four forces: equal-length upward and downward arrows, and equal-length leftward and rightward arrows.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (both vertical and horizontal opposing pairs have equal length)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "Both the vertical forces (upward and downward) and horizontal forces (leftward and rightward) have equal vector arrow lengths. Every force is countered by an equal-magnitude opposing force, resulting in a net force of 0 N (balanced forces). With zero net force, the rightward-moving object maintains a constant speed."
+    },
+    {
+      "id": 4,
+      "groupId": 1,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a leftward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q4.jpg",
+      "imagePath": "Media/balanced-forces/Q4.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Free-body diagram of a box with four forces: equal-length upward and downward arrows, and equal-length leftward and rightward arrows.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (vertical and horizontal opposing pairs cancel)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The upward force equals the downward force, and the leftward force equals the rightward force. All forces cancel completely, producing a net force of zero (balanced forces). By Newton's First Law, the leftward-moving object continues to move at constant speed."
+    },
+    {
+      "id": 5,
+      "groupId": 2,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a rightward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q5.jpg",
+      "imagePath": "Media/balanced-forces/Q5.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Free-body diagram of a box with equal vertical arrows, but the rightward horizontal arrow is substantially longer than the leftward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Rightward force exceeds leftward force, producing a net rightward force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "The vertical forces balance, but the rightward force arrow is longer than the leftward force arrow. This creates an unbalanced net force directed to the right. Because the net force points in the same direction as the object's rightward motion, the object accelerates rightward and speeds up."
+    },
+    {
+      "id": 6,
+      "groupId": 2,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a leftward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q6.jpg",
+      "imagePath": "Media/balanced-forces/Q6.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Free-body diagram of a box with equal vertical arrows, but the rightward horizontal arrow is substantially longer than the leftward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Rightward force exceeds leftward force, producing a net rightward force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "The horizontal forces are unequal: the rightward arrow is longer than the leftward arrow, resulting in an unbalanced net force directed to the right. Since the object is moving to the left, the net force is opposite to the direction of motion. An opposing net force causes the object to slow down."
+    },
+    {
+      "id": 7,
+      "groupId": 2,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a rightward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q7.jpg",
+      "imagePath": "Media/balanced-forces/Q7.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Free-body diagram of a box with equal vertical arrows, but the leftward horizontal arrow is substantially longer than the rightward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Leftward force exceeds rightward force, producing a net leftward force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "The leftward force arrow is longer than the rightward force arrow, meaning there is an unbalanced net force directed to the left. Because the object is moving rightward, this leftward net force acts opposite to the direction of travel, causing the object to slow down."
+    },
+    {
+      "id": 8,
+      "groupId": 2,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a leftward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q8.jpg",
+      "imagePath": "Media/balanced-forces/Q8.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Free-body diagram of a box with equal vertical arrows, but the leftward horizontal arrow is substantially longer than the rightward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Leftward force exceeds rightward force, producing a net leftward force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "The leftward force arrow exceeds the rightward force arrow, yielding an unbalanced net force directed to the left. The object is moving to the left; thus, the net force acts in the same direction as motion, accelerating the object leftward and causing it to speed up."
+    },
+    {
+      "id": 9,
+      "groupId": 3,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a rightward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q9.jpg",
+      "imagePath": "Media/balanced-forces/Q9.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Free-body diagram with equal vertical arrows and a single horizontal arrow pointing to the right (no leftward arrow).",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Single unopposed rightward force creates a net force to the right."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "There is only one horizontal force, directed to the right. Since it is unopposed, the forces are unbalanced with a net force directed rightward. Because the object is moving rightward, the net force is in the direction of motion, causing the object to speed up."
+    },
+    {
+      "id": 10,
+      "groupId": 3,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a leftward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q10.jpg",
+      "imagePath": "Media/balanced-forces/Q10.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Free-body diagram with equal vertical arrows and a single horizontal arrow pointing to the right (no leftward arrow).",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Single unopposed rightward force creates a net force to the right."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "A single rightward force acts without any opposing leftward force, creating an unbalanced rightward net force. The object is moving to the left; hence, the net force opposes the motion. This opposing unbalanced force causes the object to slow down."
+    },
+    {
+      "id": 11,
+      "groupId": 3,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a rightward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q11.jpg",
+      "imagePath": "Media/balanced-forces/Q11.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Free-body diagram with equal vertical arrows and a single horizontal arrow pointing to the left (no rightward arrow).",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Single unopposed leftward force (e.g. friction) creates a net leftward force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "Only one horizontal force acts on the object, directed leftward (such as friction or drag). Because there is no opposing rightward force, the forces are unbalanced with a net force directed leftward. Since the object is moving to the right, this leftward net force slows the object down."
+    },
+    {
+      "id": 12,
+      "groupId": 3,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a leftward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q12.jpg",
+      "imagePath": "Media/balanced-forces/Q12.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Free-body diagram with equal vertical arrows and a single horizontal arrow pointing to the left (no rightward arrow).",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Single unopposed leftward force creates a net leftward force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "The single horizontal force points leftward and is uncountered, resulting in an unbalanced net force directed to the left. The object is already moving leftward, so the net force is in the direction of motion, causing the object to speed up."
+    },
+    {
+      "id": 13,
+      "groupId": 4,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon an upward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q13.jpg",
+      "imagePath": "Media/balanced-forces/Q13.jpg",
+      "motionDirection": "upward",
+      "visualDescription": "Free-body diagram with vertical arrows only: the upward arrow is substantially longer than the downward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Upward",
+        "magnitudeDescription": "Upward force exceeds downward force, producing an upward net force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Upward"
+      },
+      "explanation": "The upward force arrow is longer than the downward force arrow, creating an unbalanced net force directed upward. Since the object is moving upward, the net force acts in the same direction as the motion, causing the object to accelerate upward and speed up."
+    },
+    {
+      "id": 14,
+      "groupId": 4,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a downward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q14.jpg",
+      "imagePath": "Media/balanced-forces/Q14.jpg",
+      "motionDirection": "downward",
+      "visualDescription": "Free-body diagram with vertical arrows only: the upward arrow is substantially longer than the downward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Upward",
+        "magnitudeDescription": "Upward force exceeds downward force, producing an upward net force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Upward"
+      },
+      "explanation": "The upward force is larger than the downward force, producing an unbalanced net force directed upward. Because the object is moving downward (such as a descending parachutist with an open chute), the upward net force acts opposite to the downward motion, slowing the object down."
+    },
+    {
+      "id": 15,
+      "groupId": 4,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon an upward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q15.jpg",
+      "imagePath": "Media/balanced-forces/Q15.jpg",
+      "motionDirection": "upward",
+      "visualDescription": "Free-body diagram with vertical arrows only: the downward arrow is substantially longer than the upward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Downward",
+        "magnitudeDescription": "Downward force exceeds upward force, producing a downward net force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Downward"
+      },
+      "explanation": "The downward force arrow is longer than the upward force arrow, resulting in an unbalanced net force directed downward. Since the object is rising upward (e.g. an object thrown into the air), the downward net force opposes its motion, causing it to slow down."
+    },
+    {
+      "id": 16,
+      "groupId": 4,
+      "levelIntroduced": "Apprentice",
+      "availableInLevels": [
+        "Apprentice",
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "force_diagram",
+      "stem": "The diagram below represents the forces acting upon a downward-moving object. Each arrow represents a force; the length of the arrow represents the strength of the force.",
+      "image": "Q16.jpg",
+      "imagePath": "Media/balanced-forces/Q16.jpg",
+      "motionDirection": "downward",
+      "visualDescription": "Free-body diagram with vertical arrows only: the downward arrow is substantially longer than the upward arrow.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Downward",
+        "magnitudeDescription": "Downward force exceeds upward force, producing a downward net force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Downward"
+      },
+      "explanation": "The downward force exceeds the upward force, yielding an unbalanced net force directed downward. The object is falling/moving downward, so the net force is in the same direction as the motion, accelerating the object downward and speeding it up."
+    },
+    {
+      "id": 17,
+      "groupId": 5,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "position_time_graph",
+      "stem": "The motion of a rightward-moving object is represented by a position-time graph. (Consider the positive direction to be to the right.)",
+      "image": "Q17.jpg",
+      "imagePath": "Media/balanced-forces/Q17.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Position vs. Time graph showing a straight line with a constant positive slope starting from the origin.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (zero acceleration)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The slope of a position-time graph is the velocity (v = dx/dt). The graph is a straight diagonal line, indicating that the slope is constant over time. Therefore, the velocity is constant and the object is moving at constant speed. Since acceleration is zero (a = 0 m/s^2), the net force is zero and the forces acting upon the object are balanced."
+    },
+    {
+      "id": 18,
+      "groupId": 5,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "position_time_graph",
+      "stem": "The motion of a leftward-moving object is represented by a position-time graph. (Consider the positive direction to be to the right.)",
+      "image": "Q18.jpg",
+      "imagePath": "Media/balanced-forces/Q18.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Position vs. Time graph showing a straight line with a constant negative slope starting at a positive position and descending toward 0.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (zero acceleration)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The graph shows a straight diagonal line sloping downward with a constant negative slope. A constant slope means the leftward velocity is constant. Because the object maintains a constant speed and unchanging direction, its acceleration is zero, indicating balanced forces."
+    },
+    {
+      "id": 19,
+      "groupId": 6,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "position_time_graph",
+      "stem": "The motion of a rightward-moving object is represented by a position-time graph. (Consider the positive direction to be to the right.)",
+      "image": "Q19.jpg",
+      "imagePath": "Media/balanced-forces/Q19.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Position vs. Time graph showing a curved line starting nearly horizontal at 0 and curving upward, becoming steeper and steeper (concave up).",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Positive acceleration requires a net force in the positive (rightward) direction."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "The line on this position-time graph curves upward and becomes steeper and steeper over time. Since the slope equals velocity, an increasing slope means the velocity is increasing (speeding up). A changing velocity requires acceleration, which means the object experiences an unbalanced force directed to the right."
+    },
+    {
+      "id": 20,
+      "groupId": 6,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "position_time_graph",
+      "stem": "The motion of a rightward-moving object is represented by a position-time graph. (Consider the positive direction to be to the right.)",
+      "image": "Q20.jpg",
+      "imagePath": "Media/balanced-forces/Q20.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Position vs. Time graph showing a curved line starting steep at 0 and bending to become flatter and flatter over time (concave down).",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Negative acceleration requires an opposing (leftward) net force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "The line on the position-time graph starts with a steep positive slope and becomes progressively flatter over time. Since slope represents velocity, a flattening slope indicates the speed is decreasing (slowing down). Because velocity is changing, the object is accelerating and the forces are unbalanced (net force directed leftward, opposing motion)."
+    },
+    {
+      "id": 21,
+      "groupId": 6,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "position_time_graph",
+      "stem": "The motion of a leftward-moving object is represented by a position-time graph. (Consider the positive direction to be to the right.)",
+      "image": "Q21.jpg",
+      "imagePath": "Media/balanced-forces/Q21.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Position vs. Time graph starting at a positive position, initially flat, then curving downward more and more steeply toward 0.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Net force is in the negative (leftward) direction, increasing leftward velocity."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "The graph represents an object moving leftward (towards zero position). The curve starts relatively flat and becomes steeper and steeper in the downward (negative) direction. The magnitude of the slope is increasing over time, which means the speed is increasing (speeding up). An acceleration in the direction of motion requires an unbalanced force directed to the left."
+    },
+    {
+      "id": 22,
+      "groupId": 6,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "position_time_graph",
+      "stem": "The motion of a leftward-moving object is represented by a position-time graph. (Consider the positive direction to be to the right.)",
+      "image": "Q22.jpg",
+      "imagePath": "Media/balanced-forces/Q22.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Position vs. Time graph starting steep at a positive position and curving to level off almost horizontally near 0.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Net force points rightward (positive), opposing the leftward motion."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "The graph depicts a leftward-moving object whose curve starts with a steep downward slope and gradually levels out (slope magnitude approaches zero). A decreasing slope magnitude indicates that the object is slowing down. Because acceleration is present, the forces are unbalanced (net force points rightward, opposing the leftward motion)."
+    },
+    {
+      "id": 23,
+      "groupId": 7,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "dot_diagram",
+      "stem": "The motion of a rightward-moving object is represented by the dot diagram below.",
+      "image": "Q23.jpg",
+      "imagePath": "Media/balanced-forces/Q23.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Ticker tape / dot diagram with a rightward red arrow above. The red dots are uniformly and equally spaced across the tape.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (equal spacing indicates zero acceleration)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "On a dot diagram, the distance between consecutive dots represents the distance traveled during each equal time interval. The dots are spaced an equal distance apart across the entire diagram. This indicates that the object covers equal distances in equal times (constant speed). A constant speed motion in a straight line corresponds to zero acceleration and balanced forces."
+    },
+    {
+      "id": 24,
+      "groupId": 7,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "dot_diagram",
+      "stem": "The motion of a leftward-moving object is represented by the dot diagram below.",
+      "image": "Q24.jpg",
+      "imagePath": "Media/balanced-forces/Q24.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Ticker tape / dot diagram with a leftward red arrow above. The red dots are uniformly and equally spaced across the tape.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (uniform dot spacing)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The dots on this diagram are spaced equally apart. Even though the object is traveling to the left, the equal spacing demonstrates that it travels the exact same distance every second. Therefore, the object is moving at constant speed, and the forces acting upon it are balanced."
+    },
+    {
+      "id": 25,
+      "groupId": 8,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "dot_diagram",
+      "stem": "The motion of a rightward-moving object is represented by the dot diagram below.",
+      "image": "Q25.jpg",
+      "imagePath": "Media/balanced-forces/Q25.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Ticker tape / dot diagram with a rightward red arrow above. Reading from left to right, the spacing between consecutive dots becomes progressively larger.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Net force is directed rightward in the direction of increasing spacing."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "Because the object is moving rightward, we read the diagram from left to right (chronological order). The spacing between consecutive dots becomes greater and greater. Covering more distance with each passing second means the object is speeding up. Speeding up requires an acceleration in the direction of motion, so the forces are unbalanced (net force to the right)."
+    },
+    {
+      "id": 26,
+      "groupId": 8,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "dot_diagram",
+      "stem": "The motion of a rightward-moving object is represented by the dot diagram below.",
+      "image": "Q26.jpg",
+      "imagePath": "Media/balanced-forces/Q26.jpg",
+      "motionDirection": "rightward",
+      "visualDescription": "Ticker tape / dot diagram with a rightward red arrow above. Reading from left to right, the spacing between consecutive dots becomes progressively smaller.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Net force is directed leftward, opposing the rightward motion."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "Reading the diagram from left to right in the direction of motion, the distance between consecutive dots decreases over time. Covering less distance each second indicates that the object is slowing down. An object that is slowing down experiences an acceleration opposing its motion, which requires an unbalanced net force directed to the left."
+    },
+    {
+      "id": 27,
+      "groupId": 8,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "dot_diagram",
+      "stem": "The motion of a leftward-moving object is represented by the dot diagram below.",
+      "image": "Q27.jpg",
+      "imagePath": "Media/balanced-forces/Q27.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Ticker tape / dot diagram with a leftward red arrow above. Reading from right to left, the spacing between consecutive dots becomes progressively smaller.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Rightward",
+        "magnitudeDescription": "Net force is directed rightward, opposing the leftward motion."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Rightward"
+      },
+      "explanation": "Since the object is moving leftward, the earliest dots are on the right and the latest dots are on the left; we must read from right to left. Following this motion, the spacing between consecutive dots gets smaller and smaller. The object covers less distance per second, meaning it is slowing down. Slowing down requires an unbalanced force opposing the motion (directed rightward)."
+    },
+    {
+      "id": 28,
+      "groupId": 8,
+      "levelIntroduced": "Master",
+      "availableInLevels": [
+        "Master",
+        "Wizard"
+      ],
+      "representationType": "dot_diagram",
+      "stem": "The motion of a leftward-moving object is represented by the dot diagram below.",
+      "image": "Q28.jpg",
+      "imagePath": "Media/balanced-forces/Q28.jpg",
+      "motionDirection": "leftward",
+      "visualDescription": "Ticker tape / dot diagram with a leftward red arrow above. Reading from right to left, the spacing between consecutive dots becomes progressively larger.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Leftward",
+        "magnitudeDescription": "Net force is directed leftward, in the direction of leftward motion."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Leftward"
+      },
+      "explanation": "Reading from right to left (in the direction of leftward travel), the spacing between dots increases. The object covers greater and greater distances in each consecutive time interval, demonstrating that it is speeding up. Speeding up in the leftward direction requires an unbalanced net force directed to the left."
+    },
+    {
+      "id": 29,
+      "groupId": 9,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_graph",
+      "stem": "The motion of an object is represented by a velocity-time graph.",
+      "image": "Q29.jpg",
+      "imagePath": "Media/balanced-forces/Q29.jpg",
+      "motionDirection": "positive",
+      "visualDescription": "Velocity vs. Time graph showing a horizontal line in the positive velocity region above the time axis.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (slope = 0 means a = 0 m/s^2)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The slope of a velocity-time graph is acceleration (a = dv/dt). A horizontal line has a slope of zero, meaning the object has zero acceleration. The velocity value remains constant throughout the motion, so the object moves at constant speed. With zero acceleration, the net force is zero and the forces acting upon the object are balanced."
+    },
+    {
+      "id": 30,
+      "groupId": 9,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_graph",
+      "stem": "The motion of an object is represented by a velocity-time graph.",
+      "image": "Q30.jpg",
+      "imagePath": "Media/balanced-forces/Q30.jpg",
+      "motionDirection": "negative",
+      "visualDescription": "Velocity vs. Time graph showing a horizontal line in the negative velocity region below the time axis.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (slope = 0 means a = 0 m/s^2)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "The velocity-time line is completely horizontal in the negative region. A horizontal line indicates zero slope and therefore zero acceleration. Even though the velocity is negative (indicating motion in the negative direction), the speed (|v|) remains constant over time. Therefore, the forces acting on the object are balanced."
+    },
+    {
+      "id": 31,
+      "groupId": 10,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_graph",
+      "stem": "The motion of an object is represented by a velocity-time graph.",
+      "image": "Q31.jpg",
+      "imagePath": "Media/balanced-forces/Q31.jpg",
+      "motionDirection": "positive",
+      "visualDescription": "Velocity vs. Time graph showing a straight line with positive slope starting at v=0 and moving upward away from the time axis.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Positive",
+        "magnitudeDescription": "Positive slope indicates positive acceleration and positive net force."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Positive"
+      },
+      "explanation": "The line has a non-zero slope, which means the acceleration is non-zero (unbalanced forces). To determine whether the object is speeding up or slowing down, look at the line relative to the time axis (v=0): the line is progressing away from the time axis, meaning the velocity magnitude is increasing. Thus, the object is speeding up under an unbalanced force."
+    },
+    {
+      "id": 32,
+      "groupId": 10,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_graph",
+      "stem": "The motion of an object is represented by a velocity-time graph.",
+      "image": "Q32.jpg",
+      "imagePath": "Media/balanced-forces/Q32.jpg",
+      "motionDirection": "positive",
+      "visualDescription": "Velocity vs. Time graph showing a straight line with negative slope starting at a positive velocity and approaching v=0.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Negative",
+        "magnitudeDescription": "Negative slope indicates negative acceleration opposing positive velocity."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Negative"
+      },
+      "explanation": "The line has a non-zero slope, indicating non-zero acceleration and unbalanced forces. The line is moving toward the time axis (v=0), which means the magnitude of the velocity is decreasing toward zero. An object whose velocity magnitude decreases is slowing down due to an unbalanced opposing force."
+    },
+    {
+      "id": 33,
+      "groupId": 10,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_graph",
+      "stem": "The motion of an object is represented by a velocity-time graph.",
+      "image": "Q33.jpg",
+      "imagePath": "Media/balanced-forces/Q33.jpg",
+      "motionDirection": "negative",
+      "visualDescription": "Velocity vs. Time graph in the negative region showing a line with positive slope starting at negative velocity and moving toward v=0.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Positive",
+        "magnitudeDescription": "Positive net force opposes negative velocity, reducing speed."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Positive"
+      },
+      "explanation": "The line is located in the negative velocity region and slopes toward the time axis (v=0). As time progresses, the magnitude |v| shrinks toward zero (e.g. from -10 m/s toward 0 m/s). Because the speed is decreasing, the object is slowing down. The non-zero slope indicates acceleration and unbalanced forces."
+    },
+    {
+      "id": 34,
+      "groupId": 10,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_graph",
+      "stem": "The motion of an object is represented by a velocity-time graph.",
+      "image": "Q34.jpg",
+      "imagePath": "Media/balanced-forces/Q34.jpg",
+      "motionDirection": "negative",
+      "visualDescription": "Velocity vs. Time graph starting at v=0 and sloping downward into the negative region away from the time axis.",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Negative",
+        "magnitudeDescription": "Negative acceleration in direction of motion produces a net force in negative direction."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Negative"
+      },
+      "explanation": "The line starts at v=0 and slants downward into the negative region, progressing away from the time axis. The magnitude of velocity |v| is increasing over time (speed is increasing in the negative direction). Therefore, the object is speeding up. The non-zero slope indicates acceleration and unbalanced forces."
+    },
+    {
+      "id": 35,
+      "groupId": 11,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "position_time_table",
+      "stem": "The motion of an object is represented by position-time data.",
+      "image": "Q35.png",
+      "imagePath": "Media/balanced-forces/Q35.png",
+      "motionDirection": "positive",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Position (m) [0.0, 10.0, 20.0, 30.0, 40.0, 50.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (delta x = +10.0 m every second)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "Examining consecutive rows in the table shows that during each 1.0 s interval, the position changes by exactly +10.0 m (10-0=10, 20-10=10, 30-20=10, 40-30=10, 50-40=10). Because the change in position is constant each second, velocity is constant (10.0 m/s). An object moving at constant speed has zero acceleration and experiences balanced forces."
+    },
+    {
+      "id": 36,
+      "groupId": 11,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "position_time_table",
+      "stem": "The motion of an object is represented by position-time data.",
+      "image": "Q36.png",
+      "imagePath": "Media/balanced-forces/Q36.png",
+      "motionDirection": "negative",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Position (m) [50.0, 40.0, 30.0, 20.0, 10.0, 0.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Constant Speed",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Balanced",
+      "netForce": {
+        "status": "Balanced",
+        "direction": "None",
+        "magnitudeDescription": "Net force is 0 N (delta x = -10.0 m every second)."
+      },
+      "acceleration": {
+        "hasAcceleration": false,
+        "direction": "None"
+      },
+      "explanation": "In each 1.0-second interval, the position changes by -10.0 m (40-50 = -10, 30-40 = -10, etc.). The magnitude of displacement per second is constant (|dx| = 10.0 m/s). This constant rate of change means the object moves at constant speed in the negative direction. Acceleration is zero, which signifies balanced forces."
+    },
+    {
+      "id": 37,
+      "groupId": 11,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "position_time_table",
+      "stem": "The motion of an object is represented by position-time data.",
+      "image": "Q37.png",
+      "imagePath": "Media/balanced-forces/Q37.png",
+      "motionDirection": "positive",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Position (m) [0.0, 2.0, 6.0, 12.0, 20.0, 30.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Positive",
+        "magnitudeDescription": "Displacement per second increases (+2m, +4m, +6m, +8m, +10m)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Positive"
+      },
+      "explanation": "Looking at the changes in position each second: from 0 to 1s, dx = 2.0 m; from 1 to 2s, dx = 4.0 m; from 2 to 3s, dx = 6.0 m; from 3 to 4s, dx = 8.0 m; from 4 to 5s, dx = 10.0 m. The changes in position grow progressively larger each second, meaning the object covers more distance each second and is speeding up. A changing velocity requires an unbalanced force."
+    },
+    {
+      "id": 38,
+      "groupId": 11,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "position_time_table",
+      "stem": "The motion of an object is represented by position-time data.",
+      "image": "Q38.png",
+      "imagePath": "Media/balanced-forces/Q38.png",
+      "motionDirection": "positive",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Position (m) [0.0, 10.0, 18.0, 24.0, 28.0, 30.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Negative",
+        "magnitudeDescription": "Displacement per second decreases (+10m, +8m, +6m, +4m, +2m)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Negative"
+      },
+      "explanation": "Calculating the consecutive position changes: from 0 to 1s, dx = +10.0 m; from 1 to 2s, dx = +8.0 m; from 2 to 3s, dx = +6.0 m; from 3 to 4s, dx = +4.0 m; from 4 to 5s, dx = +2.0 m. The distance covered during each consecutive second decreases, which demonstrates that the object is slowing down. Slowing down requires acceleration opposing motion, driven by an unbalanced net force."
+    },
+    {
+      "id": 39,
+      "groupId": 11,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "position_time_table",
+      "stem": "The motion of an object is represented by position-time data.",
+      "image": "Q39.png",
+      "imagePath": "Media/balanced-forces/Q39.png",
+      "motionDirection": "negative",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Position (m) [30.0, 28.0, 24.0, 18.0, 10.0, 0.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Negative",
+        "magnitudeDescription": "Displacement magnitude per second increases (2m, 4m, 6m, 8m, 10m)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Negative"
+      },
+      "explanation": "The position values are decreasing (moving in negative direction). The magnitude of displacement each second is: 2.0 m (30->28), 4.0 m (28->24), 6.0 m (24->18), 8.0 m (18->10), 10.0 m (10->0). Because the magnitude of displacement increases each second, the object covers more distance each second and is speeding up. An acceleration in the direction of motion requires an unbalanced force."
+    },
+    {
+      "id": 40,
+      "groupId": 11,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "position_time_table",
+      "stem": "The motion of an object is represented by position-time data.",
+      "image": "Q40.png",
+      "imagePath": "Media/balanced-forces/Q40.png",
+      "motionDirection": "negative",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Position (m) [30.0, 20.0, 12.0, 6.0, 2.0, 0.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Positive",
+        "magnitudeDescription": "Displacement magnitude per second decreases (10m, 8m, 6m, 4m, 2m)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Positive"
+      },
+      "explanation": "The position values decrease from 30.0 m to 0.0 m. The distance covered in each consecutive 1-second interval is: 10.0 m (30->20), 8.0 m (20->12), 6.0 m (12->6), 4.0 m (6->2), 2.0 m (2->0). Because the distance traveled per second is decreasing, the object is slowing down. A slowing down motion requires an unbalanced force opposing motion."
+    },
+    {
+      "id": 41,
+      "groupId": 12,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_table",
+      "stem": "The motion of an object is represented by velocity-time data.",
+      "image": "Q41.png",
+      "imagePath": "Media/balanced-forces/Q41.png",
+      "motionDirection": "positive",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Velocity (m/s) [0.0, 2.0, 4.0, 6.0, 8.0, 10.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Positive",
+        "magnitudeDescription": "Velocity magnitude increases by +2.0 m/s each second (a = +2.0 m/s^2)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Positive"
+      },
+      "explanation": "The velocity table directly displays velocity values increasing from 0.0 m/s to 10.0 m/s. The magnitude of velocity (speed) is increasing over time, which means the object is speeding up. A non-zero rate of change of velocity (a = +2.0 m/s^2) means acceleration is present, which requires an unbalanced net force."
+    },
+    {
+      "id": 42,
+      "groupId": 12,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_table",
+      "stem": "The motion of an object is represented by velocity-time data.",
+      "image": "Q42.png",
+      "imagePath": "Media/balanced-forces/Q42.png",
+      "motionDirection": "positive",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Velocity (m/s) [10.0, 8.0, 6.0, 4.0, 2.0, 0.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Negative",
+        "magnitudeDescription": "Velocity magnitude decreases by 2.0 m/s each second (a = -2.0 m/s^2)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Negative"
+      },
+      "explanation": "The velocity values decrease from 10.0 m/s down to 0.0 m/s over 5 seconds. The speed (|v|) decreases over time, so the object is slowing down. Because the velocity is changing (a = -2.0 m/s^2), the object is experiencing an unbalanced net force directed opposite to the motion."
+    },
+    {
+      "id": 43,
+      "groupId": 12,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_table",
+      "stem": "The motion of an object is represented by velocity-time data.",
+      "image": "Q43.png",
+      "imagePath": "Media/balanced-forces/Q43.png",
+      "motionDirection": "negative",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Velocity (m/s) [0.0, -2.0, -4.0, -6.0, -8.0, -10.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Speeding Up",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Negative",
+        "magnitudeDescription": "Velocity magnitude increases in negative direction by 2.0 m/s each second (a = -2.0 m/s^2)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Negative"
+      },
+      "explanation": "The velocity is negative (indicating motion in the negative direction, such as leftward or downward). Focusing on the speed (absolute value |v|), the speed increases from 0.0 m/s to 10.0 m/s. An increasing speed means the object is speeding up. Acceleration is present (a = -2.0 m/s^2), which requires an unbalanced net force in the negative direction."
+    },
+    {
+      "id": 44,
+      "groupId": 12,
+      "levelIntroduced": "Wizard",
+      "availableInLevels": [
+        "Wizard"
+      ],
+      "representationType": "velocity_time_table",
+      "stem": "The motion of an object is represented by velocity-time data.",
+      "image": "Q44.png",
+      "imagePath": "Media/balanced-forces/Q44.png",
+      "motionDirection": "negative",
+      "visualDescription": "Table of Time (s) [0.0 to 5.0] vs. Velocity (m/s) [-10.0, -8.0, -6.0, -4.0, -2.0, 0.0].",
+      "motionPrompt": "Is this object speeding up, slowing down, or moving at a constant speed?",
+      "motionAnswer": "Slowing Down",
+      "forcePrompt": "Is this object experiencing balanced forces or unbalanced forces?",
+      "forceAnswer": "Unbalanced",
+      "netForce": {
+        "status": "Unbalanced",
+        "direction": "Positive",
+        "magnitudeDescription": "Negative velocity magnitude decreases toward zero (a = +2.0 m/s^2)."
+      },
+      "acceleration": {
+        "hasAcceleration": true,
+        "direction": "Positive"
+      },
+      "explanation": "The velocity values are negative, indicating negative-direction travel. Inspecting the magnitude (|v|), the speed decreases from 10.0 m/s down to 0.0 m/s. A decreasing speed means the object is slowing down. Because velocity changes over time (a = +2.0 m/s^2), the forces acting on the object are unbalanced."
+    }
+  ]
+}
