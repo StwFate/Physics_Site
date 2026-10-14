@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Calculator, CheckCircle2, XCircle, Shuffle, BookOpen } from 'lucide-react'
 import confetti from 'canvas-confetti'
+import ForceSymbol from './ForceSymbol'
 
 // Generates randomized problem parameters with authentic physics ranges
 function generateProblemInstance(problemId) {
@@ -297,18 +298,30 @@ export default function SolveItModule() {
         <div className="bg-white border border-slate-200 rounded-lg p-4 text-xs text-slate-700 grid grid-cols-1 md:grid-cols-3 gap-3 shadow-sm animate-in fade-in">
           <div className="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-1">
             <span className="font-semibold text-slate-900 block">Vertical Equilibrium</span>
-            <code className="text-slate-800 font-mono block">F_grav = mass × 9.8 N/kg</code>
-            <code className="text-slate-800 font-mono block">F_norm = F_grav</code>
+            <div className="text-slate-800 font-mono flex items-center gap-1">
+              <ForceSymbol type="Fgrav" /> = m × 9.8 N/kg
+            </div>
+            <div className="text-slate-800 font-mono flex items-center gap-1">
+              <ForceSymbol type="Fnorm" /> = <ForceSymbol type="Fgrav" />
+            </div>
           </div>
           <div className="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-1">
             <span className="font-semibold text-slate-900 block">Newton's 2nd Law</span>
-            <code className="text-slate-800 font-mono block">F_net = mass × acceleration</code>
-            <code className="text-slate-800 font-mono block">a = F_net / mass</code>
+            <div className="text-slate-800 font-mono flex items-center gap-1">
+              <ForceSymbol type="Fnet" /> = m × a
+            </div>
+            <div className="text-slate-800 font-mono flex items-center gap-1">
+              a = <ForceSymbol type="Fnet" /> / m
+            </div>
           </div>
           <div className="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-1">
             <span className="font-semibold text-slate-900 block">Horizontal Forces</span>
-            <code className="text-slate-800 font-mono block">F_net = F_app - F_frict</code>
-            <code className="text-slate-800 font-mono block">F_frict = µ × F_norm</code>
+            <div className="text-slate-800 font-mono flex items-center gap-1">
+              <ForceSymbol type="Fnet" /> = <ForceSymbol type="Fapp" /> - <ForceSymbol type="Ffrict" />
+            </div>
+            <div className="text-slate-800 font-mono flex items-center gap-1">
+              <ForceSymbol type="Ffrict" /> = µ × <ForceSymbol type="Fnorm" />
+            </div>
           </div>
         </div>
       )}
@@ -335,7 +348,9 @@ export default function SolveItModule() {
             {/* Top / Normal Force Vector */}
             <div className="absolute bottom-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center pb-10">
               <div className="flex items-center gap-1 mb-1.5">
-                <span className="text-[11px] font-bold font-mono text-blue-600">F_norm:</span>
+                <span className="text-xs font-bold text-blue-600 flex items-center gap-0.5">
+                  <ForceSymbol type="Fnorm" />:
+                </span>
                 <input
                   type="number"
                   step="any"
@@ -364,7 +379,9 @@ export default function SolveItModule() {
               <div className="w-0.5 h-10 bg-rose-600"></div>
               <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] border-t-rose-600"></div>
               <div className="flex items-center gap-1 mt-1.5">
-                <span className="text-[11px] font-bold font-mono text-rose-600">F_grav:</span>
+                <span className="text-xs font-bold text-rose-600 flex items-center gap-0.5">
+                  <ForceSymbol type="Fgrav" />:
+                </span>
                 <input
                   type="number"
                   step="any"
@@ -389,7 +406,9 @@ export default function SolveItModule() {
             {/* Left / Friction Vector */}
             <div className="absolute right-1/2 top-1/2 -translate-y-1/2 flex items-center pr-10">
               <div className="flex flex-col items-end mr-1.5">
-                <span className="text-[11px] font-bold font-mono text-amber-600">F_frict:</span>
+                <span className="text-xs font-bold text-amber-600 flex items-center gap-0.5">
+                  <ForceSymbol type="Ffrict" />:
+                </span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -421,7 +440,9 @@ export default function SolveItModule() {
                 <div className="h-0.5 w-10 bg-emerald-600"></div>
                 <div className="w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[8px] border-l-emerald-600"></div>
                 <div className="flex flex-col items-start ml-1.5">
-                  <span className="text-[11px] font-bold font-mono text-emerald-600">F_app:</span>
+                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
+                    <ForceSymbol type="Fapp" />:
+                  </span>
                   <div className="flex items-center gap-1">
                     <input
                       type="number"
@@ -485,7 +506,9 @@ export default function SolveItModule() {
 
               {/* Net Force */}
               <div className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-xs font-medium text-slate-700">Net Force (F_net):</span>
+                <span className="text-xs font-medium text-slate-700 flex items-center gap-1">
+                  Net Force (<ForceSymbol type="Fnet" />):
+                </span>
                 <div className="flex items-center gap-1 font-mono">
                   <input
                     type="number"
@@ -571,8 +594,8 @@ export default function SolveItModule() {
                         <XCircle className="w-4 h-4 shrink-0" />
                         <span>Some values outside ±2% tolerance!</span>
                       </div>
-                      <p className="text-slate-600 text-[11px]">
-                        Vertical balance: F_norm = F_grav = mass × 9.8. Then evaluate horizontal forces with F_net = m × a.
+                      <p className="text-slate-600 text-[11px] flex items-center gap-1 flex-wrap">
+                        <span>Vertical balance: <ForceSymbol type="Fnorm" /> = <ForceSymbol type="Fgrav" /> = m × 9.8. Then evaluate horizontal forces with <ForceSymbol type="Fnet" /> = m × a.</span>
                       </p>
                     </div>
                   )}
