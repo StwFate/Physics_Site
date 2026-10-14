@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowRight, ArrowLeft } from 'lucide-react'
+import { ArrowRight, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 
 // Parses force label or code into structured typographic tokens:
 // e.g. "FN" -> [{ type: 'force', sub: 'N' }]
@@ -277,43 +277,88 @@ export function DotDiagramView({ renderData }) {
   const pattern = renderData?.pattern || 'constant'
   const direction = renderData?.direction || 'right'
 
+  const isVertical = direction === 'up' || direction === 'down'
+
   let dots = []
-  if (direction === 'right') {
-    if (pattern === 'constant') dots = [35, 80, 125, 170, 215, 260]
-    else if (pattern === 'accelerating') dots = [35, 50, 75, 115, 175, 260]
-    else if (pattern === 'decelerating') dots = [35, 120, 180, 220, 245, 260]
+  if (isVertical) {
+    if (direction === 'up') {
+      if (pattern === 'constant') dots = [205, 169, 133, 97, 61, 25]
+      else if (pattern === 'accelerating') dots = [205, 190, 165, 125, 75, 25]
+      else if (pattern === 'decelerating') dots = [205, 155, 115, 80, 50, 25]
+    } else {
+      // down
+      if (pattern === 'constant') dots = [25, 61, 97, 133, 169, 205]
+      else if (pattern === 'accelerating') dots = [25, 40, 65, 105, 155, 205]
+      else if (pattern === 'decelerating') dots = [25, 75, 125, 165, 190, 205]
+    }
   } else {
-    // left
-    if (pattern === 'constant') dots = [260, 215, 170, 125, 80, 35]
-    else if (pattern === 'accelerating') dots = [260, 245, 220, 180, 120, 35]
-    else if (pattern === 'decelerating') dots = [260, 175, 115, 75, 50, 35]
+    if (direction === 'right') {
+      if (pattern === 'constant') dots = [35, 80, 125, 170, 215, 260]
+      else if (pattern === 'accelerating') dots = [35, 50, 75, 115, 175, 260]
+      else if (pattern === 'decelerating') dots = [35, 120, 180, 220, 245, 260]
+    } else {
+      // left
+      if (pattern === 'constant') dots = [260, 215, 170, 125, 80, 35]
+      else if (pattern === 'accelerating') dots = [260, 245, 220, 180, 120, 35]
+      else if (pattern === 'decelerating') dots = [260, 175, 115, 75, 50, 35]
+    }
+  }
+
+  const directionLabels = {
+    right: 'Rightward',
+    left: 'Leftward',
+    up: 'Upward',
+    down: 'Downward'
+  }
+
+  const DirectionIcon = () => {
+    if (direction === 'up') return <ArrowUp className="w-3.5 h-3.5 text-blue-600" />
+    if (direction === 'down') return <ArrowDown className="w-3.5 h-3.5 text-blue-600" />
+    if (direction === 'left') return <ArrowLeft className="w-3.5 h-3.5 text-blue-600" />
+    return <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
   }
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center p-3">
       {/* Motion Banner */}
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-3 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-        {direction === 'right' ? <ArrowRight className="w-3.5 h-3.5 text-blue-600" /> : <ArrowLeft className="w-3.5 h-3.5 text-blue-600" />}
-        <span>Direction of Motion ({direction === 'right' ? 'Rightward' : 'Leftward'})</span>
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+        <DirectionIcon />
+        <span>Direction of Motion ({directionLabels[direction] || 'Rightward'})</span>
       </div>
 
-      <svg viewBox="0 0 300 110" className="w-full max-w-[340px] h-28 select-none">
-        {/* Tape track */}
-        <rect x="15" y="30" width="270" height="45" rx="6" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
-
-        {/* Baseline dashed */}
-        <line x1="25" y1="52.5" x2="275" y2="52.5" stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth="1" />
-
-        {/* Dots */}
-        {dots.map((x, idx) => (
-          <g key={idx}>
-            <circle cx={x} cy="52.5" r="5" fill="#1e293b" />
-            <text x={x} y="90" textAnchor="middle" fill="#64748b" fontSize="10" fontFamily="monospace">
-              t{idx}
-            </text>
-          </g>
-        ))}
-      </svg>
+      {isVertical ? (
+        <svg viewBox="0 0 130 230" className="w-full max-w-[140px] h-56 select-none">
+          {/* Vertical Tape track */}
+          <rect x="25" y="15" width="45" height="200" rx="6" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
+          {/* Baseline dashed */}
+          <line x1="47.5" y1="20" x2="47.5" y2="210" stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth="1" />
+          {/* Dots */}
+          {dots.map((y, idx) => (
+            <g key={idx}>
+              <circle cx="47.5" cy={y} r="5" fill="#1e293b" />
+              <text x="80" y={y + 3.5} textAnchor="start" fill="#64748b" fontSize="10" fontFamily="monospace">
+                t{idx}
+              </text>
+            </g>
+          ))}
+        </svg>
+      ) : (
+        <svg viewBox="0 0 300 110" className="w-full max-w-[340px] h-28 select-none">
+          {/* Horizontal Tape track */}
+          <rect x="15" y="30" width="270" height="45" rx="6" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
+          {/* Baseline dashed */}
+          <line x1="25" y1="52.5" x2="275" y2="52.5" stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth="1" />
+          {/* Dots */}
+          {dots.map((x, idx) => (
+            <g key={idx}>
+              <circle cx={x} cy="52.5" r="5" fill="#1e293b" />
+              <text x={x} y="90" textAnchor="middle" fill="#64748b" fontSize="10" fontFamily="monospace">
+                t{idx}
+              </text>
+            </g>
+          ))}
+        </svg>
+      )}
       <div className="text-[11px] text-slate-400 font-mono mt-1">Equal time intervals (Δt = 0.2s)</div>
     </div>
   )
