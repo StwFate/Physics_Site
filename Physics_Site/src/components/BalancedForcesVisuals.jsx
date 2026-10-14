@@ -1,0 +1,320 @@
+import React from 'react'
+import ForceSymbol from './ForceSymbol'
+import { ArrowRight, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
+
+// 1. Force Diagram SVG Renderer
+export function ForceDiagramView({ renderData, motionDirection }) {
+  const forces = renderData?.forces || []
+  const cx = 150
+  const cy = 130
+  const boxSize = 50
+
+  const getLength = (mag) => {
+    if (mag === 'small') return 45
+    if (mag === 'large') return 105
+    return 75 // medium
+  }
+
+  return (
+    <div className="relative w-full flex flex-col items-center justify-center p-2">
+      <svg viewBox="0 0 300 260" className="w-full max-w-[320px] h-60 select-none">
+        <defs>
+          <marker
+            id="arrowhead-red"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto"
+          >
+            <polygon points="0 0, 7 3.5, 0 7" fill="#dc2626" />
+          </marker>
+        </defs>
+
+        {/* Center Object Box */}
+        <rect
+          x={cx - boxSize / 2}
+          y={cy - boxSize / 2}
+          width={boxSize}
+          height={boxSize}
+          rx="4"
+          fill="#f8fafc"
+          stroke="#334155"
+          strokeWidth="2.5"
+        />
+
+        {/* Center Mass Point */}
+        <circle cx={cx} cy={cy} r="4.5" fill="#0f172a" />
+
+        {/* Dynamic Force Arrows */}
+        {forces.map((f, i) => {
+          const len = getLength(f.magnitude)
+          let x2 = cx
+          let y2 = cy
+          let lx = cx
+          let ly = cy
+
+          if (f.dir === 'up') {
+            y2 = cy - len
+            lx = cx + 8
+            ly = y2 + 16
+          } else if (f.dir === 'down') {
+            y2 = cy + len
+            lx = cx + 8
+            ly = y2 - 8
+          } else if (f.dir === 'left') {
+            x2 = cx - len
+            lx = x2 + 6
+            ly = cy - 8
+          } else if (f.dir === 'right') {
+            x2 = cx + len
+            lx = x2 - 28
+            ly = cy - 8
+          }
+
+          return (
+            <g key={i}>
+              <line
+                x1={cx}
+                y1={cy}
+                x2={x2}
+                y2={y2}
+                stroke="#dc2626"
+                strokeWidth="3"
+                markerEnd="url(#arrowhead-red)"
+              />
+              <text
+                x={lx}
+                y={ly}
+                fill="#dc2626"
+                fontSize="12"
+                fontWeight="700"
+                fontFamily="system-ui, sans-serif"
+              >
+                {f.label || f.code}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
+// 2. Position-Time Graph SVG Renderer
+export function PositionTimeGraphView({ renderData }) {
+  const curveType = renderData?.curveType || 'constant_pos'
+
+  return (
+    <div className="relative w-full flex flex-col items-center justify-center p-2">
+      <svg viewBox="0 0 320 220" className="w-full max-w-[340px] h-56 select-none">
+        <defs>
+          <marker id="axis-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <polygon points="0 0, 6 3, 0 6" fill="#64748b" />
+          </marker>
+        </defs>
+
+        {/* Gridlines */}
+        <g stroke="#f1f5f9" strokeWidth="1">
+          <line x1="40" y1="50" x2="290" y2="50" />
+          <line x1="40" y1="90" x2="290" y2="90" />
+          <line x1="40" y1="130" x2="290" y2="130" />
+          <line x1="100" y1="30" x2="100" y2="180" />
+          <line x1="160" y1="30" x2="160" y2="180" />
+          <line x1="220" y1="30" x2="220" y2="180" />
+        </g>
+
+        {/* Axes */}
+        <line x1="40" y1="180" x2="295" y2="180" stroke="#64748b" strokeWidth="2" markerEnd="url(#axis-arr)" />
+        <line x1="40" y1="180" x2="40" y2="25" stroke="#64748b" strokeWidth="2" markerEnd="url(#axis-arr)" />
+
+        {/* Labels */}
+        <text x="280" y="198" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">Time (t)</text>
+        <text x="12" y="32" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">Pos (x)</text>
+        <text x="28" y="194" fill="#94a3b8" fontSize="11" fontFamily="monospace">0</text>
+
+        {/* Plotted Curves */}
+        {curveType === 'constant_pos' && (
+          <line x1="40" y1="175" x2="280" y2="45" stroke="#2563eb" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'speeding_up_pos' && (
+          <path d="M 40 175 Q 170 170 280 45" stroke="#2563eb" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        )}
+        {curveType === 'slowing_down_pos' && (
+          <path d="M 40 175 Q 130 50 280 45" stroke="#2563eb" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        )}
+        {curveType === 'constant_neg' && (
+          <line x1="40" y1="45" x2="280" y2="175" stroke="#2563eb" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'speeding_up_neg' && (
+          <path d="M 40 45 Q 170 50 280 175" stroke="#2563eb" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        )}
+      </svg>
+    </div>
+  )
+}
+
+// 3. Dot Diagram (Ticker Tape) SVG Renderer
+export function DotDiagramView({ renderData }) {
+  const pattern = renderData?.pattern || 'constant'
+  const direction = renderData?.direction || 'right'
+
+  let dots = []
+  if (direction === 'right') {
+    if (pattern === 'constant') dots = [35, 80, 125, 170, 215, 260]
+    else if (pattern === 'accelerating') dots = [35, 50, 75, 115, 175, 260]
+    else if (pattern === 'decelerating') dots = [35, 120, 180, 220, 245, 260]
+  } else {
+    // left
+    if (pattern === 'constant') dots = [260, 215, 170, 125, 80, 35]
+    else if (pattern === 'accelerating') dots = [260, 245, 220, 180, 120, 35]
+    else if (pattern === 'decelerating') dots = [260, 175, 115, 75, 50, 35]
+  }
+
+  return (
+    <div className="relative w-full flex flex-col items-center justify-center p-3">
+      {/* Motion Banner */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-3 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+        {direction === 'right' ? <ArrowRight className="w-3.5 h-3.5 text-blue-600" /> : <ArrowLeft className="w-3.5 h-3.5 text-blue-600" />}
+        <span>Direction of Motion ({direction === 'right' ? 'Rightward' : 'Leftward'})</span>
+      </div>
+
+      <svg viewBox="0 0 300 110" className="w-full max-w-[340px] h-28 select-none">
+        {/* Tape track */}
+        <rect x="15" y="30" width="270" height="45" rx="6" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
+
+        {/* Baseline dashed */}
+        <line x1="25" y1="52.5" x2="275" y2="52.5" stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth="1" />
+
+        {/* Dots */}
+        {dots.map((x, idx) => (
+          <g key={idx}>
+            <circle cx={x} cy="52.5" r="5" fill="#1e293b" />
+            <text x={x} y="90" textAnchor="middle" fill="#64748b" fontSize="10" fontFamily="monospace">
+              t{idx}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <div className="text-[11px] text-slate-400 font-mono mt-1">Equal time intervals (Δt = 0.2s)</div>
+    </div>
+  )
+}
+
+// 4. Velocity-Time Graph SVG Renderer
+export function VelocityTimeGraphView({ renderData }) {
+  const curveType = renderData?.curveType || 'constant_pos'
+
+  return (
+    <div className="relative w-full flex flex-col items-center justify-center p-2">
+      <svg viewBox="0 0 320 220" className="w-full max-w-[340px] h-56 select-none">
+        <defs>
+          <marker id="axis-arr-v" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <polygon points="0 0, 6 3, 0 6" fill="#64748b" />
+          </marker>
+        </defs>
+
+        {/* Grid */}
+        <g stroke="#f1f5f9" strokeWidth="1">
+          <line x1="40" y1="50" x2="290" y2="50" />
+          <line x1="40" y1="110" x2="290" y2="110" />
+          <line x1="40" y1="170" x2="290" y2="170" />
+          <line x1="100" y1="20" x2="100" y2="200" />
+          <line x1="160" y1="20" x2="160" y2="200" />
+          <line x1="220" y1="20" x2="220" y2="200" />
+        </g>
+
+        {/* Zero Axis (Center horizontal) */}
+        <line x1="40" y1="110" x2="295" y2="110" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="2 2" />
+
+        {/* Main Axes */}
+        <line x1="40" y1="200" x2="40" y2="20" stroke="#64748b" strokeWidth="2" markerEnd="url(#axis-arr-v)" />
+        <line x1="40" y1="180" x2="295" y2="180" stroke="#64748b" strokeWidth="2" markerEnd="url(#axis-arr-v)" />
+
+        {/* Labels */}
+        <text x="280" y="196" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">t (s)</text>
+        <text x="8" y="25" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">v (m/s)</text>
+        <text x="22" y="114" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">0</text>
+        <text x="18" y="55" fill="#64748b" fontSize="10" fontFamily="monospace">+v</text>
+        <text x="18" y="175" fill="#64748b" fontSize="10" fontFamily="monospace">-v</text>
+
+        {/* Velocity lines */}
+        {curveType === 'constant_pos' && (
+          <line x1="40" y1="60" x2="280" y2="60" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'speeding_up_pos' && (
+          <line x1="40" y1="110" x2="280" y2="40" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'slowing_down_pos' && (
+          <line x1="40" y1="40" x2="280" y2="110" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'constant_neg' && (
+          <line x1="40" y1="150" x2="280" y2="150" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'speeding_up_neg' && (
+          <line x1="40" y1="110" x2="280" y2="175" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+        {curveType === 'slowing_down_neg' && (
+          <line x1="40" y1="175" x2="280" y2="110" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        )}
+      </svg>
+    </div>
+  )
+}
+
+// 5. Kinematic Table HTML View
+export function KinematicTableView({ renderData }) {
+  const rows = renderData?.rows || []
+  const colHeader = renderData?.colHeader || 'Position (m)'
+
+  return (
+    <div className="w-full flex flex-col items-center justify-center p-3">
+      <div className="w-full max-w-xs bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-xs">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold">
+              <th className="py-2 px-3 text-left font-mono">Time (s)</th>
+              <th className="py-2 px-3 text-right font-mono">{colHeader}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.map((r, i) => (
+              <tr key={i} className="hover:bg-slate-50 transition-colors">
+                <td className="py-1.5 px-3 font-mono text-slate-600">{r.t}</td>
+                <td className="py-1.5 px-3 font-mono text-right font-bold text-blue-700">{r.val}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="text-[11px] text-slate-500 font-mono mt-2">Data sample recorded at 1.0 s intervals</div>
+    </div>
+  )
+}
+
+// Unified Visual Switcher
+export default function BalancedForcesVisuals({ question }) {
+  if (!question || !question.renderData) {
+    return <div className="text-slate-400 text-xs">No diagram available</div>
+  }
+
+  const { type } = question.renderData
+
+  if (type === 'force_diagram') {
+    return <ForceDiagramView renderData={question.renderData} motionDirection={question.motionDirection} />
+  }
+  if (type === 'position_time_graph') {
+    return <PositionTimeGraphView renderData={question.renderData} />
+  }
+  if (type === 'dot_diagram') {
+    return <DotDiagramView renderData={question.renderData} />
+  }
+  if (type === 'velocity_time_graph') {
+    return <VelocityTimeGraphView renderData={question.renderData} />
+  }
+  if (type === 'kinematic_table') {
+    return <KinematicTableView renderData={question.renderData} />
+  }
+
+  return <div className="text-slate-400 text-xs">Unsupported representation: {type}</div>
+}
