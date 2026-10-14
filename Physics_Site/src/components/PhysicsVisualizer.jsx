@@ -7,7 +7,8 @@ export default function PhysicsVisualizer({
   mass = 10,
   initialVelocity = 0,
   label = 'Object Motion Simulation',
-  forces = []
+  forces = [],
+  isSubmitted = false
 }) {
   const formattedLabel = label ? label.charAt(0).toUpperCase() + label.slice(1) : ''
   const [isPlaying, setIsPlaying] = useState(false)
@@ -24,6 +25,15 @@ export default function PhysicsVisualizer({
     setPosition(50)
     setVelocity(initialVelocity)
   }, [initialVelocity, fNet, mass])
+
+  useEffect(() => {
+    if (!isSubmitted) {
+      setIsPlaying(false)
+      stateRef.current = { pos: 50, vel: initialVelocity }
+      setPosition(50)
+      setVelocity(initialVelocity)
+    }
+  }, [isSubmitted, initialVelocity])
 
   useEffect(() => {
     if (!isPlaying) {
@@ -79,18 +89,29 @@ export default function PhysicsVisualizer({
         <div className="flex items-center gap-3 font-mono text-slate-600">
           <span>
             a:{' '}
-            <strong className={accel !== 0 ? 'text-blue-700' : 'text-emerald-700'}>
-              {accel.toFixed(2)} m/s²
-            </strong>
+            {isSubmitted ? (
+              <strong className={accel !== 0 ? 'text-blue-700' : 'text-emerald-700'}>
+                {accel.toFixed(2)} m/s²
+              </strong>
+            ) : (
+              <span className="text-slate-400 font-bold">?</span>
+            )}
           </span>
           <span>
-            v: <strong className="text-slate-800">{velocity.toFixed(1)} m/s</strong>
+            v:{' '}
+            <strong className="text-slate-800">
+              {isSubmitted ? `${velocity.toFixed(1)} m/s` : '?'}
+            </strong>
           </span>
           <span className="flex items-center gap-1">
             <ForceSymbol type="Fnet" />:{' '}
-            <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>
-              {fNet.toFixed(1)} N
-            </strong>
+            {isSubmitted ? (
+              <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>
+                {fNet.toFixed(1)} N
+              </strong>
+            ) : (
+              <span className="text-slate-400 font-bold">?</span>
+            )}
           </span>
         </div>
       </div>
@@ -115,7 +136,7 @@ export default function PhysicsVisualizer({
               style={{ bottom: `${position}%` }}
             >
               {/* Upward force vector */}
-              {forces
+              {isSubmitted && forces
                 .filter((f) => f.dir === 'up')
                 .map((f, i) => (
                   <div
@@ -144,7 +165,7 @@ export default function PhysicsVisualizer({
               </div>
 
               {/* Downward force vector */}
-              {forces
+              {isSubmitted && forces
                 .filter((f) => f.dir === 'down')
                 .map((f, i) => (
                   <div
@@ -193,7 +214,7 @@ export default function PhysicsVisualizer({
               </div>
 
               {/* Left force arrow */}
-              {forces
+              {isSubmitted && forces
                 .filter((f) => f.dir === 'left')
                 .map((f, i) => (
                   <div
@@ -217,7 +238,7 @@ export default function PhysicsVisualizer({
                 ))}
 
               {/* Right force arrow */}
-              {forces
+              {isSubmitted && forces
                 .filter((f) => f.dir === 'right')
                 .map((f, i) => (
                   <div
@@ -253,27 +274,44 @@ export default function PhysicsVisualizer({
       {/* Controls */}
       <div className="flex items-center justify-between mt-2.5">
         <p className="text-xs text-slate-600">
-          {fNet === 0 ? (
-            <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
-              ✓ Forces are balanced (<ForceSymbol type="Fnet" /> = 0). Constant velocity.
-            </span>
+          {isSubmitted ? (
+            fNet === 0 ? (
+              <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
+                ✓ Forces are balanced (<ForceSymbol type="Fnet" /> = 0). Constant velocity.
+              </span>
+            ) : (
+              <span className="text-amber-700 font-medium inline-flex items-center gap-1">
+                ⚠ Forces are unbalanced (<ForceSymbol type="Fnet" /> ≠ 0). Acceleration occurs.
+              </span>
+            )
           ) : (
-            <span className="text-amber-700 font-medium inline-flex items-center gap-1">
-              ⚠ Forces are unbalanced (<ForceSymbol type="Fnet" /> ≠ 0). Acceleration occurs.
+            <span className="text-slate-400 italic">
+              Submit your answer above to evaluate forces and run simulation.
             </span>
           )}
         </p>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-md text-xs font-semibold transition-colors"
+            onClick={() => isSubmitted && setIsPlaying(!isPlaying)}
+            disabled={!isSubmitted}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+              isSubmitted
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer'
+                : 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+            }`}
+            title={isSubmitted ? (isPlaying ? 'Pause' : 'Simulate') : 'Submit your answer above to enable simulation'}
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             {isPlaying ? 'Pause' : 'Simulate'}
           </button>
           <button
             onClick={handleReset}
-            className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-md text-xs transition-colors"
+            disabled={!isSubmitted}
+            className={`p-1.5 rounded-md text-xs transition-colors ${
+              isSubmitted
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 cursor-pointer'
+                : 'bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed opacity-60'
+            }`}
             title="Reset Simulation"
           >
             <RotateCcw className="w-3.5 h-3.5" />
