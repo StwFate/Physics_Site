@@ -1,18 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Eye, Plus, X, Zap } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Eye, Plus, X, Zap, ChevronLeft, ChevronRight } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import fbdScenarios from '../data/fbdScenarios.json'
 import ForceSymbol from './ForceSymbol'
 
 const FORCE_TYPES = [
-  { code: 1, id: 'Fgrav', label: 'Gravity', sub: 'g', altSub: 'grav', color: 'text-rose-600 border-rose-300 bg-rose-50' },
-  { code: 2, id: 'Fnorm', label: 'Normal', sub: 'N', altSub: 'norm', color: 'text-blue-600 border-blue-300 bg-blue-50' },
-  { code: 3, id: 'Ffrict', label: 'Friction', sub: 'f', altSub: 'frict', color: 'text-amber-600 border-amber-300 bg-amber-50' },
-  { code: 4, id: 'Fapp', label: 'Applied', sub: 'a', altSub: 'app', color: 'text-emerald-600 border-emerald-300 bg-emerald-50' },
-  { code: 5, id: 'Fair', label: 'Air Resistance', sub: 'air', altSub: 'air', color: 'text-purple-600 border-purple-300 bg-purple-50' },
-  { code: 7, id: 'Ftens', label: 'Tension', sub: 'T', altSub: 'tens', color: 'text-yellow-700 border-yellow-300 bg-yellow-50' },
-  { code: 6, id: 'Fspring', label: 'Spring', sub: 's', altSub: 'spring', color: 'text-pink-600 border-pink-300 bg-pink-50' },
+  { code: 1, id: 'Fgrav', label: 'Gravity', sub: 'g', altSub: 'grav', hex: '#e11d48', color: 'text-rose-600 border-rose-300 bg-rose-50' },
+  { code: 2, id: 'Fnorm', label: 'Normal', sub: 'N', altSub: 'norm', hex: '#2563eb', color: 'text-blue-600 border-blue-300 bg-blue-50' },
+  { code: 3, id: 'Ffrict', label: 'Friction', sub: 'f', altSub: 'frict', hex: '#d97706', color: 'text-amber-600 border-amber-300 bg-amber-50' },
+  { code: 4, id: 'Fapp', label: 'Applied', sub: 'a', altSub: 'app', hex: '#059669', color: 'text-emerald-600 border-emerald-300 bg-emerald-50' },
+  { code: 5, id: 'Fair', label: 'Air Resistance', sub: 'air', altSub: 'air', hex: '#9333ea', color: 'text-purple-600 border-purple-300 bg-purple-50' },
+  { code: 7, id: 'Ftens', label: 'Tension', sub: 'T', altSub: 'tens', hex: '#ca8a04', color: 'text-yellow-700 border-yellow-300 bg-yellow-50' },
+  { code: 6, id: 'Fspring', label: 'Spring', sub: 's', altSub: 'spring', hex: '#db2777', color: 'text-pink-600 border-pink-300 bg-pink-50' },
 ]
+
+const getForceColor = (code) => {
+  const found = FORCE_TYPES.find((f) => f.code === code)
+  return found?.hex || '#2563eb'
+}
 
 export default function FBDModule() {
   const [scenarioIndex, setScenarioIndex] = useState(0)
@@ -235,9 +240,25 @@ export default function FBDModule() {
       <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setScenarioIndex((prev) => Math.max(0, prev - 1))}
+              disabled={scenarioIndex === 0}
+              className="p-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Previous scenario"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
             <span className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-xs font-mono font-bold">
-              Scenario {currentScenario.id} of 12
+              Scenario {currentScenario.id} of {fbdScenarios.length}
             </span>
+            <button
+              onClick={() => setScenarioIndex((prev) => Math.min(fbdScenarios.length - 1, prev + 1))}
+              disabled={scenarioIndex === fbdScenarios.length - 1}
+              className="p-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Next scenario"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
             <span className="text-xs font-bold text-slate-900">{currentScenario.title}</span>
           </div>
 
@@ -263,7 +284,7 @@ export default function FBDModule() {
           <div className="mt-3 p-3 bg-slate-50 rounded border border-slate-200 text-center animate-in fade-in">
             <div className="text-[11px] text-slate-500 mb-2 font-mono">Original Solution Reference</div>
             <img
-              src={`./media/free-body-diagrams/scenario-${currentScenario.id}.png`}
+              src={`/media/free-body-diagrams/scenario-${currentScenario.id}.png`}
               alt={`Scenario ${currentScenario.id} reference`}
               className="max-h-56 mx-auto rounded border border-slate-200 object-contain"
             />
@@ -378,10 +399,7 @@ export default function FBDModule() {
                         className="w-full px-2 py-1.5 rounded text-left text-xs font-medium text-slate-700 hover:bg-slate-100 flex items-center justify-between transition-colors"
                       >
                         <span>{f.label}</span>
-                        <span className="flex items-center gap-1.5">
-                          <ForceSymbol code={f.code} className="text-xs font-bold" />
-                          <span className="text-[10px] text-slate-400 font-normal font-mono">(F<sub>{f.altSub}</sub>)</span>
-                        </span>
+                        <ForceSymbol code={f.code} className="text-xs font-bold" />
                       </button>
                     ))}
                   </div>
@@ -397,14 +415,15 @@ export default function FBDModule() {
               >
                 {/* Vector Tag & Controls */}
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mb-1">
-                  <ForceSymbol code={forces.up} className="font-bold text-blue-600 text-xs" />
+                  <ForceSymbol code={forces.up} className="font-bold text-xs" style={{ color: getForceColor(forces.up) }} />
                   <button
                     onClick={() => handleToggleStrength('up')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.up === 'strong'
-                        ? 'bg-blue-600 border-blue-600 text-white'
+                        ? 'text-white'
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
+                    style={strengths.up === 'strong' ? { backgroundColor: getForceColor(forces.up), borderColor: getForceColor(forces.up) } : {}}
                     title="Click to toggle Normal vs Strong"
                   >
                     {strengths.up === 'strong' ? 'Strong' : 'Normal'}
@@ -420,13 +439,15 @@ export default function FBDModule() {
                 {/* Arrowhead */}
                 <div
                   onClick={() => handleToggleStrength('up')}
-                  className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-blue-600 cursor-pointer hover:border-b-blue-700 transition-colors"
+                  className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] cursor-pointer transition-colors"
+                  style={{ borderBottomColor: getForceColor(forces.up) }}
                   title="Click to toggle length"
                 ></div>
                 {/* Stem */}
                 <div
                   onClick={() => handleToggleStrength('up')}
-                  className="w-1 bg-blue-600 flex-1 cursor-pointer hover:bg-blue-700 transition-colors"
+                  className="w-1 flex-1 cursor-pointer transition-colors"
+                  style={{ backgroundColor: getForceColor(forces.up) }}
                   title="Click to toggle length"
                 ></div>
               </div>
@@ -441,25 +462,28 @@ export default function FBDModule() {
                 {/* Stem */}
                 <div
                   onClick={() => handleToggleStrength('down')}
-                  className="w-1 bg-rose-600 flex-1 cursor-pointer hover:bg-rose-700 transition-colors"
+                  className="w-1 flex-1 cursor-pointer transition-colors"
+                  style={{ backgroundColor: getForceColor(forces.down) }}
                   title="Click to toggle length"
                 ></div>
                 {/* Arrowhead */}
                 <div
                   onClick={() => handleToggleStrength('down')}
-                  className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-rose-600 cursor-pointer hover:border-t-rose-700 transition-colors"
+                  className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] cursor-pointer transition-colors"
+                  style={{ borderTopColor: getForceColor(forces.down) }}
                   title="Click to toggle length"
                 ></div>
                 {/* Vector Tag & Controls */}
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mt-1">
-                  <ForceSymbol code={forces.down} className="font-bold text-rose-600 text-xs" />
+                  <ForceSymbol code={forces.down} className="font-bold text-xs" style={{ color: getForceColor(forces.down) }} />
                   <button
                     onClick={() => handleToggleStrength('down')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.down === 'strong'
-                        ? 'bg-rose-600 border-rose-600 text-white'
+                        ? 'text-white'
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
+                    style={strengths.down === 'strong' ? { backgroundColor: getForceColor(forces.down), borderColor: getForceColor(forces.down) } : {}}
                     title="Click to toggle Normal vs Strong"
                   >
                     {strengths.down === 'strong' ? 'Strong' : 'Normal'}
@@ -494,26 +518,28 @@ export default function FBDModule() {
                     onClick={() => handleToggleStrength('left')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.left === 'strong'
-                        ? 'bg-amber-600 border-amber-600 text-white'
+                        ? 'text-white'
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
+                    style={strengths.left === 'strong' ? { backgroundColor: getForceColor(forces.left), borderColor: getForceColor(forces.left) } : {}}
                     title="Click to toggle Normal vs Strong"
                   >
                     {strengths.left === 'strong' ? 'Strong' : 'Normal'}
                   </button>
-                  <ForceSymbol code={forces.left} className="font-bold text-amber-600 text-xs" />
+                  <ForceSymbol code={forces.left} className="font-bold text-xs" style={{ color: getForceColor(forces.left) }} />
                 </div>
                 {/* Arrowhead */}
                 <div
                   onClick={() => handleToggleStrength('left')}
-                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[10px] border-r-amber-600 cursor-pointer hover:border-r-amber-700 transition-colors shrink-0"
+                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[10px] cursor-pointer transition-colors shrink-0"
+                  style={{ borderRightColor: getForceColor(forces.left) }}
                   title="Click to toggle length"
                 ></div>
                 {/* Stem */}
                 <div
                   onClick={() => handleToggleStrength('left')}
-                  className="h-1 bg-amber-600 cursor-pointer hover:bg-amber-700 transition-all duration-200"
-                  style={{ width: `${strengths.left === 'strong' ? 100 : 60}px` }}
+                  className="h-1 cursor-pointer transition-all duration-200"
+                  style={{ width: `${strengths.left === 'strong' ? 100 : 60}px`, backgroundColor: getForceColor(forces.left) }}
                   title="Click to toggle length"
                 ></div>
               </div>
@@ -528,26 +554,28 @@ export default function FBDModule() {
                 {/* Stem */}
                 <div
                   onClick={() => handleToggleStrength('right')}
-                  className="h-1 bg-emerald-600 cursor-pointer hover:bg-emerald-700 transition-all duration-200"
-                  style={{ width: `${strengths.right === 'strong' ? 100 : 60}px` }}
+                  className="h-1 cursor-pointer transition-all duration-200"
+                  style={{ width: `${strengths.right === 'strong' ? 100 : 60}px`, backgroundColor: getForceColor(forces.right) }}
                   title="Click to toggle length"
                 ></div>
                 {/* Arrowhead */}
                 <div
                   onClick={() => handleToggleStrength('right')}
-                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[10px] border-l-emerald-600 cursor-pointer hover:border-l-emerald-700 transition-colors shrink-0"
+                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[10px] cursor-pointer transition-colors shrink-0"
+                  style={{ borderLeftColor: getForceColor(forces.right) }}
                   title="Click to toggle length"
                 ></div>
                 {/* Vector Tag & Controls */}
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono ml-2 whitespace-nowrap">
-                  <ForceSymbol code={forces.right} className="font-bold text-emerald-600 text-xs" />
+                  <ForceSymbol code={forces.right} className="font-bold text-xs" style={{ color: getForceColor(forces.right) }} />
                   <button
                     onClick={() => handleToggleStrength('right')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.right === 'strong'
-                        ? 'bg-emerald-600 border-emerald-600 text-white'
+                        ? 'text-white'
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
+                    style={strengths.right === 'strong' ? { backgroundColor: getForceColor(forces.right), borderColor: getForceColor(forces.right) } : {}}
                     title="Click to toggle Normal vs Strong"
                   >
                     {strengths.right === 'strong' ? 'Strong' : 'Normal'}
