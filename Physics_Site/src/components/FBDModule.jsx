@@ -337,15 +337,29 @@ export default function FBDModule() {
                   ref={popoverRef}
                   className={`absolute z-40 bg-white border border-slate-300 rounded-lg p-2 shadow-xl w-48 animate-in fade-in zoom-in-95 duration-100 ${
                     activePopover === 'up'
-                      ? 'bottom-full mb-3 left-1/2 -translate-x-1/2'
+                      ? 'bottom-full mb-4 left-1/2 -translate-x-1/2'
                       : activePopover === 'down'
-                      ? 'top-full mt-3 left-1/2 -translate-x-1/2'
+                      ? 'top-full mt-4 left-1/2 -translate-x-1/2'
                       : activePopover === 'left'
-                      ? 'right-full mr-3 top-1/2 -translate-y-1/2'
-                      : 'left-full ml-3 top-1/2 -translate-y-1/2'
+                      ? 'right-full mr-4 top-1/2 -translate-y-1/2'
+                      : 'left-full ml-4 top-1/2 -translate-y-1/2'
                   }`}
                 >
-                  <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-700">
+                  {/* Directional Caret Pointer anchored to button */}
+                  {activePopover === 'up' && (
+                    <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-slate-300 rotate-45" />
+                  )}
+                  {activePopover === 'down' && (
+                    <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-slate-300 rotate-45" />
+                  )}
+                  {activePopover === 'left' && (
+                    <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-r border-t border-slate-300 rotate-45" />
+                  )}
+                  {activePopover === 'right' && (
+                    <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-l border-b border-slate-300 rotate-45" />
+                  )}
+
+                  <div className="relative z-10 flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-700">
                     <span>Add {activePopover.toUpperCase()} Force</span>
                     <button
                       onClick={() => setActivePopover(null)}
@@ -355,7 +369,7 @@ export default function FBDModule() {
                     </button>
                   </div>
 
-                  <div className="space-y-0.5">
+                  <div className="relative z-10 space-y-0.5">
                     {FORCE_TYPES.map((f) => (
                       <button
                         key={f.code}
