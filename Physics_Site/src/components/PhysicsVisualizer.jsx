@@ -16,6 +16,7 @@ export default function PhysicsVisualizer({
   const stateRef = useRef({ pos: 50, vel: initialVelocity })
 
   const accel = mass > 0 ? fNet / mass : 0
+  const isVertical = forces.some((f) => f.dir === 'up' || f.dir === 'down')
 
   useEffect(() => {
     stateRef.current = { pos: 50, vel: initialVelocity }
@@ -36,19 +37,17 @@ export default function PhysicsVisualizer({
       lastTime = time
 
       const curVel = stateRef.current.vel + accel * dt
-      let curPos = stateRef.current.pos + (curVel * dt * 8)
+      let curPos = stateRef.current.pos + curVel * dt * 8
 
+      // Natural boundary loop/wrap-around
       if (curPos > 90) {
-        curPos = 90
-        stateRef.current.vel = -Math.abs(curVel) * 0.5
+        curPos = 12
       } else if (curPos < 10) {
-        curPos = 10
-        stateRef.current.vel = Math.abs(curVel) * 0.5
-      } else {
-        stateRef.current.vel = curVel
+        curPos = 88
       }
 
       stateRef.current.pos = curPos
+      stateRef.current.vel = curVel
       setPosition(curPos)
       setVelocity(curVel)
 
@@ -74,67 +73,181 @@ export default function PhysicsVisualizer({
       <div className="flex items-center justify-between mb-2.5 text-xs">
         <span className="font-semibold text-slate-800 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-          {label}
+          {label} ({isVertical ? 'Vertical Motion Model' : 'Horizontal Track Model'})
         </span>
         <div className="flex items-center gap-3 font-mono text-slate-600">
-          <span>a: <strong className={accel !== 0 ? 'text-blue-700' : 'text-emerald-700'}>{accel.toFixed(2)} m/s²</strong></span>
-          <span>v: <strong className="text-slate-800">{velocity.toFixed(1)} m/s</strong></span>
+          <span>
+            a:{' '}
+            <strong className={accel !== 0 ? 'text-blue-700' : 'text-emerald-700'}>
+              {accel.toFixed(2)} m/s²
+            </strong>
+          </span>
+          <span>
+            v: <strong className="text-slate-800">{velocity.toFixed(1)} m/s</strong>
+          </span>
           <span className="flex items-center gap-1">
-            <ForceSymbol type="Fnet" />: <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>{fNet.toFixed(1)} N</strong>
+            <ForceSymbol type="Fnet" />:{' '}
+            <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>
+              {fNet.toFixed(1)} N
+            </strong>
           </span>
         </div>
       </div>
 
-      {/* Track */}
-      <div className="relative h-24 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-end">
-        {/* Tick marks */}
-        <div className="absolute inset-x-0 bottom-0 h-4 border-t border-slate-200 flex justify-between px-4 text-[10px] text-slate-400 font-mono select-none">
-          <span>0m</span>
-          <span>25m</span>
-          <span>50m</span>
-          <span>75m</span>
-          <span>100m</span>
-        </div>
+      {isVertical ? (
+        /* Vertical Motion Track (Elevator / Payload / Rocket) */
+        <div className="relative h-36 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-center justify-center">
+          {/* Vertical Height Scale on Left */}
+          <div className="absolute left-3 inset-y-2 flex flex-col justify-between text-[10px] text-slate-400 font-mono select-none border-r border-slate-200 pr-2">
+            <span>100m</span>
+            <span>75m</span>
+            <span>50m</span>
+            <span>25m</span>
+            <span>0m</span>
+          </div>
 
-        {/* The Cart Object */}
-        <div
-          className="absolute bottom-4 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
-          style={{ left: `${position}%` }}
-        >
-          <div className="relative w-14 h-10 flex items-center justify-center">
-            {/* Box Body */}
-            <div className="w-12 h-8 bg-slate-800 rounded border border-slate-900 shadow-sm flex items-center justify-center text-[11px] font-bold text-white">
-              {mass}kg
+          {/* Vertical Guide Track */}
+          <div className="w-16 h-full border-x border-slate-200 bg-slate-100/50 relative">
+            {/* The Vertical Object */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
+              style={{ bottom: `${position}%` }}
+            >
+              {/* Upward force vector */}
+              {forces
+                .filter((f) => f.dir === 'up')
+                .map((f, i) => (
+                  <div
+                    key={i}
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center pb-1 pointer-events-none"
+                  >
+                    <ForceSymbol
+                      code={f.name}
+                      sub={f.name.replace('F_', '')}
+                      className="text-[11px] text-blue-600 mb-0.5"
+                    />
+                    <div
+                      className="w-0.5 bg-blue-600 relative"
+                      style={{
+                        height: `${Math.min(Math.max(f.value * 0.7, 15), 45)}px`
+                      }}
+                    >
+                      <div className="absolute -top-1 -left-1 border-b-4 border-l-4 border-r-4 border-transparent border-b-blue-600"></div>
+                    </div>
+                  </div>
+                ))}
+
+              {/* Capsule Body */}
+              <div className="w-11 h-8 bg-slate-800 rounded border border-slate-900 shadow-sm flex items-center justify-center text-[10px] font-bold text-white">
+                {mass}kg
+              </div>
+
+              {/* Downward force vector */}
+              {forces
+                .filter((f) => f.dir === 'down')
+                .map((f, i) => (
+                  <div
+                    key={i}
+                    className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center pt-1 pointer-events-none"
+                  >
+                    <div
+                      className="w-0.5 bg-rose-600 relative"
+                      style={{
+                        height: `${Math.min(Math.max(f.value * 0.7, 15), 45)}px`
+                      }}
+                    >
+                      <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
+                    </div>
+                    <ForceSymbol
+                      code={f.name}
+                      sub={f.name.replace('F_', '')}
+                      className="text-[11px] text-rose-600 mt-0.5"
+                    />
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Horizontal Motion Track (Carts / Crates) */
+        <div className="relative h-24 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-end">
+          {/* Tick marks */}
+          <div className="absolute inset-x-0 bottom-0 h-4 border-t border-slate-200 flex justify-between px-4 text-[10px] text-slate-400 font-mono select-none">
+            <span>0m</span>
+            <span>25m</span>
+            <span>50m</span>
+            <span>75m</span>
+            <span>100m</span>
+          </div>
+
+          {/* The Cart Object */}
+          <div
+            className="absolute bottom-4 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
+            style={{ left: `${position}%` }}
+          >
+            <div className="relative w-14 h-10 flex items-center justify-center">
+              {/* Box Body */}
+              <div className="w-12 h-8 bg-slate-800 rounded border border-slate-900 shadow-sm flex items-center justify-center text-[11px] font-bold text-white">
+                {mass}kg
+              </div>
+
+              {/* Left force arrow */}
+              {forces
+                .filter((f) => f.dir === 'left')
+                .map((f, i) => (
+                  <div
+                    key={i}
+                    className="absolute right-full top-1/2 -translate-y-1/2 flex items-center pr-1 pointer-events-none"
+                  >
+                    <ForceSymbol
+                      code={f.name}
+                      sub={f.name.replace('F_', '')}
+                      className="text-[11px] text-rose-600 mr-1"
+                    />
+                    <div
+                      className="h-0.5 bg-rose-600 relative"
+                      style={{
+                        width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px`
+                      }}
+                    >
+                      <div className="absolute left-0 -top-1 border-t-4 border-r-4 border-b-4 border-transparent border-r-rose-600"></div>
+                    </div>
+                  </div>
+                ))}
+
+              {/* Right force arrow */}
+              {forces
+                .filter((f) => f.dir === 'right')
+                .map((f, i) => (
+                  <div
+                    key={i}
+                    className="absolute left-full top-1/2 -translate-y-1/2 flex items-center pl-1 pointer-events-none"
+                  >
+                    <div
+                      className="h-0.5 bg-blue-600 relative"
+                      style={{
+                        width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px`
+                      }}
+                    >
+                      <div className="absolute right-0 -top-1 border-t-4 border-l-4 border-b-4 border-transparent border-l-blue-600"></div>
+                    </div>
+                    <ForceSymbol
+                      code={f.name}
+                      sub={f.name.replace('F_', '')}
+                      className="text-[11px] text-blue-600 ml-1"
+                    />
+                  </div>
+                ))}
             </div>
 
-            {/* Left force arrow */}
-            {forces.filter(f => f.dir === 'left').map((f, i) => (
-              <div key={i} className="absolute right-full top-1/2 -translate-y-1/2 flex items-center pr-1 pointer-events-none">
-                <ForceSymbol code={f.name} sub={f.name.replace('F_', '')} className="text-[11px] text-rose-600 mr-1" />
-                <div className="h-0.5 bg-rose-600 relative" style={{ width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px` }}>
-                  <div className="absolute left-0 -top-1 border-t-4 border-r-4 border-b-4 border-transparent border-r-rose-600"></div>
-                </div>
-              </div>
-            ))}
-
-            {/* Right force arrow */}
-            {forces.filter(f => f.dir === 'right').map((f, i) => (
-              <div key={i} className="absolute left-full top-1/2 -translate-y-1/2 flex items-center pl-1 pointer-events-none">
-                <div className="h-0.5 bg-blue-600 relative" style={{ width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px` }}>
-                  <div className="absolute right-0 -top-1 border-t-4 border-l-4 border-b-4 border-transparent border-l-blue-600"></div>
-                </div>
-                <ForceSymbol code={f.name} sub={f.name.replace('F_', '')} className="text-[11px] text-blue-600 ml-1" />
-              </div>
-            ))}
-          </div>
-
-          {/* Cart Wheels */}
-          <div className="flex gap-5 -mt-0.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
+            {/* Cart Wheels */}
+            <div className="flex gap-5 -mt-0.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Controls */}
       <div className="flex items-center justify-between mt-2.5">
