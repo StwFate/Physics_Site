@@ -1,0 +1,862 @@
+[
+  {
+    "id": 1,
+    "title": "Crate Pushed at Constant Speed",
+    "objectContext": "Crate",
+    "description": "A rightward force is applied to a <B>crate</B> to push it across the floor at a constant speed. Ignore air resistance.",
+    "cleanDescription": "A rightward force is applied to a crate to push it across the floor at a constant speed. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "right",
+      "velocityState": "constant speed",
+      "acceleration": "none (a = 0)",
+      "accelerationDirection": "none"
+    },
+    "forces": [
+      {
+        "id": "Fapp",
+        "name": "Applied Force",
+        "symbol": "Fapp",
+        "direction": "right",
+        "relativeMagnitude": "equal",
+        "code": 4
+      },
+      {
+        "id": "Ffrict",
+        "name": "Friction Force",
+        "symbol": "Ffrict",
+        "direction": "left",
+        "relativeMagnitude": "equal",
+        "code": 3
+      },
+      {
+        "id": "Fnorm",
+        "name": "Normal Force",
+        "symbol": "Fnorm",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 2
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "Applied", "symbol": "Fapp", "code": 4, "magnitude": 1 },
+      "left": { "type": "Friction", "symbol": "Ffrict", "code": 3, "magnitude": 1 },
+      "up": { "type": "Normal", "symbol": "Fnorm", "code": 2, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced",
+      "vertical": "balanced",
+      "netForce": "zero (Fnet = 0)",
+      "netForceDirection": "none",
+      "explanation": "Because the crate moves at constant speed along a level surface, acceleration is zero in both dimensions. Opposing horizontal forces (Fapp and Ffrict) must be equal in length, and vertical forces (Fnorm and Fgrav) must be equal in length."
+    },
+    "answerCode": "432100",
+    "answerParts": {
+      "part1_forces": "4321",
+      "part2_horizontal": "0",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! Since the crate moves at constant speed, the applied push exactly balances kinetic friction. Normal force balances gravity.",
+      "incorrectForceTypes": "One or more of the Force Types you have chosen is incorrect. Make sure you include Applied, Friction, Normal, and Gravity.",
+      "incorrectMagnitudes": "Your force types are correct, but the relative size of opposing forces is incorrect. Constant speed means acceleration is zero, so opposing forces must be equal in length."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Believing that pushing an object requires Fapp > Ffrict at constant speed.",
+        "explanation": "According to Newton’s First Law, an object in motion continues at constant velocity with balanced forces. Fapp only exceeds Ffrict while accelerating."
+      },
+      {
+        "misconception": "Forgetting friction or normal force on a floor.",
+        "explanation": "The crate is in contact with the floor, so the floor exerts both an upward supporting normal force and an opposing frictional force."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-1.png",
+      "localPath": "Media/free-body-diagrams/scenario-1.png"
+    }
+  },
+  {
+    "id": 2,
+    "title": "Dresser Accelerating to the Right",
+    "objectContext": "Dresser",
+    "description": "A rightward force is applied to a <B>dresser</B> to accelerate it to the right across the bedroom floor. Ignore air resistance.",
+    "cleanDescription": "A rightward force is applied to a dresser to accelerate it to the right across the bedroom floor. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "right",
+      "velocityState": "accelerating",
+      "acceleration": "positive rightward (a > 0)",
+      "accelerationDirection": "right"
+    },
+    "forces": [
+      {
+        "id": "Fapp",
+        "name": "Applied Force",
+        "symbol": "Fapp",
+        "direction": "right",
+        "relativeMagnitude": "large",
+        "code": 4
+      },
+      {
+        "id": "Ffrict",
+        "name": "Friction Force",
+        "symbol": "Ffrict",
+        "direction": "left",
+        "relativeMagnitude": "small",
+        "code": 3
+      },
+      {
+        "id": "Fnorm",
+        "name": "Normal Force",
+        "symbol": "Fnorm",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 2
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "Applied", "symbol": "Fapp", "code": 4, "magnitude": 2 },
+      "left": { "type": "Friction", "symbol": "Ffrict", "code": 3, "magnitude": 1 },
+      "up": { "type": "Normal", "symbol": "Fnorm", "code": 2, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "unbalanced-right",
+      "vertical": "balanced",
+      "netForce": "rightward (Fnet > 0)",
+      "netForceDirection": "right",
+      "explanation": "Because the dresser is accelerating to the right, there must be an unbalanced net force in the direction of acceleration. Thus, the rightward applied force must be greater in magnitude than the leftward friction force."
+    },
+    "answerCode": "432110",
+    "answerParts": {
+      "part1_forces": "4321",
+      "part2_horizontal": "1",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! The dresser accelerates to the right, so Fapp is drawn larger than Ffrict to produce a net rightward force. Vertical forces remain balanced.",
+      "incorrectForceTypes": "One or more of the Force Types you have chosen is incorrect. Make sure you include Applied, Friction, Normal, and Gravity.",
+      "incorrectMagnitudes": "Your force types are correct, but the relative size of opposing forces is incorrect. Because the dresser accelerates to the right, the right arrow must be longer than the left arrow."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Drawing opposing horizontal forces equal in length.",
+        "explanation": "Newton’s Second Law states that acceleration requires an unbalanced net force (Fnet = m*a). If Fapp = Ffrict, the object would move at constant speed rather than accelerate."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-2.png",
+      "localPath": "Media/free-body-diagrams/scenario-2.png"
+    }
+  },
+  {
+    "id": 3,
+    "title": "Car Skidding to a Stop",
+    "objectContext": "Car",
+    "description": "A rightward-moving <B>car</B> is skidding to a stop across a level roadway with locked wheels. Ignore air resistance.",
+    "cleanDescription": "A rightward-moving car is skidding to a stop across a level roadway with locked wheels. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "right",
+      "velocityState": "slowing down (decelerating)",
+      "acceleration": "negative leftward (a < 0)",
+      "accelerationDirection": "left"
+    },
+    "forces": [
+      {
+        "id": "Ffrict",
+        "name": "Friction Force",
+        "symbol": "Ffrict",
+        "direction": "left",
+        "relativeMagnitude": "large",
+        "code": 3
+      },
+      {
+        "id": "Fnorm",
+        "name": "Normal Force",
+        "symbol": "Fnorm",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 2
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "Friction", "symbol": "Ffrict", "code": 3, "magnitude": 1 },
+      "up": { "type": "Normal", "symbol": "Fnorm", "code": 2, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "unbalanced-left",
+      "vertical": "balanced",
+      "netForce": "leftward (Fnet < 0)",
+      "netForceDirection": "left",
+      "explanation": "With locked wheels, there is no engine thrust or forward applied force. The only horizontal force is kinetic friction acting to the left opposing the motion, causing the car to decelerate."
+    },
+    "answerCode": "032120",
+    "answerParts": {
+      "part1_forces": "0321",
+      "part2_horizontal": "2",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! Once the wheels lock, there is no forward force. Friction acts backward to the left, creating a net backward force that stops the car.",
+      "incorrectForceTypes": "One or more of the Force Types you have chosen is incorrect. Do NOT include a forward applied force — only friction, normal, and gravity act on the skidding car.",
+      "incorrectMagnitudes": "Your force types are correct, but the relative size of opposing forces is incorrect. With only a leftward friction force horizontally, the net horizontal force is leftward."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Adding a forward 'force of motion', 'momentum', or 'engine force'.",
+        "explanation": "Students frequently assume forward motion requires a forward force. In physics, momentum is a property of motion, NOT a force. Once wheels are locked, nothing pushes the car forward."
+      },
+      {
+        "misconception": "Drawing friction to the right.",
+        "explanation": "Friction always opposes the direction of relative surface sliding. Since the car slides right, roadway friction points left."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-3.png",
+      "localPath": "Media/free-body-diagrams/scenario-3.png"
+    }
+  },
+  {
+    "id": 4,
+    "title": "Football Rising Toward Peak",
+    "objectContext": "Football",
+    "description": "A <B>football</B> is moving upward and rightward towards the peak of its trajectory. Ignore air resistance.",
+    "cleanDescription": "A football is moving upward and rightward towards the peak of its trajectory. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "upward and rightward (projectile)",
+      "velocityState": "rising, vertical speed decreasing",
+      "acceleration": "downward due to gravity (g = 9.8 m/s²)",
+      "accelerationDirection": "down"
+    },
+    "forces": [
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "large",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "unbalanced-down",
+      "netForce": "downward (Fnet = Fgrav)",
+      "netForceDirection": "down",
+      "explanation": "A projectile in free flight has no contact with the thrower/kicker and experiences no contact forces. Ignoring air resistance, the only force acting on the football is gravity pointing straight down."
+    },
+    "answerCode": "000102",
+    "answerParts": {
+      "part1_forces": "0001",
+      "part2_horizontal": "0",
+      "part3_vertical": "2"
+    },
+    "feedback": {
+      "correct": "Correct! A projectile in flight has no contact forces. Gravity is the only force acting, directed straight down regardless of flight direction.",
+      "incorrectForceTypes": "One or more of the Force Types you have chosen is incorrect. Do NOT include an upward or forward force. Contact with the kicker ceased once airborne.",
+      "incorrectMagnitudes": "Your force types are correct, but the magnitude relationships are incorrect. Upward force is 0, so down magnitude exceeds up magnitude."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Adding an upward or diagonal 'kick force' or 'applied force'.",
+        "explanation": "Applied force requires contact. Once the ball leaves the kicker’s foot, the contact force vanishes immediately. Inertia carries it upward, not a continuous force."
+      },
+      {
+        "misconception": "Including a normal force in mid-air.",
+        "explanation": "Normal force only exists when an object is in contact with a solid surface."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-4.png",
+      "localPath": "Media/free-body-diagrams/scenario-4.png"
+    }
+  },
+  {
+    "id": 5,
+    "title": "Freight Elevator Ascending at Constant Speed",
+    "objectContext": "Freight Elevator Cabin",
+    "description": "The <B>cabin of a small freight elevator</B> is secured to a motor by a cable and is moving upward with a constant speed. There is no contact between the cabin and the elevator shaft. Ignore air resistance.",
+    "cleanDescription": "The cabin of a small freight elevator is secured to a motor by a cable and is moving upward with a constant speed. There is no contact between the cabin and the elevator shaft. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "upward",
+      "velocityState": "constant speed",
+      "acceleration": "none (a = 0)",
+      "accelerationDirection": "none"
+    },
+    "forces": [
+      {
+        "id": "Ftens",
+        "name": "Tension Force",
+        "symbol": "Ftens",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 7
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "Tension", "symbol": "Ftens", "code": 7, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "balanced",
+      "netForce": "zero (Fnet = 0)",
+      "netForceDirection": "none",
+      "explanation": "Because the elevator cabin is rising at constant velocity with zero acceleration, the upward tension force exerted by the cable must exactly equal the downward gravitational force."
+    },
+    "answerCode": "007100",
+    "answerParts": {
+      "part1_forces": "0071",
+      "part2_horizontal": "0",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! The upward tension in the supporting cable balances the downward force of gravity, allowing the elevator to ascend at constant speed.",
+      "incorrectForceTypes": "One or more of the Force Types is incorrect. The cable exerts Tension (Ftens) upward, and Earth exerts Gravity (Fgrav) downward. No shaft contact forces exist.",
+      "incorrectMagnitudes": "Your force types are correct, but magnitude is incorrect. Constant speed upward means zero acceleration, so Tension and Gravity must be equal in length."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Believing tension must be greater than gravity because the elevator is moving upward.",
+        "explanation": "Motion in an upward direction does NOT imply an upward net force. Constant speed requires balanced forces (Ftens = Fgrav). An upward net force would cause upward acceleration."
+      },
+      {
+        "misconception": "Labeling the cable force as 'Applied' or 'Normal'.",
+        "explanation": "Forces exerted by cables, ropes, or strings are classified as Tension."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-5.png",
+      "localPath": "Media/free-body-diagrams/scenario-5.png"
+    }
+  },
+  {
+    "id": 6,
+    "title": "Skydiver Falling at Constant Speed (Terminal Velocity)",
+    "objectContext": "Skydiver",
+    "description": "A downward-moving <B>skydiver</B> is falling with a constant speed.",
+    "cleanDescription": "A downward-moving skydiver is falling with a constant speed.",
+    "airResistance": "Consider",
+    "motion": {
+      "direction": "downward",
+      "velocityState": "constant speed (terminal velocity)",
+      "acceleration": "none (a = 0)",
+      "accelerationDirection": "none"
+    },
+    "forces": [
+      {
+        "id": "Fair",
+        "name": "Air Resistance Force",
+        "symbol": "Fair",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 5
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "Air Resistance", "symbol": "Fair", "code": 5, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "balanced",
+      "netForce": "zero (Fnet = 0)",
+      "netForceDirection": "none",
+      "explanation": "At terminal velocity, the upward drag force of air resistance matches the downward gravitational force. Since Fnet = 0, the skydiver continues falling at constant velocity."
+    },
+    "answerCode": "005100",
+    "answerParts": {
+      "part1_forces": "0051",
+      "part2_horizontal": "0",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! Constant downward speed means zero acceleration. The upward air resistance force balances the downward force of gravity.",
+      "incorrectForceTypes": "One or more Force Types is incorrect. Consider Air Resistance (Fair) upward and Gravity (Fgrav) downward.",
+      "incorrectMagnitudes": "Your force types are correct, but relative lengths are incorrect. Constant speed means acceleration is zero, so Fair and Fgrav must be equal in length."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Thinking gravity must be greater than air drag because the skydiver is falling.",
+        "explanation": "Downward motion alone does not mean downward net force. If gravity were greater, the skydiver would accelerate faster. Constant speed means forces are perfectly balanced."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-6.png",
+      "localPath": "Media/free-body-diagrams/scenario-6.png"
+    }
+  },
+  {
+    "id": 7,
+    "title": "Hockey Puck Gliding Across Ice",
+    "objectContext": "Hockey Puck",
+    "description": "A <B>hockey puck</B> glides to the right across the ice at a constant speed. Ignore air resistance.",
+    "cleanDescription": "A hockey puck glides to the right across the ice at a constant speed. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "right",
+      "velocityState": "constant speed",
+      "acceleration": "none (a = 0)",
+      "accelerationDirection": "none"
+    },
+    "forces": [
+      {
+        "id": "Fnorm",
+        "name": "Normal Force",
+        "symbol": "Fnorm",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 2
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "Normal", "symbol": "Fnorm", "code": 2, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "balanced",
+      "netForce": "zero (Fnet = 0)",
+      "netForceDirection": "none",
+      "explanation": "Gliding freely on frictionless ice requires no forward force to sustain motion. Vertical normal force balances gravity, so Fnet = 0."
+    },
+    "answerCode": "002100",
+    "answerParts": {
+      "part1_forces": "0021",
+      "part2_horizontal": "0",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! The puck glides horizontally due to inertia without any horizontal forces. The ice provides an upward normal force balancing gravity.",
+      "incorrectForceTypes": "One or more of the Force Types is incorrect. Do NOT include a forward applied force or backward friction on frictionless ice.",
+      "incorrectMagnitudes": "Vertical forces (Normal and Gravity) must be equal in length to reflect vertical equilibrium."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Drawing a forward 'hit force' or 'inertia force' to the right.",
+        "explanation": "Newton’s First Law explicitly clarifies that objects keep moving at constant velocity on their own without any continuing forward force."
+      },
+      {
+        "misconception": "Adding friction force on ice when motion is stated as constant speed without resistance.",
+        "explanation": "Ice is modeled as frictionless in this classic physics scenario."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-7.png",
+      "localPath": "Media/free-body-diagrams/scenario-7.png"
+    }
+  },
+  {
+    "id": 8,
+    "title": "Sledder Coasting and Slowing Down on Snow",
+    "objectContext": "Sledder",
+    "description": "A <B>sledder</B> has reached the bottom of a hill and is coasting to the right while slowing down along the loosely-packed snow. Ignore air resistance.",
+    "cleanDescription": "A sledder has reached the bottom of a hill and is coasting to the right while slowing down along the loosely-packed snow. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "right",
+      "velocityState": "slowing down (decelerating)",
+      "acceleration": "negative leftward (a < 0)",
+      "accelerationDirection": "left"
+    },
+    "forces": [
+      {
+        "id": "Ffrict",
+        "name": "Friction Force",
+        "symbol": "Ffrict",
+        "direction": "left",
+        "relativeMagnitude": "large",
+        "code": 3
+      },
+      {
+        "id": "Fnorm",
+        "name": "Normal Force",
+        "symbol": "Fnorm",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 2
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "Friction", "symbol": "Ffrict", "code": 3, "magnitude": 1 },
+      "up": { "type": "Normal", "symbol": "Fnorm", "code": 2, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "unbalanced-left",
+      "vertical": "balanced",
+      "netForce": "leftward (Fnet < 0)",
+      "netForceDirection": "left",
+      "explanation": "The coasting sledder has no forward propulsion. Snow exerts a leftward kinetic friction force opposing rightward motion, slowing the sledder down."
+    },
+    "answerCode": "032120",
+    "answerParts": {
+      "part1_forces": "0321",
+      "part2_horizontal": "2",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! Coasting means no forward push. Friction from the snow points left, creating a net leftward force that decelerates the sledder.",
+      "incorrectForceTypes": "One or more of the Force Types is incorrect. Do NOT include a rightward force. Only friction, normal, and gravity act on the sledder.",
+      "incorrectMagnitudes": "Horizontal force is unbalanced to the left (Ffrict), while vertical forces (Fnorm and Fgrav) are balanced."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Adding a forward 'coasting force' or 'momentum force'.",
+        "explanation": "Coasting is motion sustained solely by inertia. No forward force acts once coasting begins."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-8.png",
+      "localPath": "Media/free-body-diagrams/scenario-8.png"
+    }
+  },
+  {
+    "id": 9,
+    "title": "Football at the Peak of Trajectory",
+    "objectContext": "Football at Peak",
+    "description": "A <B>football</B>, originally kicked at a 40-degree angle to the horizontal, is at the peak of its trajectory. Ignore air resistance.",
+    "cleanDescription": "A football, originally kicked at a 40-degree angle to the horizontal, is at the peak of its trajectory. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "horizontal rightward at apex (vy = 0, vx > 0)",
+      "velocityState": "vertical velocity zero, horizontal velocity constant",
+      "acceleration": "downward due to gravity (g = 9.8 m/s²)",
+      "accelerationDirection": "down"
+    },
+    "forces": [
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "large",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "unbalanced-down",
+      "netForce": "downward (Fnet = Fgrav)",
+      "netForceDirection": "down",
+      "explanation": "At the peak of trajectory, vertical velocity momentarily reaches zero, but gravity continues to pull straight down with constant acceleration. No horizontal forces act."
+    },
+    "answerCode": "000102",
+    "answerParts": {
+      "part1_forces": "0001",
+      "part2_horizontal": "0",
+      "part3_vertical": "2"
+    },
+    "feedback": {
+      "correct": "Correct! Even at the peak of flight, gravity is the only force acting on the football, directed straight down.",
+      "incorrectForceTypes": "One or more Force Types is incorrect. Do NOT include horizontal or upward forces. Only gravity acts on a projectile.",
+      "incorrectMagnitudes": "Downward gravity is the sole force, making net vertical force point downward."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Thinking net force is zero at the peak because vertical velocity is zero.",
+        "explanation": "Zero velocity does NOT mean zero force! If force were zero, the football would float at the peak forever instead of accelerating downward."
+      },
+      {
+        "misconception": "Adding a forward force because the ball still moves horizontally.",
+        "explanation": "Horizontal velocity is maintained entirely by inertia without any forward force."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-9.png",
+      "localPath": "Media/free-body-diagrams/scenario-9.png"
+    }
+  },
+  {
+    "id": 10,
+    "title": "Skydiver Opening Parachute and Slowing Down",
+    "objectContext": "Skydiver with Parachute",
+    "description": "A downward-moving <B>skydiver</B> who has just opened the parachute is slowing down. (Diagram the forces on the skydiver/parachute system.)",
+    "cleanDescription": "A downward-moving skydiver who has just opened the parachute is slowing down. (Diagram the forces on the skydiver/parachute system.)",
+    "airResistance": "Consider",
+    "motion": {
+      "direction": "downward",
+      "velocityState": "slowing down (decelerating)",
+      "acceleration": "upward (a > 0)",
+      "accelerationDirection": "up"
+    },
+    "forces": [
+      {
+        "id": "Fair",
+        "name": "Air Resistance Force",
+        "symbol": "Fair",
+        "direction": "up",
+        "relativeMagnitude": "large",
+        "code": 5
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "small",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "Air Resistance", "symbol": "Fair", "code": 5, "magnitude": 2 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "unbalanced-up",
+      "netForce": "upward (Fnet > 0)",
+      "netForceDirection": "up",
+      "explanation": "The skydiver is moving downward but slowing down. Deceleration in the downward direction means acceleration is directed UPWARD. Therefore, upward air resistance must be greater than downward gravity."
+    },
+    "answerCode": "005101",
+    "answerParts": {
+      "part1_forces": "0051",
+      "part2_horizontal": "0",
+      "part3_vertical": "1"
+    },
+    "feedback": {
+      "correct": "Correct! To slow down a downward-moving object, the acceleration must be upward, requiring air resistance to be larger than gravity.",
+      "incorrectForceTypes": "One or more Force Types is incorrect. The system experiences Air Resistance (Fair) upward and Gravity (Fgrav) downward.",
+      "incorrectMagnitudes": "Your force types are correct, but magnitude is incorrect. Because the skydiver is slowing down, the upward air resistance arrow must be LONGER than the downward gravity arrow."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Drawing gravity larger than air resistance because the skydiver is moving down.",
+        "explanation": "Students confuse velocity direction with net force direction. A downward-moving object that is slowing down has an UPWARD net force and acceleration."
+      },
+      {
+        "misconception": "Believing the parachute pulls the skydiver upward into the sky.",
+        "explanation": "The skydiver continues moving downward, but at a decreasing rate. Upward net force slows downward speed."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-10.png",
+      "localPath": "Media/free-body-diagrams/scenario-10.png"
+    }
+  },
+  {
+    "id": 11,
+    "title": "Freight Elevator Ascending and Slowing Down",
+    "objectContext": "Freight Elevator Cabin",
+    "description": "The <B>cabin of a small freight elevator</B> is secured to a motor by a cable and is moving upward while slowing down. There is no contact between the cabin and the elevator shaft. Ignore air resistance.",
+    "cleanDescription": "The cabin of a small freight elevator is secured to a motor by a cable and is moving upward while slowing down. There is no contact between the cabin and the elevator shaft. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "upward",
+      "velocityState": "slowing down (decelerating)",
+      "acceleration": "downward (a < 0)",
+      "accelerationDirection": "down"
+    },
+    "forces": [
+      {
+        "id": "Ftens",
+        "name": "Tension Force",
+        "symbol": "Ftens",
+        "direction": "up",
+        "relativeMagnitude": "small",
+        "code": 7
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "large",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "up": { "type": "Tension", "symbol": "Ftens", "code": 7, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 2 }
+    },
+    "balance": {
+      "horizontal": "balanced (zero)",
+      "vertical": "unbalanced-down",
+      "netForce": "downward (Fnet < 0)",
+      "netForceDirection": "down",
+      "explanation": "The elevator cabin is moving upward but slowing down, meaning its acceleration is directed DOWNWARD. By Newton’s Second Law, the downward gravity force must exceed the upward cable tension."
+    },
+    "answerCode": "007102",
+    "answerParts": {
+      "part1_forces": "0071",
+      "part2_horizontal": "0",
+      "part3_vertical": "2"
+    },
+    "feedback": {
+      "correct": "Correct! Moving upward while slowing down means acceleration is downward. Therefore, downward gravity must be larger than upward cable tension.",
+      "incorrectForceTypes": "One or more Force Types is incorrect. The cable exerts Tension (Ftens) upward, and Earth exerts Gravity (Fgrav) downward.",
+      "incorrectMagnitudes": "Your force types are correct, but magnitude is incorrect. Because the elevator is slowing down as it ascends, gravity must be longer than tension."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Assuming tension must exceed gravity because the elevator is moving upward.",
+        "explanation": "Upward motion with decreasing speed requires a downward net force. Thus, Fgrav > Ftens."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-11.png",
+      "localPath": "Media/free-body-diagrams/scenario-11.png"
+    }
+  },
+  {
+    "id": 12,
+    "title": "Softball Player Diving and Sliding into Dirt",
+    "objectContext": "Softball Player",
+    "description": "A <B>softball player</B> does a head-first dive while sliding to the right across the infield dirt. Ignore air resistance.",
+    "cleanDescription": "A softball player does a head-first dive while sliding to the right across the infield dirt. Ignore air resistance.",
+    "airResistance": "Ignore",
+    "motion": {
+      "direction": "right",
+      "velocityState": "slowing down (decelerating)",
+      "acceleration": "negative leftward (a < 0)",
+      "accelerationDirection": "left"
+    },
+    "forces": [
+      {
+        "id": "Ffrict",
+        "name": "Friction Force",
+        "symbol": "Ffrict",
+        "direction": "left",
+        "relativeMagnitude": "large",
+        "code": 3
+      },
+      {
+        "id": "Fnorm",
+        "name": "Normal Force",
+        "symbol": "Fnorm",
+        "direction": "up",
+        "relativeMagnitude": "equal",
+        "code": 2
+      },
+      {
+        "id": "Fgrav",
+        "name": "Gravity Force",
+        "symbol": "Fgrav",
+        "direction": "down",
+        "relativeMagnitude": "equal",
+        "code": 1
+      }
+    ],
+    "vectors": {
+      "right": { "type": "None", "symbol": "", "code": 0, "magnitude": 0 },
+      "left": { "type": "Friction", "symbol": "Ffrict", "code": 3, "magnitude": 1 },
+      "up": { "type": "Normal", "symbol": "Fnorm", "code": 2, "magnitude": 1 },
+      "down": { "type": "Gravity", "symbol": "Fgrav", "code": 1, "magnitude": 1 }
+    },
+    "balance": {
+      "horizontal": "unbalanced-left",
+      "vertical": "balanced",
+      "netForce": "leftward (Fnet < 0)",
+      "netForceDirection": "left",
+      "explanation": "Once the player dives into the dirt, no forward force pushes them. Infield dirt exerts kinetic friction to the left, which decelerates the player to a halt."
+    },
+    "answerCode": "032120",
+    "answerParts": {
+      "part1_forces": "0321",
+      "part2_horizontal": "2",
+      "part3_vertical": "0"
+    },
+    "feedback": {
+      "correct": "Correct! There is no forward force while sliding. Leftward friction decelerates the player, while normal force balances gravity.",
+      "incorrectForceTypes": "One or more Force Types is incorrect. Do NOT include a forward applied force. Only friction, normal, and gravity act during the slide.",
+      "incorrectMagnitudes": "The only horizontal force is leftward friction, so horizontal force is unbalanced to the left."
+    },
+    "misconceptions": [
+      {
+        "misconception": "Drawing a rightward 'dive force' or 'sliding force'.",
+        "explanation": "The dive occurred in the past. While sliding on dirt, the player is coasting under inertia with no ongoing forward applied force."
+      }
+    ],
+    "media": {
+      "screenshot": "/Media/free-body-diagrams/scenario-12.png",
+      "localPath": "Media/free-body-diagrams/scenario-12.png"
+    }
+  }
+]
