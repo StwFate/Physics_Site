@@ -2,15 +2,16 @@ import React, { useState, useEffect, useRef } from 'react'
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Eye, Plus, X, Zap } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import fbdScenarios from '../data/fbdScenarios.json'
+import ForceSymbol from './ForceSymbol'
 
 const FORCE_TYPES = [
-  { code: 1, id: 'Fgrav', label: 'Gravity', symbol: 'F_grav', color: 'text-rose-600 border-rose-300 bg-rose-50' },
-  { code: 2, id: 'Fnorm', label: 'Normal', symbol: 'F_norm', color: 'text-blue-600 border-blue-300 bg-blue-50' },
-  { code: 3, id: 'Ffrict', label: 'Friction', symbol: 'F_frict', color: 'text-amber-600 border-amber-300 bg-amber-50' },
-  { code: 4, id: 'Fapp', label: 'Applied', symbol: 'F_app', color: 'text-emerald-600 border-emerald-300 bg-emerald-50' },
-  { code: 5, id: 'Fair', label: 'Air Resistance', symbol: 'F_air', color: 'text-purple-600 border-purple-300 bg-purple-50' },
-  { code: 7, id: 'Ftens', label: 'Tension', symbol: 'F_tens', color: 'text-yellow-700 border-yellow-300 bg-yellow-50' },
-  { code: 6, id: 'Fspring', label: 'Spring', symbol: 'F_spring', color: 'text-pink-600 border-pink-300 bg-pink-50' },
+  { code: 1, id: 'Fgrav', label: 'Gravity', sub: 'g', altSub: 'grav', color: 'text-rose-600 border-rose-300 bg-rose-50' },
+  { code: 2, id: 'Fnorm', label: 'Normal', sub: 'N', altSub: 'norm', color: 'text-blue-600 border-blue-300 bg-blue-50' },
+  { code: 3, id: 'Ffrict', label: 'Friction', sub: 'f', altSub: 'frict', color: 'text-amber-600 border-amber-300 bg-amber-50' },
+  { code: 4, id: 'Fapp', label: 'Applied', sub: 'a', altSub: 'app', color: 'text-emerald-600 border-emerald-300 bg-emerald-50' },
+  { code: 5, id: 'Fair', label: 'Air Resistance', sub: 'air', altSub: 'air', color: 'text-purple-600 border-purple-300 bg-purple-50' },
+  { code: 7, id: 'Ftens', label: 'Tension', sub: 'T', altSub: 'tens', color: 'text-yellow-700 border-yellow-300 bg-yellow-50' },
+  { code: 6, id: 'Fspring', label: 'Spring', sub: 's', altSub: 'spring', color: 'text-pink-600 border-pink-300 bg-pink-50' },
 ]
 
 export default function FBDModule() {
@@ -377,8 +378,9 @@ export default function FBDModule() {
                         className="w-full px-2 py-1.5 rounded text-left text-xs font-medium text-slate-700 hover:bg-slate-100 flex items-center justify-between transition-colors"
                       >
                         <span>{f.label}</span>
-                        <span className="font-mono text-[10px] text-slate-500 font-bold">
-                          {f.symbol}
+                        <span className="flex items-center gap-1.5">
+                          <ForceSymbol code={f.code} className="text-xs font-bold" />
+                          <span className="text-[10px] text-slate-400 font-normal font-mono">(F<sub>{f.altSub}</sub>)</span>
                         </span>
                       </button>
                     ))}
@@ -394,10 +396,8 @@ export default function FBDModule() {
                 style={{ height: `${getArrowPixelLength('up')}px`, marginBottom: '48px' }}
               >
                 {/* Vector Tag & Controls */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mb-1">
-                  <span className="font-bold text-blue-600">
-                    {FORCE_TYPES.find((f) => f.code === forces.up)?.symbol}
-                  </span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mb-1">
+                  <ForceSymbol code={forces.up} className="font-bold text-blue-600 text-xs" />
                   <button
                     onClick={() => handleToggleStrength('up')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
@@ -451,10 +451,8 @@ export default function FBDModule() {
                   title="Click to toggle length"
                 ></div>
                 {/* Vector Tag & Controls */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mt-1">
-                  <span className="font-bold text-rose-600">
-                    {FORCE_TYPES.find((f) => f.code === forces.down)?.symbol}
-                  </span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mt-1">
+                  <ForceSymbol code={forces.down} className="font-bold text-rose-600 text-xs" />
                   <button
                     onClick={() => handleToggleStrength('down')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
@@ -484,7 +482,7 @@ export default function FBDModule() {
                 style={{ marginRight: '48px' }}
               >
                 {/* Vector Tag & Controls */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mr-2 whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mr-2 whitespace-nowrap">
                   <button
                     onClick={() => handleRemoveForce('left')}
                     className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
@@ -503,9 +501,7 @@ export default function FBDModule() {
                   >
                     {strengths.left === 'strong' ? 'Strong' : 'Normal'}
                   </button>
-                  <span className="font-bold text-amber-600">
-                    {FORCE_TYPES.find((f) => f.code === forces.left)?.symbol}
-                  </span>
+                  <ForceSymbol code={forces.left} className="font-bold text-amber-600 text-xs" />
                 </div>
                 {/* Arrowhead */}
                 <div
@@ -543,10 +539,8 @@ export default function FBDModule() {
                   title="Click to toggle length"
                 ></div>
                 {/* Vector Tag & Controls */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono ml-2 whitespace-nowrap">
-                  <span className="font-bold text-emerald-600">
-                    {FORCE_TYPES.find((f) => f.code === forces.right)?.symbol}
-                  </span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono ml-2 whitespace-nowrap">
+                  <ForceSymbol code={forces.right} className="font-bold text-emerald-600 text-xs" />
                   <button
                     onClick={() => handleToggleStrength('right')}
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
@@ -600,13 +594,21 @@ export default function FBDModule() {
                 {forces.left === 0 && forces.right === 0 ? (
                   <span className="text-slate-500 italic">No horizontal forces</span>
                 ) : (
-                  <div className="flex items-center justify-between font-mono font-semibold">
-                    <span>
-                      {forces.left > 0 ? `${FORCE_TYPES.find((f) => f.code === forces.left)?.symbol} (${strengths.left})` : 'None'}{' '}
-                      vs{' '}
-                      {forces.right > 0 ? `${FORCE_TYPES.find((f) => f.code === forces.right)?.symbol} (${strengths.right})` : 'None'}
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="flex items-center gap-1 text-slate-800">
+                      {forces.left > 0 ? (
+                        <span><ForceSymbol code={forces.left} /> ({strengths.left})</span>
+                      ) : (
+                        <span className="text-slate-500 font-normal">None</span>
+                      )}{' '}
+                      <span className="text-slate-400 font-normal">vs</span>{' '}
+                      {forces.right > 0 ? (
+                        <span><ForceSymbol code={forces.right} /> ({strengths.right})</span>
+                      ) : (
+                        <span className="text-slate-500 font-normal">None</span>
+                      )}
                     </span>
-                    <span className={H === 0 ? 'text-emerald-700' : 'text-blue-700'}>
+                    <span className={H === 0 ? 'text-emerald-700 font-mono text-xs' : 'text-blue-700 font-mono text-xs'}>
                       {H === 0 ? 'Balanced' : H === 1 ? 'Right > Left' : 'Left > Right'}
                     </span>
                   </div>
@@ -618,13 +620,21 @@ export default function FBDModule() {
                 {forces.up === 0 && forces.down === 0 ? (
                   <span className="text-slate-500 italic">No vertical forces</span>
                 ) : (
-                  <div className="flex items-center justify-between font-mono font-semibold">
-                    <span>
-                      {forces.up > 0 ? `${FORCE_TYPES.find((f) => f.code === forces.up)?.symbol} (${strengths.up})` : 'None'}{' '}
-                      vs{' '}
-                      {forces.down > 0 ? `${FORCE_TYPES.find((f) => f.code === forces.down)?.symbol} (${strengths.down})` : 'None'}
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="flex items-center gap-1 text-slate-800">
+                      {forces.up > 0 ? (
+                        <span><ForceSymbol code={forces.up} /> ({strengths.up})</span>
+                      ) : (
+                        <span className="text-slate-500 font-normal">None</span>
+                      )}{' '}
+                      <span className="text-slate-400 font-normal">vs</span>{' '}
+                      {forces.down > 0 ? (
+                        <span><ForceSymbol code={forces.down} /> ({strengths.down})</span>
+                      ) : (
+                        <span className="text-slate-500 font-normal">None</span>
+                      )}
                     </span>
-                    <span className={V === 0 ? 'text-emerald-700' : 'text-blue-700'}>
+                    <span className={V === 0 ? 'text-emerald-700 font-mono text-xs' : 'text-blue-700 font-mono text-xs'}>
                       {V === 0 ? 'Balanced' : V === 1 ? 'Up > Down' : 'Down > Up'}
                     </span>
                   </div>
