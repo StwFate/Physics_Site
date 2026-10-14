@@ -425,11 +425,11 @@ export default function FBDModule() {
             {/* LEFTWARD VECTOR */}
             {forces.left > 0 && (
               <div
-                className="absolute right-1/2 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto transition-all duration-200"
-                style={{ width: `${getArrowPixelLength('left')}px`, marginRight: '48px' }}
+                className="absolute right-1/2 top-1/2 -translate-y-1/2 flex items-center justify-end pointer-events-auto transition-all duration-200"
+                style={{ marginRight: '48px' }}
               >
                 {/* Vector Tag & Controls */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mr-1 whitespace-nowrap">
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mr-2 whitespace-nowrap">
                   <button
                     onClick={() => handleRemoveForce('left')}
                     className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
@@ -455,13 +455,14 @@ export default function FBDModule() {
                 {/* Arrowhead */}
                 <div
                   onClick={() => handleToggleStrength('left')}
-                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[10px] border-r-amber-600 cursor-pointer hover:border-r-amber-700 transition-colors"
+                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[10px] border-r-amber-600 cursor-pointer hover:border-r-amber-700 transition-colors shrink-0"
                   title="Click to toggle length"
                 ></div>
                 {/* Stem */}
                 <div
                   onClick={() => handleToggleStrength('left')}
-                  className="h-1 bg-amber-600 flex-1 cursor-pointer hover:bg-amber-700 transition-colors"
+                  className="h-1 bg-amber-600 cursor-pointer hover:bg-amber-700 transition-all duration-200"
+                  style={{ width: `${strengths.left === 'strong' ? 100 : 60}px` }}
                   title="Click to toggle length"
                 ></div>
               </div>
@@ -471,22 +472,23 @@ export default function FBDModule() {
             {forces.right > 0 && (
               <div
                 className="absolute left-1/2 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto transition-all duration-200"
-                style={{ width: `${getArrowPixelLength('right')}px`, marginLeft: '48px' }}
+                style={{ marginLeft: '48px' }}
               >
                 {/* Stem */}
                 <div
                   onClick={() => handleToggleStrength('right')}
-                  className="h-1 bg-emerald-600 flex-1 cursor-pointer hover:bg-emerald-700 transition-colors"
+                  className="h-1 bg-emerald-600 cursor-pointer hover:bg-emerald-700 transition-all duration-200"
+                  style={{ width: `${strengths.right === 'strong' ? 100 : 60}px` }}
                   title="Click to toggle length"
                 ></div>
                 {/* Arrowhead */}
                 <div
                   onClick={() => handleToggleStrength('right')}
-                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[10px] border-l-emerald-600 cursor-pointer hover:border-l-emerald-700 transition-colors"
+                  className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[10px] border-l-emerald-600 cursor-pointer hover:border-l-emerald-700 transition-colors shrink-0"
                   title="Click to toggle length"
                 ></div>
                 {/* Vector Tag & Controls */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono ml-1 whitespace-nowrap">
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono ml-2 whitespace-nowrap">
                   <span className="font-bold text-emerald-600">
                     {FORCE_TYPES.find((f) => f.code === forces.right)?.symbol}
                   </span>
