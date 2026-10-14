@@ -110,11 +110,7 @@ export default function PhysicsVisualizer({
             {/* Left force arrow */}
             {forces.filter(f => f.dir === 'left').map((f, i) => (
               <div key={i} className="absolute right-full top-1/2 -translate-y-1/2 flex items-center pr-1 pointer-events-none">
-                {f.name.startsWith('F_') ? (
-                  <ForceSymbol sub={f.name.replace('F_', '')} className="text-[11px] text-rose-600 mr-1" />
-                ) : (
-                  <span className="text-[10px] text-rose-600 font-mono font-bold mr-1">{f.name}</span>
-                )}
+                <ForceSymbol code={f.name} sub={f.name.replace('F_', '')} className="text-[11px] text-rose-600 mr-1" />
                 <div className="h-0.5 bg-rose-600 relative" style={{ width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px` }}>
                   <div className="absolute left-0 -top-1 border-t-4 border-r-4 border-b-4 border-transparent border-r-rose-600"></div>
                 </div>
@@ -127,11 +123,7 @@ export default function PhysicsVisualizer({
                 <div className="h-0.5 bg-blue-600 relative" style={{ width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px` }}>
                   <div className="absolute right-0 -top-1 border-t-4 border-l-4 border-b-4 border-transparent border-l-blue-600"></div>
                 </div>
-                {f.name.startsWith('F_') ? (
-                  <ForceSymbol sub={f.name.replace('F_', '')} className="text-[11px] text-blue-600 ml-1" />
-                ) : (
-                  <span className="text-[10px] text-blue-600 font-mono font-bold ml-1">{f.name}</span>
-                )}
+                <ForceSymbol code={f.name} sub={f.name.replace('F_', '')} className="text-[11px] text-blue-600 ml-1" />
               </div>
             ))}
           </div>
