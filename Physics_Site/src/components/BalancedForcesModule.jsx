@@ -4,6 +4,12 @@ import confetti from 'canvas-confetti'
 import balancedData from '../data/balancedForcesQuestions.json'
 import PhysicsVisualizer from './PhysicsVisualizer'
 
+const LEVEL_QUESTION_IDS = {
+  Apprentice: [1, 2, 5, 7, 9, 10, 13, 14],
+  Master: [1, 2, 5, 7, 10, 13, 17, 18, 19, 20, 23, 24, 25, 26],
+  Wizard: [1, 5, 11, 13, 17, 18, 19, 20, 23, 24, 25, 26, 29, 30, 31, 32, 35, 37, 41, 42],
+}
+
 export default function BalancedForcesModule() {
   const [currentLevel, setCurrentLevel] = useState('Apprentice')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -20,16 +26,11 @@ export default function BalancedForcesModule() {
     }
   })
 
-  // Filter questions for the chosen level based on availableInLevels or groupId
-  const questions = (balancedData.questions || []).filter((q) => {
-    if (currentLevel === 'Apprentice') {
-      return q.availableInLevels ? q.availableInLevels.includes('Apprentice') : q.groupId <= 4
-    }
-    if (currentLevel === 'Master') {
-      return q.availableInLevels ? q.availableInLevels.includes('Master') : q.groupId <= 8
-    }
-    return true
-  })
+  // Filter curated questions for the chosen level: 8 Apprentice, 14 Master, 20 Wizard
+  const targetIds = LEVEL_QUESTION_IDS[currentLevel] || LEVEL_QUESTION_IDS.Apprentice
+  const questions = targetIds
+    .map((id) => (balancedData.questions || []).find((q) => q.id === id))
+    .filter(Boolean)
 
   const currentQ = questions[currentIndex] || questions[0] || {
     id: 1,
@@ -133,19 +134,22 @@ export default function BalancedForcesModule() {
       <div className="bg-white border border-slate-200 rounded-lg p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
         {/* Minimalist Level Tabs */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md border border-slate-200">
-          {['Apprentice', 'Master', 'Wizard'].map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => handleLevelChange(lvl)}
-              className={`px-3 py-1 rounded text-xs font-medium transition-all ${
-                currentLevel === lvl
-                  ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {lvl}
-            </button>
-          ))}
+          {['Apprentice', 'Master', 'Wizard'].map((lvl) => {
+            const count = LEVEL_QUESTION_IDS[lvl]?.length || 0
+            return (
+              <button
+                key={lvl}
+                onClick={() => handleLevelChange(lvl)}
+                className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                  currentLevel === lvl
+                    ? 'bg-white text-slate-900 shadow-sm font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {lvl} ({count})
+              </button>
+            )
+          })}
         </div>
 
         {/* Level Progress */}
