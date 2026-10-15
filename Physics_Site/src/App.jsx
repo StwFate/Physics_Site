@@ -3,7 +3,7 @@ import { Atom, Compass, ArrowRightLeft, Calculator, Award, RotateCcw, LogOut, Ch
 import BalancedForcesModule from './components/BalancedForcesModule'
 import FBDModule from './components/FBDModule'
 import SolveItModule from './components/SolveItModule'
-import AuthScreen from './components/AuthScreen'
+import AuthScreen, { DopplerLogo } from './components/AuthScreen'
 import { subscribeToAuth, signOutStudent, backupUserProgress } from './utils/authService'
 
 export default function App() {
@@ -88,12 +88,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           {/* Logo & Title */}
           <div className="flex items-center space-x-2.5">
-            <Atom className="w-5 h-5 text-blue-600" />
+            <DopplerLogo className="h-6 w-auto" />
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-base tracking-tight text-slate-900">
-                Mr. William's Practice Site
+                Mr. William’s Practice Site
               </span>
-              <span className="text-xs text-slate-500 hidden sm:inline">
+              <span className="text-xs text-slate-500 hidden sm:inline uppercase font-bold tracking-wider">
                 Newton's Laws
               </span>
             </div>
