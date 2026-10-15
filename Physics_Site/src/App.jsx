@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react'
-import { Atom, Compass, ArrowRightLeft, Calculator, Award, RotateCcw, User, LogOut } from 'lucide-react'
+import { Atom, Compass, ArrowRightLeft, Calculator, Award, RotateCcw, LogOut, CheckCircle2 } from 'lucide-react'
 import BalancedForcesModule from './components/BalancedForcesModule'
 import FBDModule from './components/FBDModule'
 import SolveItModule from './components/SolveItModule'
 import AuthScreen from './components/AuthScreen'
-import { getCurrentUser, logoutStudent, backupUserProgress } from './utils/authService'
+import { subscribeToAuth, signOutStudent, backupUserProgress } from './utils/authService'
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(() => getCurrentUser())
+  const [currentUser, setCurrentUser] = useState(null)
+  const [authInitialized, setAuthInitialized] = useState(false)
   const [activeTab, setActiveTab] = useState('balanced')
   const [stats, setStats] = useState({ balanced: 0, fbd: 0, solveit: 0 })
+
+  // Listen to Google Auth state
+  useEffect(() => {
+    const unsubscribe = subscribeToAuth((user) => {
+      setCurrentUser(user)
+      setAuthInitialized(true)
+    })
+    return () => unsubscribe && unsubscribe()
+  }, [])
 
   const updateStats = () => {
     try {
@@ -21,8 +31,8 @@ export default function App() {
         fbd: Object.keys(f).length,
         solveit: Object.keys(s).length,
       })
-      if (currentUser?.username) {
-        backupUserProgress(currentUser.username)
+      if (currentUser?.uid) {
+        backupUserProgress(currentUser.uid)
       }
     } catch {
       // ignore
@@ -39,20 +49,20 @@ export default function App() {
 
   const handleResetAllProgress = () => {
     if (!currentUser) return
-    if (window.confirm(`Reset all earned stars and progress for ${currentUser.username}?`)) {
+    if (window.confirm(`Reset all earned stars and progress for ${currentUser.displayName}?`)) {
       localStorage.removeItem('physix_balanced_completed')
       localStorage.removeItem('physix_fbd_completed')
       localStorage.removeItem('physix_solveit_completed')
-      backupUserProgress(currentUser.username)
+      backupUserProgress(currentUser.uid)
       updateStats()
       window.location.reload()
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (!currentUser) return
-    if (window.confirm(`Log out of ${currentUser.username}'s account?`)) {
-      logoutStudent()
+    if (window.confirm(`Sign out of ${currentUser.displayName}'s account?`)) {
+      await signOutStudent(currentUser.uid)
       setCurrentUser(null)
       setStats({ balanced: 0, fbd: 0, solveit: 0 })
     }
@@ -152,16 +162,34 @@ export default function App() {
             </button>
           </nav>
 
-          {/* Student Badge, Quick Stats, Reset & Logout */}
+          {/* Student Profile, Quick Stats, Reset & Sign Out */}
           <div className="flex items-center gap-2">
-            {/* Student Username Badge */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-semibold text-slate-800" title={`Logged in as ${currentUser.username}`}>
-              <User className="w-3.5 h-3.5 text-blue-600" />
-              <span className="max-w-[110px] truncate">{currentUser.username}</span>
+            {/* Student Google Profile Badge */}
+            <div
+              className="flex items-center gap-2 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 shadow-2xs"
+              title={`Signed in as ${currentUser.displayName} (${currentUser.email || 'Google Student'})`}
+            >
+              {currentUser.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt={currentUser.displayName}
+                  className="w-5 h-5 rounded-full object-cover border border-slate-200"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                  {(currentUser.displayName || 'S')[0].toUpperCase()}
+                </div>
+              )}
+              <div className="flex flex-col text-left">
+                <span className="max-w-[110px] truncate leading-tight font-semibold text-slate-900">
+                  {currentUser.displayName}
+                </span>
+              </div>
             </div>
 
-            {/* Stars counter */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-xs font-semibold">
+            {/* Stars counter with refined badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50/80 border border-amber-200 rounded-lg text-amber-900 text-xs font-bold shadow-2xs">
               <Award className="w-3.5 h-3.5 text-amber-600" />
               <span>{totalMastered} Stars</span>
             </div>
@@ -171,20 +199,20 @@ export default function App() {
               onClick={handleResetAllProgress}
               title="Reset Progress"
               aria-label="Reset all earned stars and progress"
-              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
+              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
 
-            {/* Log Out */}
+            {/* Sign Out */}
             <button
               onClick={handleLogout}
-              title="Log Out"
-              aria-label="Log out of student account"
-              className="flex items-center gap-1 px-2.5 py-1 text-slate-700 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-md text-xs font-semibold transition-colors cursor-pointer"
+              title="Sign Out"
+              aria-label="Sign out of student account"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-slate-700 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5 text-slate-600 hover:text-rose-600" />
-              <span className="hidden md:inline">Log Out</span>
+              <LogOut className="w-3.5 h-3.5 text-slate-500 hover:text-rose-600" />
+              <span className="hidden md:inline">Sign Out</span>
             </button>
           </div>
         </div>
