@@ -60,8 +60,11 @@ export default function App() {
           </div>
 
           {/* Minimalist Segmented Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium">
+          <nav aria-label="Physics Modules" role="tablist" className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium">
             <button
+              role="tab"
+              aria-selected={activeTab === 'balanced'}
+              aria-label="Balanced Forces module tab"
               onClick={() => setActiveTab('balanced')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
                 activeTab === 'balanced'
@@ -79,6 +82,9 @@ export default function App() {
             </button>
 
             <button
+              role="tab"
+              aria-selected={activeTab === 'fbd'}
+              aria-label="Free-Body Diagrams module tab"
               onClick={() => setActiveTab('fbd')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
                 activeTab === 'fbd'
@@ -96,6 +102,9 @@ export default function App() {
             </button>
 
             <button
+              role="tab"
+              aria-selected={activeTab === 'solveit'}
+              aria-label="Solve It! (F=ma) module tab"
               onClick={() => setActiveTab('solveit')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
                 activeTab === 'solveit'
@@ -111,7 +120,7 @@ export default function App() {
                 </span>
               )}
             </button>
-          </div>
+          </nav>
 
           {/* Quick Stats & Reset */}
           <div className="flex items-center gap-2">
@@ -122,7 +131,8 @@ export default function App() {
             <button
               onClick={handleResetAllProgress}
               title="Reset Progress"
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+              aria-label="Reset all earned stars and progress"
+              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
