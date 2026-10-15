@@ -1,6 +1,29 @@
 import React, { useState } from 'react'
-import { Atom, AlertCircle, ExternalLink, ArrowRight } from 'lucide-react'
+import { AlertCircle, ExternalLink, ArrowRight } from 'lucide-react'
 import { signInWithGoogle, signInWithDemoGoogle } from '../utils/authService'
+
+export function DopplerLogo({ className = 'h-7 w-auto' }) {
+  return (
+    <svg className={className} viewBox="0 0 52 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Solid blue circle */}
+      <circle cx="12" cy="12" r="10" fill="#0052FF" />
+      {/* First wave arc */}
+      <path
+        d="M 27 5.5 C 31.5 9 31.5 15 27 18.5"
+        stroke="#0052FF"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+      {/* Second wave arc */}
+      <path
+        d="M 35 3.5 C 41 8 41 16 35 20.5"
+        stroke="#0052FF"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
 
 export default function AuthScreen({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false)
@@ -29,115 +52,276 @@ export default function AuthScreen({ onLoginSuccess }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center py-12 px-4 sm:px-6 font-sans">
-      <div className="w-full max-w-sm">
-        {/* Clean Integrated Branding */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="inline-flex items-center justify-center gap-2.5 mb-1.5">
-            <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
-              <Atom className="w-5 h-5" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              Mr. William's Practice Site
-            </span>
-          </div>
-          <p className="text-xs text-slate-600 font-medium">
-            Newton's Laws Interactive Suite
-          </p>
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans select-none">
+      {/* Top Navigation Bar */}
+      <header className="h-16 border-b border-black bg-white px-6 sm:px-10 flex items-center justify-between shrink-0 z-10">
+        {/* Left: Doppler Logo + Title */}
+        <div className="flex items-center gap-3">
+          <DopplerLogo className="h-6 sm:h-7 w-auto" />
+          <span className="font-bold text-base sm:text-lg tracking-tight text-black">
+            Mr. William’s Practice Site
+          </span>
         </div>
 
-        {/* Minimalist Card */}
-        <div className="bg-white p-6 sm:p-7 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <div className="text-center space-y-1">
-            <h2 className="text-sm font-semibold text-slate-900">Sign in to Practice</h2>
-            <p className="text-xs text-slate-600">
-              Continue with your Google account to track your progress and stars.
+        {/* Right: Newton's Laws Tag */}
+        <div className="font-bold text-xs sm:text-sm tracking-[0.22em] text-black uppercase">
+          NEWTON’S LAWS
+        </div>
+      </header>
+
+      {/* Main Split-Screen Section */}
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2">
+        {/* Left Side: Electric Blue Hero Canvas */}
+        <div className="bg-[#0052FF] p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between text-white relative min-h-[520px] lg:min-h-0">
+          {/* Top Heading */}
+          <div className="space-y-3 pt-2">
+            <h1 className="text-5xl sm:text-6xl xl:text-7xl font-extrabold tracking-tight text-white leading-[0.98]">
+              Put physics<br />in motion.
+            </h1>
+            <p className="text-xl sm:text-2xl font-normal text-white/95 tracking-tight pt-1">
+              Three laws. Real understanding.
             </p>
           </div>
 
-          {/* Error Banner */}
-          {error && (
-            <div
-              role="alert"
-              className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 font-medium leading-relaxed"
+          {/* Center Graphic: Motion Strobe & Force Vector */}
+          <div className="my-8 sm:my-12 flex items-center justify-start max-w-full overflow-hidden">
+            <svg
+              className="w-full max-w-[460px] h-auto drop-shadow-sm"
+              viewBox="0 0 440 190"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div className="space-y-1.5">
-                <span>{error}</span>
-                {needsConsoleEnable && (
-                  <div className="pt-2 border-t border-amber-200 text-[11px] space-y-1">
-                    <p className="text-amber-950 font-bold">15-Second Setup for Admin:</p>
-                    <p className="text-amber-900">
-                      In Firebase Console → Authentication → Sign-in method → Click Google → Enable → Save.
-                    </p>
-                    <a
-                      href="https://console.firebase.google.com/project/mr-williams-physics/authentication/providers"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold underline"
-                    >
-                      <span>Open Firebase Auth Settings</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+              {/* Horizontal dashed center-line */}
+              <line
+                x1="8"
+                y1="90"
+                x2="225"
+                y2="90"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeDasharray="6 6"
+              />
 
-          {/* Google Sign-In Button */}
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 hover:border-slate-400 text-slate-800 text-xs sm:text-sm font-semibold rounded-lg shadow-2xs hover:shadow-xs transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                <span className="text-slate-700">Connecting to Google...</span>
-              </div>
-            ) : (
-              <>
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>Continue with Google</span>
-              </>
-            )}
-          </button>
+              {/* Dashed Strobe Circles */}
+              {/* Circle 1 */}
+              <circle
+                cx="60"
+                cy="90"
+                r="46"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeDasharray="6 6"
+                fill="none"
+              />
+              {/* Circle 2 */}
+              <circle
+                cx="118"
+                cy="90"
+                r="46"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeDasharray="6 6"
+                fill="none"
+              />
+              {/* Circle 3 */}
+              <circle
+                cx="184"
+                cy="90"
+                r="46"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeDasharray="6 6"
+                fill="none"
+              />
 
-          {/* Optional Demo Mode */}
-          {needsConsoleEnable && (
-            <button
-              type="button"
-              onClick={handleDemoSignIn}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-md text-slate-700 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <span>Continue in Offline Demo Mode</span>
-              <ArrowRight className="w-3 h-3 text-slate-500" />
-            </button>
-          )}
+              {/* Solid White Circle */}
+              <circle cx="272" cy="90" r="52" fill="#ffffff" />
 
-          <p className="text-[11px] text-center text-slate-600 font-medium pt-1">
-            Works with school (.edu) and personal Google accounts.
-          </p>
+              {/* Yellow Force Vector Arrow */}
+              {/* Arrow Shaft */}
+              <rect
+                x="220"
+                y="83"
+                width="142"
+                height="14"
+                fill="#FFE500"
+              />
+              {/* Arrow Head */}
+              <polygon
+                points="356,71 398,90 356,109"
+                fill="#FFE500"
+              />
+
+              {/* Force Label */}
+              <text
+                x="292"
+                y="72"
+                textAnchor="middle"
+                fill="#000000"
+                fontFamily="inherit"
+                fontWeight="800"
+                fontSize="13"
+                letterSpacing="0.14em"
+              >
+                FORCE
+              </text>
+
+              {/* Motion Indicator Baseline */}
+              <line
+                x1="226"
+                y1="152"
+                x2="318"
+                y2="152"
+                stroke="white"
+                strokeWidth="2.5"
+              />
+              {/* Motion Label */}
+              <text
+                x="272"
+                y="173"
+                textAnchor="middle"
+                fill="#ffffff"
+                fontFamily="inherit"
+                fontWeight="700"
+                fontSize="12"
+                letterSpacing="0.22em"
+              >
+                MOTION →
+              </text>
+            </svg>
+          </div>
+
+          {/* Bottom 3 Laws Badges */}
+          <div className="pt-4 flex items-center gap-4 sm:gap-8 text-xs sm:text-sm font-bold tracking-[0.16em] text-white uppercase">
+            <span>01 / INERTIA</span>
+            <div className="w-[1.5px] h-3.5 bg-white/40" />
+            <span>02 / FORCE</span>
+            <div className="w-[1.5px] h-3.5 bg-white/40" />
+            <span>03 / REACTION</span>
+          </div>
         </div>
-      </div>
+
+        {/* Right Side: Clean White Auth Panel */}
+        <div className="bg-white p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between">
+          <div className="max-w-md w-full mx-auto lg:mx-0 my-auto py-4">
+            {/* Tagline */}
+            <div className="text-xs sm:text-sm font-bold tracking-[0.22em] text-[#0052FF] uppercase mb-4">
+              LET’S GET STARTED
+            </div>
+
+            {/* Main Title */}
+            <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-black tracking-tight leading-[1.04] mb-6">
+              Your next<br />
+              breakthrough<br />
+              starts here.
+            </h2>
+
+            {/* Subtext */}
+            <p className="text-base sm:text-lg text-slate-800 font-normal leading-relaxed mb-8">
+              Sign in to practice Newton’s laws and save your progress.
+            </p>
+
+            {/* Error Banner */}
+            {error && (
+              <div
+                role="alert"
+                className="mb-6 p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 font-medium leading-relaxed"
+              >
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1.5 flex-1">
+                  <span>{error}</span>
+                  {needsConsoleEnable && (
+                    <div className="pt-2 border-t border-amber-200 text-[11px] space-y-1">
+                      <p className="text-amber-950 font-bold">15-Second Setup for Admin:</p>
+                      <p className="text-amber-900">
+                        In Firebase Console → Authentication → Sign-in method → Click Google → Enable → Save.
+                      </p>
+                      <a
+                        href="https://console.firebase.google.com/project/mr-williams-physics/authentication/providers"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold underline"
+                      >
+                        <span>Open Firebase Auth Settings</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Continue with Google Button */}
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full h-13 sm:h-14 bg-white hover:bg-slate-50 active:bg-slate-100 border border-black rounded-sm flex items-center justify-center gap-3.5 px-6 font-semibold text-black text-sm sm:text-base transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-xs"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-[#0052FF] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-slate-700 font-medium text-sm">Connecting to Google...</span>
+                </div>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span className="font-semibold text-slate-900">Continue with Google</span>
+                </>
+              )}
+            </button>
+
+            {/* Helper microcopy */}
+            <p className="text-xs sm:text-sm text-slate-500 mt-3 font-normal">
+              Use your school or personal Google account.
+            </p>
+
+            {/* Optional Fallback Demo Mode */}
+            {needsConsoleEnable && (
+              <button
+                type="button"
+                onClick={handleDemoSignIn}
+                className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-md text-slate-700 text-xs font-medium transition-colors cursor-pointer"
+              >
+                <span>Continue in Offline Demo Mode</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Star Guarantee */}
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-800 font-medium pt-8 lg:pt-0">
+            <svg
+              className="w-5 h-5 text-black stroke-[1.6] fill-none shrink-0"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+              />
+            </svg>
+            <span>Your progress, saved as you go.</span>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
