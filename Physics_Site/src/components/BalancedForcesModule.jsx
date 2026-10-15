@@ -286,21 +286,23 @@ export default function BalancedForcesModule() {
             <button
               onClick={handlePrev}
               disabled={currentIndex === 0}
+              aria-label="Previous question"
               className="flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-medium transition-colors"
             >
               <ChevronLeft className="w-3.5 h-3.5" /> Prev
             </button>
-            <span className="font-mono text-slate-500 text-xs flex items-center gap-1.5">
+            <span className="font-mono text-slate-700 text-xs flex items-center gap-1.5">
               <span>{formatQuestionId(currentQ.id)}</span>
               {completedQuestions[currentQ.id] ? (
-                <span className="text-amber-500 font-bold">⭐ Mastered</span>
+                <span className="text-amber-600 font-bold">⭐ Mastered</span>
               ) : (
-                <span className="text-slate-400 font-normal">(Unmastered)</span>
+                <span className="text-slate-600 font-medium">(Unmastered)</span>
               )}
             </span>
             <button
               onClick={handleNext}
               disabled={currentIndex === questions.length - 1}
+              aria-label="Next question"
               className="flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-medium transition-colors"
             >
               Next <ChevronRight className="w-3.5 h-3.5" />
@@ -312,7 +314,7 @@ export default function BalancedForcesModule() {
         <div className="lg:col-span-6 space-y-4">
           {/* Prompt 1: Motion State */}
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-            <div className="text-xs font-semibold text-slate-700 mb-2.5 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-800 mb-2.5 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-blue-600" />
               1. What is the state of motion?
             </div>
@@ -322,6 +324,8 @@ export default function BalancedForcesModule() {
                   key={opt}
                   onClick={() => !isSubmitted && setSelectedMotion(opt)}
                   disabled={isSubmitted}
+                  aria-pressed={selectedMotion === opt}
+                  aria-label={`Motion state option: ${opt}`}
                   className={`py-2 px-2.5 rounded border text-xs font-medium transition-all text-center ${
                     selectedMotion === opt
                       ? 'bg-blue-50 border-blue-600 text-blue-700 font-semibold shadow-sm'
@@ -336,7 +340,7 @@ export default function BalancedForcesModule() {
 
           {/* Prompt 2: Force State */}
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-            <div className="text-xs font-semibold text-slate-700 mb-2.5 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-800 mb-2.5 flex items-center gap-1.5">
               <Scale className="w-3.5 h-3.5 text-blue-600" />
               2. Are the forces balanced or unbalanced?
             </div>
@@ -346,6 +350,8 @@ export default function BalancedForcesModule() {
                   key={opt}
                   onClick={() => !isSubmitted && setSelectedForce(opt)}
                   disabled={isSubmitted}
+                  aria-pressed={selectedForce === opt}
+                  aria-label={`Force state option: ${opt} Forces`}
                   className={`py-2 px-2.5 rounded border text-xs font-medium transition-all text-center ${
                     selectedForce === opt
                       ? 'bg-blue-50 border-blue-600 text-blue-700 font-semibold shadow-sm'
