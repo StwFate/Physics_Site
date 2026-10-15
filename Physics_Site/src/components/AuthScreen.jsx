@@ -54,17 +54,17 @@ export default function AuthScreen({ onLoginSuccess }) {
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans select-none">
       {/* Top Navigation Bar */}
-      <header className="h-16 border-b border-black bg-white px-6 sm:px-10 flex items-center justify-between shrink-0 z-10">
+      <header className="h-16 sm:h-18 border-b border-black bg-white px-6 sm:px-10 lg:px-14 flex items-center justify-between shrink-0 z-10">
         {/* Left: Doppler Logo + Title */}
-        <div className="flex items-center gap-3">
-          <DopplerLogo className="h-6 sm:h-7 w-auto" />
-          <span className="font-bold text-base sm:text-lg tracking-tight text-black">
+        <div className="flex items-center gap-3 sm:gap-3.5">
+          <DopplerLogo className="h-6 sm:h-7 lg:h-8 w-auto" />
+          <span className="font-bold text-base sm:text-lg lg:text-xl tracking-tight text-black">
             Mr. William’s Practice Site
           </span>
         </div>
 
         {/* Right: Newton's Laws Tag */}
-        <div className="font-bold text-xs sm:text-sm tracking-[0.22em] text-black uppercase">
+        <div className="font-bold text-xs sm:text-sm lg:text-sm tracking-[0.22em] text-black uppercase">
           NEWTON’S LAWS
         </div>
       </header>
@@ -72,152 +72,152 @@ export default function AuthScreen({ onLoginSuccess }) {
       {/* Main Split-Screen Section */}
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side: Electric Blue Hero Canvas */}
-        <div className="bg-[#0052FF] p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between text-white relative min-h-[540px] lg:min-h-0">
+        <div className="bg-[#0052FF] p-8 sm:p-12 lg:p-14 xl:p-16 2xl:p-20 flex flex-col justify-between text-white relative min-h-[580px] lg:min-h-0">
           {/* Top Heading */}
-          <div className="space-y-3 pt-2">
-            <h1 className="text-5xl sm:text-6xl xl:text-7xl font-extrabold tracking-tight text-white leading-[0.98]">
+          <div className="space-y-3 sm:space-y-4 pt-2">
+            <h1 className="text-5xl sm:text-6xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-extrabold tracking-tight text-white leading-[0.98]">
               Put physics<br />in motion.
             </h1>
-            <p className="text-xl sm:text-2xl font-normal text-white/95 tracking-tight pt-1">
+            <p className="text-xl sm:text-2xl 2xl:text-3xl font-normal text-white/95 tracking-tight pt-1">
               Three laws. Real understanding.
             </p>
           </div>
 
-          {/* Center Graphic: Motion Strobe & Force Vector */}
-          <div className="my-8 sm:my-10 flex items-center justify-start max-w-full overflow-hidden">
+          {/* Center Graphic: Prominent Scaled Physics Illustration */}
+          <div className="my-auto py-8 sm:py-12 lg:py-14 flex items-center justify-start w-full">
             <svg
-              className="w-full max-w-[460px] h-auto drop-shadow-sm"
-              viewBox="0 0 440 190"
+              className="w-full max-w-[620px] lg:max-w-[680px] xl:max-w-[760px] 2xl:max-w-[880px] h-auto drop-shadow-md transition-all duration-300"
+              viewBox="0 0 520 220"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               {/* Horizontal dashed center-line */}
               <line
                 x1="0"
-                y1="90"
-                x2="225"
-                y2="90"
+                y1="105"
+                x2="265"
+                y2="105"
                 stroke="white"
-                strokeWidth="2.5"
-                strokeDasharray="6 6"
+                strokeWidth="3"
+                strokeDasharray="7 7"
               />
 
-              {/* Dashed Strobe Circles */}
+              {/* Dashed Strobe Circles with Accelerating Spacing */}
               {/* Circle 1 */}
               <circle
-                cx="55"
-                cy="90"
-                r="46"
+                cx="65"
+                cy="105"
+                r="54"
                 stroke="white"
-                strokeWidth="2.5"
-                strokeDasharray="6 6"
+                strokeWidth="3"
+                strokeDasharray="7 7"
                 fill="none"
               />
               {/* Circle 2 */}
               <circle
-                cx="115"
-                cy="90"
-                r="46"
+                cx="138"
+                cy="105"
+                r="54"
                 stroke="white"
-                strokeWidth="2.5"
-                strokeDasharray="6 6"
+                strokeWidth="3"
+                strokeDasharray="7 7"
                 fill="none"
               />
               {/* Circle 3 */}
               <circle
-                cx="180"
-                cy="90"
-                r="46"
+                cx="218"
+                cy="105"
+                r="54"
                 stroke="white"
-                strokeWidth="2.5"
-                strokeDasharray="6 6"
+                strokeWidth="3"
+                strokeDasharray="7 7"
                 fill="none"
               />
 
-              {/* Solid White Circle */}
-              <circle cx="272" cy="90" r="54" fill="#ffffff" />
+              {/* Solid White Disc */}
+              <circle cx="326" cy="105" r="64" fill="#ffffff" />
 
-              {/* Yellow Force Vector Arrow */}
+              {/* Bold Yellow Force Vector Arrow */}
               {/* Arrow Shaft */}
               <rect
-                x="218"
-                y="82"
-                width="140"
-                height="16"
+                x="262"
+                y="95"
+                width="156"
+                height="20"
                 fill="#FFE500"
               />
-              {/* Arrow Head */}
+              {/* Large Crisp Arrow Head */}
               <polygon
-                points="350,65 402,90 350,115"
+                points="412,74 480,105 412,136"
                 fill="#FFE500"
               />
 
-              {/* Force Label */}
+              {/* Force Label Centered in Top Half of White Disc */}
               <text
-                x="292"
-                y="67"
+                x="348"
+                y="77"
                 textAnchor="middle"
                 fill="#000000"
                 fontFamily="inherit"
-                fontWeight="800"
-                fontSize="13"
-                letterSpacing="0.14em"
+                fontWeight="900"
+                fontSize="15"
+                letterSpacing="0.16em"
               >
                 FORCE
               </text>
 
               {/* Motion Indicator Baseline */}
               <line
-                x1="225"
-                y1="154"
-                x2="319"
-                y2="154"
+                x1="268"
+                y1="184"
+                x2="384"
+                y2="184"
                 stroke="white"
-                strokeWidth="2.5"
+                strokeWidth="3"
               />
               {/* Motion Label */}
               <text
-                x="272"
-                y="174"
+                x="326"
+                y="207"
                 textAnchor="middle"
                 fill="#ffffff"
                 fontFamily="inherit"
                 fontWeight="700"
-                fontSize="12"
-                letterSpacing="0.22em"
+                fontSize="13.5"
+                letterSpacing="0.24em"
               >
                 MOTION →
               </text>
             </svg>
           </div>
 
-          {/* Bottom 3 Laws Badges (Guaranteed single line on all desktop viewports) */}
-          <div className="pt-4 flex items-center gap-4 sm:gap-7 text-xs sm:text-sm font-bold tracking-[0.16em] text-white uppercase whitespace-nowrap">
+          {/* Bottom 3 Laws Badges */}
+          <div className="pt-4 flex items-center gap-4 sm:gap-8 2xl:gap-12 text-xs sm:text-sm 2xl:text-base font-bold tracking-[0.16em] text-white uppercase whitespace-nowrap">
             <span>01 / INERTIA</span>
-            <div className="w-[1.5px] h-3.5 bg-white/40 shrink-0" />
+            <div className="w-[1.5px] h-4 bg-white/40 shrink-0" />
             <span>02 / FORCE</span>
-            <div className="w-[1.5px] h-3.5 bg-white/40 shrink-0" />
+            <div className="w-[1.5px] h-4 bg-white/40 shrink-0" />
             <span>03 / REACTION</span>
           </div>
         </div>
 
         {/* Right Side: Clean White Auth Panel */}
-        <div className="bg-white p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between">
-          <div className="max-w-[430px] w-full mx-auto lg:mx-0 my-auto py-4">
+        <div className="bg-white p-8 sm:p-12 lg:p-14 xl:p-16 2xl:p-20 flex flex-col justify-between">
+          <div className="max-w-[440px] xl:max-w-[500px] 2xl:max-w-[560px] w-full mx-auto lg:mx-0 my-auto py-4">
             {/* Tagline */}
-            <div className="text-xs sm:text-[13px] font-bold tracking-[0.2em] text-[#0052FF] uppercase mb-4">
+            <div className="text-xs sm:text-[13px] 2xl:text-sm font-bold tracking-[0.22em] text-[#0052FF] uppercase mb-4">
               LET’S GET STARTED
             </div>
 
             {/* Main Title */}
-            <h2 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-black tracking-tight leading-[1.04] mb-6">
+            <h2 className="text-4xl sm:text-5xl lg:text-[52px] xl:text-[60px] 2xl:text-[68px] font-black text-black tracking-tight leading-[1.04] mb-6">
               Your next<br />
               breakthrough<br />
               starts here.
             </h2>
 
             {/* Subtext */}
-            <p className="text-base sm:text-lg text-slate-800 font-normal leading-relaxed mb-8">
+            <p className="text-base sm:text-lg xl:text-xl text-slate-800 font-normal leading-relaxed mb-8">
               Sign in to practice Newton’s laws and save your progress.
             </p>
 
@@ -225,7 +225,7 @@ export default function AuthScreen({ onLoginSuccess }) {
             {error && (
               <div
                 role="alert"
-                className="mb-6 p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 font-medium leading-relaxed"
+                className="mb-6 p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-2.5 font-medium leading-relaxed"
               >
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div className="space-y-1.5 flex-1">
@@ -255,16 +255,16 @@ export default function AuthScreen({ onLoginSuccess }) {
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full h-12 sm:h-13 bg-white hover:bg-slate-50 active:bg-slate-100 border border-black rounded-md flex items-center justify-center gap-3.5 px-6 font-semibold text-black text-sm sm:text-base transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-xs"
+              className="w-full h-13 sm:h-14 xl:h-15 bg-white hover:bg-slate-50 active:bg-slate-100 border border-black rounded-md flex items-center justify-center gap-3.5 px-6 font-semibold text-black text-sm sm:text-base xl:text-lg transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-xs"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-[#0052FF] border-t-transparent rounded-full animate-spin" />
-                  <span className="text-slate-700 font-medium text-sm">Connecting to Google...</span>
+                  <span className="text-slate-700 font-medium text-sm sm:text-base">Connecting to Google...</span>
                 </div>
               ) : (
                 <>
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 xl:w-6 xl:h-6 shrink-0" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -288,7 +288,7 @@ export default function AuthScreen({ onLoginSuccess }) {
             </button>
 
             {/* Helper microcopy */}
-            <p className="text-xs sm:text-sm text-slate-500 mt-3 font-normal">
+            <p className="text-xs sm:text-sm xl:text-base text-slate-500 mt-3 font-normal">
               Use your school or personal Google account.
             </p>
 
@@ -297,7 +297,7 @@ export default function AuthScreen({ onLoginSuccess }) {
               <button
                 type="button"
                 onClick={handleDemoSignIn}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-md text-slate-700 text-xs font-medium transition-colors cursor-pointer"
+                className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-md text-slate-700 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
               >
                 <span>Continue in Offline Demo Mode</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
@@ -306,9 +306,9 @@ export default function AuthScreen({ onLoginSuccess }) {
           </div>
 
           {/* Bottom Star Guarantee */}
-          <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-800 font-medium pt-8 lg:pt-0">
+          <div className="flex items-center gap-3 text-xs sm:text-sm xl:text-base text-slate-800 font-medium pt-8 lg:pt-0">
             <svg
-              className="w-5 h-5 text-black stroke-[1.6] fill-none shrink-0"
+              className="w-5 h-5 xl:w-6 xl:h-6 text-black stroke-[1.6] fill-none shrink-0"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
