@@ -112,8 +112,8 @@ export default function BalancedForcesModule() {
     ? currentQ.simParams.initialV
     : 5
   const simForces = currentQ?.simParams?.forces || [
-    { name: 'F_1', value: 25, dir: 'right' },
-    { name: 'F_2', value: 25, dir: 'left' }
+    { name: 'F_app', value: 25, dir: 'right' },
+    { name: 'F_frict', value: 25, dir: 'left' }
   ]
 
   const reprLabel = currentQ?.representationType
