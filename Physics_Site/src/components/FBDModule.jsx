@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Eye, Plus, X, Zap, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Plus, X, Zap, ChevronLeft, ChevronRight } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import fbdScenarios from '../data/fbdScenarios.json'
 import ForceSymbol from './ForceSymbol'
@@ -27,7 +27,6 @@ export default function FBDModule() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [feedback, setFeedback] = useState(null)
-  const [showOriginalRef, setShowOriginalRef] = useState(false)
   const [completedScenarios, setCompletedScenarios] = useState(() => {
     try {
       const saved = localStorage.getItem('physix_fbd_completed')
@@ -48,7 +47,6 @@ export default function FBDModule() {
     setIsSubmitted(false)
     setIsCorrect(false)
     setFeedback(null)
-    setShowOriginalRef(false)
   }, [scenarioIndex])
 
   // Close popover when clicking outside
@@ -266,30 +264,12 @@ export default function FBDModule() {
             <span className="text-slate-500">
               Air Resistance: <strong className="text-slate-700">{currentScenario.airResistance}</strong>
             </span>
-            <button
-              onClick={() => setShowOriginalRef(!showOriginalRef)}
-              className="flex items-center gap-1 px-2 py-0.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-slate-700 transition-colors"
-            >
-              <Eye className="w-3 h-3" />
-              <span>{showOriginalRef ? 'Hide Ref' : 'Original Ref'}</span>
-            </button>
           </div>
         </div>
 
         <p className="text-slate-800 text-xs sm:text-sm mt-2.5 leading-relaxed font-medium">
           {currentScenario.cleanDescription}
         </p>
-
-        {showOriginalRef && (
-          <div className="mt-3 p-3 bg-slate-50 rounded border border-slate-200 text-center animate-in fade-in">
-            <div className="text-[11px] text-slate-500 mb-2 font-mono">Original Solution Reference</div>
-            <img
-              src={`/media/free-body-diagrams/scenario-${currentScenario.id}.png`}
-              alt={`Scenario ${currentScenario.id} reference`}
-              className="max-h-56 mx-auto rounded border border-slate-200 object-contain"
-            />
-          </div>
-        )}
       </div>
 
       {/* Interactive FBD Canvas & Dynamic Status Area */}
