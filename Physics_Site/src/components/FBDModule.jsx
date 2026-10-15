@@ -276,8 +276,8 @@ export default function FBDModule() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Direct-Manipulation Vector Canvas */}
         <div className="lg:col-span-8 bg-white border border-slate-200 rounded-lg p-6 flex flex-col items-center justify-center relative min-h-[460px] shadow-sm select-none">
-          <div className="text-[11px] font-mono text-slate-400 mb-8 text-center">
-            Click the <strong className="text-blue-600 font-bold">+</strong> button on any side to add a force arrow. Click the force tag to toggle <strong className="text-slate-700">Standard / Strong</strong>.
+          <div className="text-xs font-mono text-slate-700 mb-8 text-center font-medium">
+            Click the <strong className="text-blue-600 font-bold">+</strong> button on any side to add a force arrow. Click the force tag to toggle <strong className="text-slate-800">Standard / Strong</strong>.
           </div>
 
           {/* Central Workspace Container */}
@@ -287,7 +287,7 @@ export default function FBDModule() {
               <span className="text-xs font-bold text-white uppercase tracking-wider">
                 {currentScenario.objectContext}
               </span>
-              <span className="text-[10px] text-slate-400 font-mono mt-0.5">Object</span>
+              <span className="text-[10px] text-slate-200 font-mono mt-0.5 font-semibold">Object</span>
 
               {/* Edge '+' Button: Top (Upward) */}
               {forces.up === 0 && (
@@ -295,6 +295,7 @@ export default function FBDModule() {
                   onClick={() => setActivePopover(activePopover === 'up' ? null : 'up')}
                   className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center shadow transition-transform hover:scale-110 active:scale-95"
                   title="Add upward force"
+                  aria-label="Add upward force"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -306,6 +307,7 @@ export default function FBDModule() {
                   onClick={() => setActivePopover(activePopover === 'down' ? null : 'down')}
                   className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-7 h-7 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center shadow transition-transform hover:scale-110 active:scale-95"
                   title="Add downward force"
+                  aria-label="Add downward force"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -317,6 +319,7 @@ export default function FBDModule() {
                   onClick={() => setActivePopover(activePopover === 'left' ? null : 'left')}
                   className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center shadow transition-transform hover:scale-110 active:scale-95"
                   title="Add leftward force"
+                  aria-label="Add leftward force"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -328,6 +331,7 @@ export default function FBDModule() {
                   onClick={() => setActivePopover(activePopover === 'right' ? null : 'right')}
                   className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center shadow transition-transform hover:scale-110 active:scale-95"
                   title="Add rightward force"
+                  aria-label="Add rightward force"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -361,11 +365,12 @@ export default function FBDModule() {
                     <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-l border-b border-slate-300 rotate-45" />
                   )}
 
-                  <div className="relative z-10 flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-700">
+                  <div className="relative z-10 flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-800">
                     <span>Add {activePopover.toUpperCase()} Force</span>
                     <button
                       onClick={() => setActivePopover(null)}
-                      className="text-slate-400 hover:text-slate-700 p-0.5"
+                      aria-label="Close force selector"
+                      className="text-slate-600 hover:text-slate-900 p-0.5"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -376,7 +381,7 @@ export default function FBDModule() {
                       <button
                         key={f.code}
                         onClick={() => handleSelectForce(activePopover, f.code)}
-                        className="w-full px-2 py-1.5 rounded text-left text-xs font-medium text-slate-700 hover:bg-slate-100 flex items-center justify-between transition-colors"
+                        className="w-full px-2 py-1.5 rounded text-left text-xs font-medium text-slate-800 hover:bg-slate-100 flex items-center justify-between transition-colors"
                       >
                         <span>{f.label}</span>
                         <ForceSymbol code={f.code} className="text-xs font-bold" />
@@ -401,17 +406,19 @@ export default function FBDModule() {
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.up === 'strong'
                         ? 'text-white'
-                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                     }`}
                     style={strengths.up === 'strong' ? { backgroundColor: getForceColor(forces.up), borderColor: getForceColor(forces.up) } : {}}
                     title="Click to toggle Standard vs Strong"
+                    aria-label={`Upward force strength: currently ${strengths.up}`}
                   >
                     {strengths.up === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <button
                     onClick={() => handleRemoveForce('up')}
-                    className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
+                    className="text-slate-600 hover:text-rose-700 p-0.5 rounded"
                     title="Remove force"
+                    aria-label="Remove upward force"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -461,17 +468,19 @@ export default function FBDModule() {
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.down === 'strong'
                         ? 'text-white'
-                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                     }`}
                     style={strengths.down === 'strong' ? { backgroundColor: getForceColor(forces.down), borderColor: getForceColor(forces.down) } : {}}
                     title="Click to toggle Standard vs Strong"
+                    aria-label={`Downward force strength: currently ${strengths.down}`}
                   >
                     {strengths.down === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <button
                     onClick={() => handleRemoveForce('down')}
-                    className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
+                    className="text-slate-600 hover:text-rose-700 p-0.5 rounded"
                     title="Remove force"
+                    aria-label="Remove downward force"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -489,8 +498,9 @@ export default function FBDModule() {
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-slate-300 bg-white shadow-sm text-xs font-mono mr-2 whitespace-nowrap">
                   <button
                     onClick={() => handleRemoveForce('left')}
-                    className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
+                    className="text-slate-600 hover:text-rose-700 p-0.5 rounded"
                     title="Remove force"
+                    aria-label="Remove leftward force"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -499,10 +509,11 @@ export default function FBDModule() {
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.left === 'strong'
                         ? 'text-white'
-                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                     }`}
                     style={strengths.left === 'strong' ? { backgroundColor: getForceColor(forces.left), borderColor: getForceColor(forces.left) } : {}}
                     title="Click to toggle Standard vs Strong"
+                    aria-label={`Leftward force strength: currently ${strengths.left}`}
                   >
                     {strengths.left === 'strong' ? 'Strong' : 'Standard'}
                   </button>
@@ -553,17 +564,19 @@ export default function FBDModule() {
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border transition-colors ${
                       strengths.right === 'strong'
                         ? 'text-white'
-                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                     }`}
                     style={strengths.right === 'strong' ? { backgroundColor: getForceColor(forces.right), borderColor: getForceColor(forces.right) } : {}}
                     title="Click to toggle Standard vs Strong"
+                    aria-label={`Rightward force strength: currently ${strengths.right}`}
                   >
                     {strengths.right === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <button
                     onClick={() => handleRemoveForce('right')}
-                    className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
+                    className="text-slate-600 hover:text-rose-700 p-0.5 rounded"
                     title="Remove force"
+                    aria-label="Remove rightward force"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -581,7 +594,7 @@ export default function FBDModule() {
               setStrengths({ right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
               setIsSubmitted(false)
             }}
-            className="mt-6 text-xs text-slate-400 hover:text-slate-700 font-medium transition-colors"
+            className="mt-6 text-xs text-slate-700 hover:text-slate-900 font-semibold underline underline-offset-2 transition-colors"
           >
             Clear All Vectors
           </button>
@@ -591,29 +604,29 @@ export default function FBDModule() {
         <div className="lg:col-span-4 space-y-3">
           {/* Active Forces & Balance Summary */}
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 block">
               Diagram State & Net Force
             </span>
 
             {/* Live Vector Badges */}
             <div className="space-y-2">
               <div className="p-2 rounded bg-slate-50 border border-slate-200 text-xs">
-                <span className="text-slate-500 block text-[11px] font-medium mb-1">Horizontal State:</span>
+                <span className="text-slate-700 block text-[11px] font-semibold mb-1">Horizontal State:</span>
                 {forces.left === 0 && forces.right === 0 ? (
-                  <span className="text-slate-500 italic">No horizontal forces</span>
+                  <span className="text-slate-600 italic">No horizontal forces</span>
                 ) : (
                   <div className="flex items-center justify-between font-semibold">
                     <span className="flex items-center gap-1 text-slate-800">
                       {forces.left > 0 ? (
                         <span><ForceSymbol code={forces.left} /> ({strengths.left === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
-                        <span className="text-slate-500 font-normal">None</span>
+                        <span className="text-slate-600 font-medium">None</span>
                       )}{' '}
-                      <span className="text-slate-400 font-normal">vs</span>{' '}
+                      <span className="text-slate-600 font-medium">vs</span>{' '}
                       {forces.right > 0 ? (
                         <span><ForceSymbol code={forces.right} /> ({strengths.right === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
-                        <span className="text-slate-500 font-normal">None</span>
+                        <span className="text-slate-600 font-medium">None</span>
                       )}
                     </span>
                     <span className={H === 0 ? 'text-emerald-700 font-mono text-xs' : 'text-blue-700 font-mono text-xs'}>
@@ -624,22 +637,22 @@ export default function FBDModule() {
               </div>
 
               <div className="p-2 rounded bg-slate-50 border border-slate-200 text-xs">
-                <span className="text-slate-500 block text-[11px] font-medium mb-1">Vertical State:</span>
+                <span className="text-slate-700 block text-[11px] font-semibold mb-1">Vertical State:</span>
                 {forces.up === 0 && forces.down === 0 ? (
-                  <span className="text-slate-500 italic">No vertical forces</span>
+                  <span className="text-slate-600 italic">No vertical forces</span>
                 ) : (
                   <div className="flex items-center justify-between font-semibold">
                     <span className="flex items-center gap-1 text-slate-800">
                       {forces.up > 0 ? (
                         <span><ForceSymbol code={forces.up} /> ({strengths.up === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
-                        <span className="text-slate-500 font-normal">None</span>
+                        <span className="text-slate-600 font-medium">None</span>
                       )}{' '}
-                      <span className="text-slate-400 font-normal">vs</span>{' '}
+                      <span className="text-slate-600 font-medium">vs</span>{' '}
                       {forces.down > 0 ? (
                         <span><ForceSymbol code={forces.down} /> ({strengths.down === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
-                        <span className="text-slate-500 font-normal">None</span>
+                        <span className="text-slate-600 font-medium">None</span>
                       )}
                     </span>
                     <span className={V === 0 ? 'text-emerald-700 font-mono text-xs' : 'text-blue-700 font-mono text-xs'}>
