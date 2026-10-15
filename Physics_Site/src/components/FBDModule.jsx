@@ -22,7 +22,7 @@ const getForceColor = (code) => {
 export default function FBDModule() {
   const [scenarioIndex, setScenarioIndex] = useState(0)
   const [forces, setForces] = useState({ right: 0, left: 0, up: 0, down: 0 })
-  const [strengths, setStrengths] = useState({ right: 'normal', left: 'normal', up: 'normal', down: 'normal' })
+  const [strengths, setStrengths] = useState({ right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
   const [activePopover, setActivePopover] = useState(null) // 'up' | 'down' | 'left' | 'right' | null
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
@@ -43,7 +43,7 @@ export default function FBDModule() {
   // Reset when changing scenario
   useEffect(() => {
     setForces({ right: 0, left: 0, up: 0, down: 0 })
-    setStrengths({ right: 'normal', left: 'normal', up: 'normal', down: 'normal' })
+    setStrengths({ right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
     setActivePopover(null)
     setIsSubmitted(false)
     setIsCorrect(false)
@@ -66,21 +66,21 @@ export default function FBDModule() {
 
   const handleSelectForce = (dir, code) => {
     setForces((prev) => ({ ...prev, [dir]: code }))
-    setStrengths((prev) => ({ ...prev, [dir]: 'normal' }))
+    setStrengths((prev) => ({ ...prev, [dir]: 'standard' }))
     setActivePopover(null)
     setIsSubmitted(false)
   }
 
   const handleRemoveForce = (dir) => {
     setForces((prev) => ({ ...prev, [dir]: 0 }))
-    setStrengths((prev) => ({ ...prev, [dir]: 'normal' }))
+    setStrengths((prev) => ({ ...prev, [dir]: 'standard' }))
     setIsSubmitted(false)
   }
 
   const handleToggleStrength = (dir) => {
     setStrengths((prev) => ({
       ...prev,
-      [dir]: prev[dir] === 'normal' ? 'strong' : 'normal',
+      [dir]: prev[dir] === 'standard' ? 'strong' : 'standard',
     }))
     setIsSubmitted(false)
   }
@@ -155,7 +155,7 @@ export default function FBDModule() {
     if (targetH !== H && (targetR > 0 || targetL > 0)) {
       const expStr =
         targetH === 0
-          ? 'Equal (Normal vs Normal)'
+          ? 'Equal (Standard vs Standard)'
           : targetH === 1
           ? 'Rightward force should be Strong (longer than left)'
           : 'Leftward force should be Strong (longer than right)'
@@ -164,7 +164,7 @@ export default function FBDModule() {
     if (targetV !== V && (targetU > 0 || targetD > 0)) {
       const expStr =
         targetV === 0
-          ? 'Equal (Normal vs Normal)'
+          ? 'Equal (Standard vs Standard)'
           : targetV === 1
           ? 'Upward force should be Strong (longer than down)'
           : 'Downward force should be Strong (longer than up)'
@@ -200,7 +200,7 @@ export default function FBDModule() {
             Free-Body Diagram Constructor
           </h2>
           <p className="text-xs text-slate-500">
-            Click the <strong className="text-blue-600 font-bold">+</strong> on each side of the box to add forces, then toggle <strong className="text-slate-800">Normal</strong> or <strong className="text-slate-800">Strong</strong>.
+            Click the <strong className="text-blue-600 font-bold">+</strong> on each side of the box to add forces, then toggle <strong className="text-slate-800">Standard</strong> or <strong className="text-slate-800">Strong</strong>.
           </p>
         </div>
 
@@ -297,7 +297,7 @@ export default function FBDModule() {
         {/* Direct-Manipulation Vector Canvas */}
         <div className="lg:col-span-8 bg-white border border-slate-200 rounded-lg p-6 flex flex-col items-center justify-center relative min-h-[460px] shadow-sm select-none">
           <div className="text-[11px] font-mono text-slate-400 mb-8 text-center">
-            Click the <strong className="text-blue-600 font-bold">+</strong> button on any side to add a force arrow. Click the force tag to toggle <strong className="text-slate-700">Normal / Strong</strong>.
+            Click the <strong className="text-blue-600 font-bold">+</strong> button on any side to add a force arrow. Click the force tag to toggle <strong className="text-slate-700">Standard / Strong</strong>.
           </div>
 
           {/* Central Workspace Container */}
@@ -424,9 +424,9 @@ export default function FBDModule() {
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
                     style={strengths.up === 'strong' ? { backgroundColor: getForceColor(forces.up), borderColor: getForceColor(forces.up) } : {}}
-                    title="Click to toggle Normal vs Strong"
+                    title="Click to toggle Standard vs Strong"
                   >
-                    {strengths.up === 'strong' ? 'Strong' : 'Normal'}
+                    {strengths.up === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <button
                     onClick={() => handleRemoveForce('up')}
@@ -484,9 +484,9 @@ export default function FBDModule() {
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
                     style={strengths.down === 'strong' ? { backgroundColor: getForceColor(forces.down), borderColor: getForceColor(forces.down) } : {}}
-                    title="Click to toggle Normal vs Strong"
+                    title="Click to toggle Standard vs Strong"
                   >
-                    {strengths.down === 'strong' ? 'Strong' : 'Normal'}
+                    {strengths.down === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <button
                     onClick={() => handleRemoveForce('down')}
@@ -522,9 +522,9 @@ export default function FBDModule() {
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
                     style={strengths.left === 'strong' ? { backgroundColor: getForceColor(forces.left), borderColor: getForceColor(forces.left) } : {}}
-                    title="Click to toggle Normal vs Strong"
+                    title="Click to toggle Standard vs Strong"
                   >
-                    {strengths.left === 'strong' ? 'Strong' : 'Normal'}
+                    {strengths.left === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <ForceSymbol code={forces.left} className="font-bold text-xs" style={{ color: getForceColor(forces.left) }} />
                 </div>
@@ -576,9 +576,9 @@ export default function FBDModule() {
                         : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                     }`}
                     style={strengths.right === 'strong' ? { backgroundColor: getForceColor(forces.right), borderColor: getForceColor(forces.right) } : {}}
-                    title="Click to toggle Normal vs Strong"
+                    title="Click to toggle Standard vs Strong"
                   >
-                    {strengths.right === 'strong' ? 'Strong' : 'Normal'}
+                    {strengths.right === 'strong' ? 'Strong' : 'Standard'}
                   </button>
                   <button
                     onClick={() => handleRemoveForce('right')}
@@ -598,7 +598,7 @@ export default function FBDModule() {
           <button
             onClick={() => {
               setForces({ right: 0, left: 0, up: 0, down: 0 })
-              setStrengths({ right: 'normal', left: 'normal', up: 'normal', down: 'normal' })
+              setStrengths({ right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
               setIsSubmitted(false)
             }}
             className="mt-6 text-xs text-slate-400 hover:text-slate-700 font-medium transition-colors"
@@ -625,13 +625,13 @@ export default function FBDModule() {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="flex items-center gap-1 text-slate-800">
                       {forces.left > 0 ? (
-                        <span><ForceSymbol code={forces.left} /> ({strengths.left})</span>
+                        <span><ForceSymbol code={forces.left} /> ({strengths.left === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
                         <span className="text-slate-500 font-normal">None</span>
                       )}{' '}
                       <span className="text-slate-400 font-normal">vs</span>{' '}
                       {forces.right > 0 ? (
-                        <span><ForceSymbol code={forces.right} /> ({strengths.right})</span>
+                        <span><ForceSymbol code={forces.right} /> ({strengths.right === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
                         <span className="text-slate-500 font-normal">None</span>
                       )}
@@ -651,13 +651,13 @@ export default function FBDModule() {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="flex items-center gap-1 text-slate-800">
                       {forces.up > 0 ? (
-                        <span><ForceSymbol code={forces.up} /> ({strengths.up})</span>
+                        <span><ForceSymbol code={forces.up} /> ({strengths.up === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
                         <span className="text-slate-500 font-normal">None</span>
                       )}{' '}
                       <span className="text-slate-400 font-normal">vs</span>{' '}
                       {forces.down > 0 ? (
-                        <span><ForceSymbol code={forces.down} /> ({strengths.down})</span>
+                        <span><ForceSymbol code={forces.down} /> ({strengths.down === 'strong' ? 'Strong' : 'Standard'})</span>
                       ) : (
                         <span className="text-slate-500 font-normal">None</span>
                       )}
