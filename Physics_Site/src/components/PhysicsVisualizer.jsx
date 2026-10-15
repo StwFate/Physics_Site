@@ -112,7 +112,7 @@ export default function PhysicsVisualizer({
           <span className="w-2 h-2 rounded-full bg-blue-600"></span>
           {formattedLabel} ({isVertical ? 'Vertical Motion Model' : 'Horizontal Track Model'})
         </span>
-        <div className="flex items-center gap-3 font-mono text-slate-600">
+        <div className="flex items-center gap-3 font-mono text-slate-700 font-medium">
           <span>
             a:{' '}
             {isSubmitted ? (
@@ -120,12 +120,12 @@ export default function PhysicsVisualizer({
                 {accel.toFixed(2)} m/s²
               </strong>
             ) : (
-              <span className="text-slate-400 font-bold">?</span>
+              <span className="text-slate-600 font-bold">?</span>
             )}
           </span>
           <span>
             v:{' '}
-            <strong className="text-slate-800">
+            <strong className="text-slate-900">
               {isSubmitted ? `${velocity.toFixed(1)} m/s` : '?'}
             </strong>
           </span>
@@ -136,7 +136,7 @@ export default function PhysicsVisualizer({
                 {fNet.toFixed(1)} N
               </strong>
             ) : (
-              <span className="text-slate-400 font-bold">?</span>
+              <span className="text-slate-600 font-bold">?</span>
             )}
           </span>
         </div>
@@ -146,7 +146,7 @@ export default function PhysicsVisualizer({
         /* Vertical Motion Track (Elevator / Payload / Rocket) */
         <div className="relative h-36 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-center justify-center">
           {/* Vertical Height Scale on Left */}
-          <div className="absolute left-3 inset-y-2 flex flex-col justify-between text-[10px] text-slate-400 font-mono select-none border-r border-slate-200 pr-2">
+          <div className="absolute left-3 inset-y-2 flex flex-col justify-between text-[10px] text-slate-700 font-semibold font-mono select-none border-r border-slate-300 pr-2">
             <span>100m</span>
             <span>75m</span>
             <span>50m</span>
@@ -219,10 +219,10 @@ export default function PhysicsVisualizer({
         /* Horizontal Motion Track (Carts / Crates) */
         <div className="relative h-44 bg-slate-50 rounded border border-slate-200 overflow-hidden flex flex-col justify-end">
           {/* Ground Track Line */}
-          <div className="absolute inset-x-0 bottom-14 h-0.5 bg-slate-300"></div>
+          <div className="absolute inset-x-0 bottom-14 h-0.5 bg-slate-400"></div>
 
           {/* Tick marks */}
-          <div className="absolute inset-x-0 bottom-0 h-5 border-t border-slate-200 flex justify-between px-4 text-[10px] text-slate-400 font-mono select-none">
+          <div className="absolute inset-x-0 bottom-0 h-5 border-t border-slate-300 flex justify-between px-4 text-[10px] text-slate-700 font-bold font-mono select-none">
             <span>0m</span>
             <span>25m</span>
             <span>50m</span>
@@ -314,8 +314,8 @@ export default function PhysicsVisualizer({
 
             {/* Cart Wheels */}
             <div className="flex gap-5 -mt-0.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-800"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-800"></div>
             </div>
 
             {/* Downward force vector (e.g. Gravity Fg) */}
@@ -347,19 +347,19 @@ export default function PhysicsVisualizer({
 
       {/* Controls */}
       <div className="flex items-center justify-between mt-2.5">
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-slate-700">
           {isSubmitted ? (
             fNet === 0 ? (
               <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
                 ✓ Forces are balanced (<ForceSymbol type="Fnet" /> = 0). Constant velocity.
               </span>
             ) : (
-              <span className="text-amber-700 font-medium inline-flex items-center gap-1">
+              <span className="text-amber-800 font-semibold inline-flex items-center gap-1">
                 ⚠ Forces are unbalanced (<ForceSymbol type="Fnet" /> ≠ 0). Acceleration occurs.
               </span>
             )
           ) : (
-            <span className="text-slate-400 italic">
+            <span className="text-slate-700 font-medium italic">
               Submit your answer above to evaluate forces and run simulation.
             </span>
           )}
@@ -371,9 +371,10 @@ export default function PhysicsVisualizer({
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
               isSubmitted
                 ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer'
-                : 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                : 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed opacity-75'
             }`}
             title={isSubmitted ? (isPlaying ? 'Pause' : 'Simulate') : 'Submit your answer above to enable simulation'}
+            aria-label={isPlaying ? 'Pause motion simulation' : 'Play motion simulation'}
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             {isPlaying ? 'Pause' : 'Simulate'}
@@ -383,10 +384,11 @@ export default function PhysicsVisualizer({
             disabled={!isSubmitted}
             className={`p-1.5 rounded-md text-xs transition-colors ${
               isSubmitted
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 cursor-pointer'
-                : 'bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed opacity-60'
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer'
+                : 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed opacity-75'
             }`}
             title="Reset Simulation"
+            aria-label="Reset motion simulation"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
