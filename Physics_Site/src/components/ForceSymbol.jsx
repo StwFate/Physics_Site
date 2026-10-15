@@ -62,7 +62,7 @@ export default function ForceSymbol({
 
   return (
     <span
-      className={`inline-flex items-baseline font-serif italic font-semibold leading-none select-none ${className}`}
+      className={`inline-flex items-baseline font-serif italic font-semibold leading-none select-none pb-0.5 ${className}`}
       style={style}
     >
       <span>F</span>
