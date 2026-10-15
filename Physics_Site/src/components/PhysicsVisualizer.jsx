@@ -106,38 +106,24 @@ export default function PhysicsVisualizer({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-2.5 text-xs">
-        <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-          {formattedLabel} ({isVertical ? 'Vertical Motion Model' : 'Horizontal Track Model'})
+    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+      {/* Simulation Header */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="font-extrabold text-base text-slate-900 tracking-tight">
+          Motion model
         </span>
-        <div className="flex items-center gap-3 font-mono text-slate-700 font-medium">
+        <div className="flex items-center gap-6 text-sm text-slate-800 font-medium">
           <span>
-            a:{' '}
-            {isSubmitted ? (
-              <strong className={accel !== 0 ? 'text-blue-700' : 'text-emerald-700'}>
-                {accel.toFixed(2)} m/s²
-              </strong>
-            ) : (
-              <span className="text-slate-600 font-bold">?</span>
-            )}
+            a: <strong className="font-semibold text-slate-900">{isSubmitted ? `${accel.toFixed(2)} m/s²` : '—'}</strong>
           </span>
           <span>
-            v:{' '}
-            <strong className="text-slate-900">
-              {isSubmitted ? `${velocity.toFixed(1)} m/s` : '?'}
+            v: <strong className="font-semibold text-slate-900">{isSubmitted ? `${velocity.toFixed(1)} m/s` : '—'}</strong>
+          </span>
+          <span className="flex items-center gap-0.5">
+            <span className="font-serif italic font-bold">F</span><sub className="font-sans font-bold text-xs">net</sub>:{' '}
+            <strong className="font-semibold text-slate-900 ml-1">
+              {isSubmitted ? `${fNet.toFixed(1)} N` : '—'}
             </strong>
-          </span>
-          <span className="flex items-center gap-1">
-            <ForceSymbol type="Fnet" />:{' '}
-            {isSubmitted ? (
-              <strong className={fNet !== 0 ? 'text-rose-700' : 'text-emerald-700'}>
-                {fNet.toFixed(1)} N
-              </strong>
-            ) : (
-              <span className="text-slate-600 font-bold">?</span>
-            )}
           </span>
         </div>
       </div>
@@ -217,22 +203,33 @@ export default function PhysicsVisualizer({
         </div>
       ) : (
         /* Horizontal Motion Track (Carts / Crates) */
-        <div className="relative h-44 bg-slate-50 rounded border border-slate-200 overflow-hidden flex flex-col justify-end">
+        <div className="relative h-24 bg-white overflow-hidden flex flex-col justify-end my-2 select-none">
           {/* Ground Track Line */}
-          <div className="absolute inset-x-0 bottom-14 h-0.5 bg-slate-400"></div>
+          <div className="absolute inset-x-0 bottom-6 h-[1.5px] bg-slate-400"></div>
 
-          {/* Tick marks */}
-          <div className="absolute inset-x-0 bottom-0 h-5 border-t border-slate-300 flex justify-between px-4 text-[10px] text-slate-700 font-bold font-mono select-none">
-            <span>0m</span>
-            <span>25m</span>
-            <span>50m</span>
-            <span>75m</span>
-            <span>100m</span>
+          {/* Tick marks on ground line */}
+          <div className="absolute inset-x-0 bottom-6 pointer-events-none">
+            {[0, 25, 50, 75, 100].map((tick) => (
+              <div
+                key={tick}
+                className="absolute top-0 w-px h-2 bg-slate-400 -translate-x-1/2"
+                style={{ left: `${tick}%` }}
+              ></div>
+            ))}
+          </div>
+
+          {/* Metric labels below ticks */}
+          <div className="absolute inset-x-0 bottom-0 pointer-events-none text-[11px] text-slate-600 font-medium">
+            <span className="absolute left-0">0 m</span>
+            <span className="absolute left-1/4 -translate-x-1/2">25 m</span>
+            <span className="absolute left-1/2 -translate-x-1/2">50 m</span>
+            <span className="absolute left-3/4 -translate-x-1/2">75 m</span>
+            <span className="absolute right-0">100 m</span>
           </div>
 
           {/* The Cart Object */}
           <div
-            className="absolute bottom-14 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
+            className="absolute bottom-6 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center pointer-events-none"
             style={{ left: `${position}%` }}
           >
             {/* Upward force vector (e.g. Normal Force FN) */}
@@ -259,10 +256,10 @@ export default function PhysicsVisualizer({
                 </div>
               ))}
 
-            <div className="relative w-14 h-10 flex items-center justify-center">
-              {/* Box Body */}
-              <div className="w-12 h-8 bg-slate-800 rounded border border-slate-900 shadow-sm flex items-center justify-center text-[11px] font-bold text-white">
-                {mass}kg
+            <div className="relative flex items-center justify-center">
+              {/* Sleek Royal Blue Cart Body */}
+              <div className="w-14 h-6 bg-[#0052FF] rounded-md shadow-xs flex items-center justify-center text-xs font-bold text-white">
+                {mass} kg
               </div>
 
               {/* Left force arrow */}
@@ -275,15 +272,15 @@ export default function PhysicsVisualizer({
                   >
                     <ForceSymbol
                       code={f.name}
-                      className="text-[11px] text-rose-600 mr-1"
+                      className="text-[11px] text-blue-600 mr-1"
                     />
                     <div
-                      className="h-0.5 bg-rose-600 relative"
+                      className="h-0.5 bg-blue-600 relative"
                       style={{
                         width: `${Math.min(Math.max(f.value * 0.8, 15), 55)}px`
                       }}
                     >
-                      <div className="absolute left-0 -top-1 border-t-4 border-r-4 border-b-4 border-transparent border-r-rose-600"></div>
+                      <div className="absolute left-0 -top-1 border-t-4 border-r-4 border-b-4 border-transparent border-r-blue-600"></div>
                     </div>
                   </div>
                 ))}
@@ -312,10 +309,10 @@ export default function PhysicsVisualizer({
                 ))}
             </div>
 
-            {/* Cart Wheels */}
-            <div className="flex gap-5 -mt-0.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-800"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-800"></div>
+            {/* Cart Wheels directly rolling on the track line */}
+            <div className="flex gap-7 -mt-0.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-950"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-950"></div>
             </div>
 
             {/* Downward force vector (e.g. Gravity Fg) */}
@@ -327,17 +324,17 @@ export default function PhysicsVisualizer({
                   className="absolute top-full left-1/2 -translate-x-1/2 flex items-center pt-0.5 pointer-events-none z-10"
                 >
                   <div
-                    className="w-0.5 bg-rose-600 relative"
+                    className="w-0.5 bg-blue-600 relative"
                     style={{
                       height: `${Math.min(Math.max(f.value * 0.7, 15), 24)}px`
                     }}
                   >
-                    <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
+                    <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-blue-600"></div>
                   </div>
                   <ForceSymbol
                     code="Fgrav"
                     sub="g"
-                    className="text-[12px] text-rose-600 ml-1.5 font-bold"
+                    className="text-[12px] text-blue-600 ml-1.5 font-bold"
                   />
                 </div>
               ))}
@@ -345,47 +342,49 @@ export default function PhysicsVisualizer({
         </div>
       )}
 
-      {/* Controls */}
-      <div className="flex items-center justify-between mt-2.5">
-        <p className="text-xs text-slate-700">
+      {/* Controls and Feedback */}
+      <div className="flex items-center justify-between mt-3 pt-2">
+        <p className="text-xs text-slate-600 font-normal">
           {isSubmitted ? (
             fNet === 0 ? (
               <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
-                ✓ Forces are balanced (<ForceSymbol type="Fnet" /> = 0). Constant velocity.
+                ✓ Forces are balanced (<span className="font-serif italic font-bold">F</span><sub className="font-sans font-bold text-xs">net</sub> = 0). Constant velocity.
               </span>
             ) : (
               <span className="text-amber-800 font-semibold inline-flex items-center gap-1">
-                ⚠ Forces are unbalanced (<ForceSymbol type="Fnet" /> ≠ 0). Acceleration occurs.
+                ⚠ Forces are unbalanced (<span className="font-serif italic font-bold">F</span><sub className="font-sans font-bold text-xs">net</sub> ≠ 0). Acceleration occurs.
               </span>
             )
           ) : (
-            <span className="text-slate-700 font-medium italic">
-              Submit your answer above to evaluate forces and run simulation.
-            </span>
+            <span>Check your answer to unlock the simulation.</span>
           )}
         </p>
         <div className="flex items-center gap-2">
           <button
             onClick={() => isSubmitted && setIsPlaying(!isPlaying)}
             disabled={!isSubmitted}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold transition-colors ${
               isSubmitted
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer'
-                : 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed opacity-75'
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer shadow-2xs'
+                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
             }`}
             title={isSubmitted ? (isPlaying ? 'Pause' : 'Simulate') : 'Submit your answer above to enable simulation'}
             aria-label={isPlaying ? 'Pause motion simulation' : 'Play motion simulation'}
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {isPlaying ? 'Pause' : 'Simulate'}
+            {isPlaying ? (
+              <Pause className="w-3.5 h-3.5" />
+            ) : (
+              <Play className="w-3.5 h-3.5 fill-current" />
+            )}
+            <span>{isPlaying ? 'Pause' : 'Simulate'}</span>
           </button>
           <button
             onClick={handleReset}
             disabled={!isSubmitted}
             className={`p-1.5 rounded-md text-xs transition-colors ${
               isSubmitted
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer'
-                : 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed opacity-75'
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer shadow-2xs'
+                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
             }`}
             title="Reset Simulation"
             aria-label="Reset motion simulation"
