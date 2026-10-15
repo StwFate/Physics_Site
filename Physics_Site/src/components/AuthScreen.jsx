@@ -9,14 +9,14 @@ export function DopplerLogo({ className = 'h-7 w-auto' }) {
       <circle cx="12" cy="12" r="10" fill="#0052FF" />
       {/* First wave arc */}
       <path
-        d="M 27 5.5 C 31.5 9 31.5 15 27 18.5"
+        d="M 27 5 C 31.5 8.5 31.5 15.5 27 19"
         stroke="#0052FF"
         strokeWidth="3.5"
         strokeLinecap="round"
       />
       {/* Second wave arc */}
       <path
-        d="M 35 3.5 C 41 8 41 16 35 20.5"
+        d="M 35 3 C 41.5 7.5 41.5 16.5 35 21"
         stroke="#0052FF"
         strokeWidth="3.5"
         strokeLinecap="round"
@@ -72,7 +72,7 @@ export default function AuthScreen({ onLoginSuccess }) {
       {/* Main Split-Screen Section */}
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side: Electric Blue Hero Canvas */}
-        <div className="bg-[#0052FF] p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between text-white relative min-h-[520px] lg:min-h-0">
+        <div className="bg-[#0052FF] p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between text-white relative min-h-[540px] lg:min-h-0">
           {/* Top Heading */}
           <div className="space-y-3 pt-2">
             <h1 className="text-5xl sm:text-6xl xl:text-7xl font-extrabold tracking-tight text-white leading-[0.98]">
@@ -84,7 +84,7 @@ export default function AuthScreen({ onLoginSuccess }) {
           </div>
 
           {/* Center Graphic: Motion Strobe & Force Vector */}
-          <div className="my-8 sm:my-12 flex items-center justify-start max-w-full overflow-hidden">
+          <div className="my-8 sm:my-10 flex items-center justify-start max-w-full overflow-hidden">
             <svg
               className="w-full max-w-[460px] h-auto drop-shadow-sm"
               viewBox="0 0 440 190"
@@ -93,7 +93,7 @@ export default function AuthScreen({ onLoginSuccess }) {
             >
               {/* Horizontal dashed center-line */}
               <line
-                x1="8"
+                x1="0"
                 y1="90"
                 x2="225"
                 y2="90"
@@ -105,7 +105,7 @@ export default function AuthScreen({ onLoginSuccess }) {
               {/* Dashed Strobe Circles */}
               {/* Circle 1 */}
               <circle
-                cx="60"
+                cx="55"
                 cy="90"
                 r="46"
                 stroke="white"
@@ -115,7 +115,7 @@ export default function AuthScreen({ onLoginSuccess }) {
               />
               {/* Circle 2 */}
               <circle
-                cx="118"
+                cx="115"
                 cy="90"
                 r="46"
                 stroke="white"
@@ -125,7 +125,7 @@ export default function AuthScreen({ onLoginSuccess }) {
               />
               {/* Circle 3 */}
               <circle
-                cx="184"
+                cx="180"
                 cy="90"
                 r="46"
                 stroke="white"
@@ -135,27 +135,27 @@ export default function AuthScreen({ onLoginSuccess }) {
               />
 
               {/* Solid White Circle */}
-              <circle cx="272" cy="90" r="52" fill="#ffffff" />
+              <circle cx="272" cy="90" r="54" fill="#ffffff" />
 
               {/* Yellow Force Vector Arrow */}
               {/* Arrow Shaft */}
               <rect
-                x="220"
-                y="83"
-                width="142"
-                height="14"
+                x="218"
+                y="82"
+                width="140"
+                height="16"
                 fill="#FFE500"
               />
               {/* Arrow Head */}
               <polygon
-                points="356,71 398,90 356,109"
+                points="350,65 402,90 350,115"
                 fill="#FFE500"
               />
 
               {/* Force Label */}
               <text
                 x="292"
-                y="72"
+                y="67"
                 textAnchor="middle"
                 fill="#000000"
                 fontFamily="inherit"
@@ -168,17 +168,17 @@ export default function AuthScreen({ onLoginSuccess }) {
 
               {/* Motion Indicator Baseline */}
               <line
-                x1="226"
-                y1="152"
-                x2="318"
-                y2="152"
+                x1="225"
+                y1="154"
+                x2="319"
+                y2="154"
                 stroke="white"
                 strokeWidth="2.5"
               />
               {/* Motion Label */}
               <text
                 x="272"
-                y="173"
+                y="174"
                 textAnchor="middle"
                 fill="#ffffff"
                 fontFamily="inherit"
@@ -191,21 +191,21 @@ export default function AuthScreen({ onLoginSuccess }) {
             </svg>
           </div>
 
-          {/* Bottom 3 Laws Badges */}
-          <div className="pt-4 flex items-center gap-4 sm:gap-8 text-xs sm:text-sm font-bold tracking-[0.16em] text-white uppercase">
+          {/* Bottom 3 Laws Badges (Guaranteed single line on all desktop viewports) */}
+          <div className="pt-4 flex items-center gap-4 sm:gap-7 text-xs sm:text-sm font-bold tracking-[0.16em] text-white uppercase whitespace-nowrap">
             <span>01 / INERTIA</span>
-            <div className="w-[1.5px] h-3.5 bg-white/40" />
+            <div className="w-[1.5px] h-3.5 bg-white/40 shrink-0" />
             <span>02 / FORCE</span>
-            <div className="w-[1.5px] h-3.5 bg-white/40" />
+            <div className="w-[1.5px] h-3.5 bg-white/40 shrink-0" />
             <span>03 / REACTION</span>
           </div>
         </div>
 
         {/* Right Side: Clean White Auth Panel */}
         <div className="bg-white p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between">
-          <div className="max-w-md w-full mx-auto lg:mx-0 my-auto py-4">
+          <div className="max-w-[430px] w-full mx-auto lg:mx-0 my-auto py-4">
             {/* Tagline */}
-            <div className="text-xs sm:text-sm font-bold tracking-[0.22em] text-[#0052FF] uppercase mb-4">
+            <div className="text-xs sm:text-[13px] font-bold tracking-[0.2em] text-[#0052FF] uppercase mb-4">
               LET’S GET STARTED
             </div>
 
@@ -255,7 +255,7 @@ export default function AuthScreen({ onLoginSuccess }) {
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full h-13 sm:h-14 bg-white hover:bg-slate-50 active:bg-slate-100 border border-black rounded-sm flex items-center justify-center gap-3.5 px-6 font-semibold text-black text-sm sm:text-base transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-xs"
+              className="w-full h-12 sm:h-13 bg-white hover:bg-slate-50 active:bg-slate-100 border border-black rounded-md flex items-center justify-center gap-3.5 px-6 font-semibold text-black text-sm sm:text-base transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-xs"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
