@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Atom, Compass, ArrowRightLeft, Calculator, Award, RotateCcw, LogOut, CheckCircle2 } from 'lucide-react'
+import { ArrowLeftRight, Move, Calculator, Star, LogOut } from 'lucide-react'
 import BalancedForcesModule from './components/BalancedForcesModule'
 import FBDModule from './components/FBDModule'
 import SolveItModule from './components/SolveItModule'
@@ -82,143 +82,106 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      {/* Minimalist Light Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          {/* Logo & Title */}
-          <div className="flex items-center space-x-2.5">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
+      {/* Tier 1: Top Global Header */}
+      <header className="h-14 bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+          {/* Left: DopplerLogo + Mr. William's Practice Site */}
+          <div className="flex items-center gap-3">
             <DopplerLogo className="h-6 w-auto" />
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-base tracking-tight text-slate-900">
-                Mr. William’s Practice Site
-              </span>
-              <span className="text-xs text-slate-500 hidden sm:inline uppercase font-bold tracking-wider">
-                Newton's Laws
-              </span>
-            </div>
+            <span className="font-bold text-lg tracking-tight text-slate-900">
+              Mr. William’s Practice Site
+            </span>
           </div>
 
-          {/* Minimalist Segmented Tabs */}
-          <nav aria-label="Physics Modules" role="tablist" className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium">
-            <button
-              role="tab"
-              aria-selected={activeTab === 'balanced'}
-              aria-label="Balanced Forces module tab"
-              onClick={() => setActiveTab('balanced')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
-                activeTab === 'balanced'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5" />
-              <span>Balanced Forces</span>
-              {stats.balanced > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded text-[10px] font-mono">
-                  {stats.balanced}
-                </span>
-              )}
-            </button>
-
-            <button
-              role="tab"
-              aria-selected={activeTab === 'fbd'}
-              aria-label="Free-Body Diagrams module tab"
-              onClick={() => setActiveTab('fbd')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
-                activeTab === 'fbd'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Free-Body Diagrams</span>
-              {stats.fbd > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded text-[10px] font-mono">
-                  {stats.fbd}
-                </span>
-              )}
-            </button>
-
-            <button
-              role="tab"
-              aria-selected={activeTab === 'solveit'}
-              aria-label="Solve It! (F=ma) module tab"
-              onClick={() => setActiveTab('solveit')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
-                activeTab === 'solveit'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Calculator className="w-3.5 h-3.5" />
-              <span>Solve It! (F=ma)</span>
-              {stats.solveit > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded text-[10px] font-mono">
-                  {stats.solveit}
-                </span>
-              )}
-            </button>
-          </nav>
-
-          {/* Student Profile, Quick Stats, Reset & Sign Out */}
-          <div className="flex items-center gap-2">
-            {/* Student Google Profile Badge */}
-            <div
-              className="flex items-center gap-2 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 shadow-2xs"
-              title={`Signed in as ${currentUser.displayName} (${currentUser.email || 'Google Student'})`}
-            >
+          {/* Right: Avatar, Display Name, Stars, Divider, Sign out */}
+          <div className="flex items-center gap-4 text-sm font-medium text-slate-800">
+            <div className="flex items-center gap-2">
               {currentUser.photoURL ? (
                 <img
                   src={currentUser.photoURL}
                   alt={currentUser.displayName}
-                  className="w-5 h-5 rounded-full object-cover border border-slate-200"
+                  className="w-6 h-6 rounded-full object-cover border border-slate-300"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
                   {(currentUser.displayName || 'S')[0].toUpperCase()}
                 </div>
               )}
-              <div className="flex flex-col text-left">
-                <span className="max-w-[110px] truncate leading-tight font-semibold text-slate-900">
-                  {currentUser.displayName}
-                </span>
-              </div>
+              <span className="font-semibold text-slate-900 truncate max-w-[140px]">
+                {currentUser.displayName}
+              </span>
             </div>
 
-            {/* Stars counter with refined badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50/80 border border-amber-200 rounded-lg text-amber-900 text-xs font-bold shadow-2xs">
-              <Award className="w-3.5 h-3.5 text-amber-600" />
-              <span>{totalMastered} Stars</span>
+            <div className="flex items-center gap-1.5 text-slate-700">
+              <Star className="w-4 h-4 text-slate-600 stroke-[1.5]" />
+              <span>{totalMastered} stars</span>
             </div>
 
-            {/* Reset Progress */}
-            <button
-              onClick={handleResetAllProgress}
-              title="Reset Progress"
-              aria-label="Reset all earned stars and progress"
-              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
+            <div className="h-4 w-px bg-slate-300"></div>
 
-            {/* Sign Out */}
             <button
               onClick={handleLogout}
-              title="Sign Out"
+              className="flex items-center gap-1.5 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
+              title="Sign out of student account"
               aria-label="Sign out of student account"
-              className="flex items-center gap-1.5 px-2.5 py-1 text-slate-700 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5 text-slate-500 hover:text-rose-600" />
-              <span className="hidden md:inline">Sign Out</span>
+              <LogOut className="w-4 h-4 text-slate-700" />
+              <span>Sign out</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Interactive Content (Footer removed per user request) */}
+      {/* Tier 2: Secondary Module Navigation Bar */}
+      <nav aria-label="Module Navigation" className="h-12 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center gap-8">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'balanced'}
+            onClick={() => setActiveTab('balanced')}
+            className={`h-full flex items-center gap-2 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              activeTab === 'balanced'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-900 hover:text-blue-600'
+            }`}
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            <span>Balanced forces</span>
+          </button>
+
+          <button
+            role="tab"
+            aria-selected={activeTab === 'fbd'}
+            onClick={() => setActiveTab('fbd')}
+            className={`h-full flex items-center gap-2 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              activeTab === 'fbd'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-900 hover:text-blue-600'
+            }`}
+          >
+            <Move className="w-4 h-4" />
+            <span>Free-body diagrams</span>
+          </button>
+
+          <button
+            role="tab"
+            aria-selected={activeTab === 'solveit'}
+            onClick={() => setActiveTab('solveit')}
+            className={`h-full flex items-center gap-2 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              activeTab === 'solveit'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-900 hover:text-blue-600'
+            }`}
+          >
+            <Calculator className="w-4 h-4" />
+            <span>Solve it! (<span className="font-serif italic font-bold">F</span> = ma)</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Interactive Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
         {activeTab === 'balanced' && <BalancedForcesModule currentUser={currentUser} />}
         {activeTab === 'fbd' && <FBDModule currentUser={currentUser} />}
