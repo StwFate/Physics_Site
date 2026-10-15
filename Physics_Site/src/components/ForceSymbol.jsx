@@ -57,8 +57,8 @@ export default function ForceSymbol({
   const entry = FORCE_REGISTRY[key]
 
   const displaySub = sub !== undefined 
-    ? (FORCE_REGISTRY[sub]?.sub || sub)
-    : (entry ? (full ? entry.fullSub : entry.sub) : key || '')
+    ? sub
+    : (entry ? (full ? entry.fullSub : entry.sub) : String(key || ''))
 
   return (
     <span
