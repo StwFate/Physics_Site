@@ -170,8 +170,7 @@ export default function PhysicsVisualizer({
                     className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center pb-1 pointer-events-none"
                   >
                     <ForceSymbol
-                      code={f.name}
-                      sub={f.name.replace('F_', '')}
+                      code={f.name || 'Ftens'}
                       className="text-[11px] text-blue-600 mb-0.5"
                     />
                     <div
@@ -207,8 +206,7 @@ export default function PhysicsVisualizer({
                       <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
                     </div>
                     <ForceSymbol
-                      code={f.name}
-                      sub={f.name.replace('F_', '')}
+                      code={f.name || 'Fgrav'}
                       className="text-[11px] text-rose-600 mt-0.5"
                     />
                   </div>
@@ -245,8 +243,7 @@ export default function PhysicsVisualizer({
                   className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center pb-1 pointer-events-none"
                 >
                   <ForceSymbol
-                    code={f.name}
-                    sub={f.name.replace('F_', '')}
+                    code={f.name || 'Fnorm'}
                     className="text-[11px] text-blue-600 mb-0.5"
                   />
                   <div
@@ -276,7 +273,6 @@ export default function PhysicsVisualizer({
                   >
                     <ForceSymbol
                       code={f.name}
-                      sub={f.name.replace('F_', '')}
                       className="text-[11px] text-rose-600 mr-1"
                     />
                     <div
@@ -308,7 +304,6 @@ export default function PhysicsVisualizer({
                     </div>
                     <ForceSymbol
                       code={f.name}
-                      sub={f.name.replace('F_', '')}
                       className="text-[11px] text-blue-600 ml-1"
                     />
                   </div>
@@ -338,8 +333,7 @@ export default function PhysicsVisualizer({
                     <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
                   </div>
                   <ForceSymbol
-                    code={f.name}
-                    sub={f.name.replace('F_', '')}
+                    code={f.name || 'Fgrav'}
                     className="text-[11px] text-rose-600 mt-0.5"
                   />
                 </div>
