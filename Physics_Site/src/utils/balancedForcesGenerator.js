@@ -235,7 +235,7 @@ export function generateBalancedQuestions(level, seed = 0) {
         motionAnswer: 'Constant Speed',
         forceAnswer: 'Balanced',
         explanation: `The position-time graph is a straight line with a constant positive slope. A constant slope means constant velocity. Zero acceleration indicates that the net force is zero, meaning forces are balanced.`,
-        simParams: { fNet: 0, initialV: v1, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_1', value: 20, dir: 'right' }, { name: 'F_2', value: 20, dir: 'left' }] },
+        simParams: { fNet: 0, initialV: v1, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_app', value: 20, dir: 'right' }, { name: 'F_frict', value: 20, dir: 'left' }] },
         renderData: { type: 'position_time_graph', curveType: 'constant_pos' }
       },
       {
@@ -271,7 +271,7 @@ export function generateBalancedQuestions(level, seed = 0) {
         motionAnswer: 'Constant Speed',
         forceAnswer: 'Balanced',
         explanation: 'The graph is a straight line with a constant negative slope. The object covers equal negative distance each second. Because velocity is constant, acceleration is zero, indicating balanced forces.',
-        simParams: { fNet: 0, initialV: -v1, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_1', value: 20, dir: 'left' }, { name: 'F_2', value: 20, dir: 'right' }] },
+        simParams: { fNet: 0, initialV: -v1, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_app', value: 20, dir: 'left' }, { name: 'F_frict', value: 20, dir: 'right' }] },
         renderData: { type: 'position_time_graph', curveType: 'constant_neg' }
       },
       {
@@ -283,7 +283,7 @@ export function generateBalancedQuestions(level, seed = 0) {
         motionAnswer: 'Constant Speed',
         forceAnswer: 'Balanced',
         explanation: 'The dots are spaced at equal distances across the tape. Covering equal distance in equal time intervals means the speed is constant. Constant speed with no directional change implies balanced forces.',
-        simParams: { fNet: 0, initialV: 5, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_1', value: 25, dir: 'right' }, { name: 'F_2', value: 25, dir: 'left' }] },
+        simParams: { fNet: 0, initialV: 5, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_app', value: 25, dir: 'right' }, { name: 'F_frict', value: 25, dir: 'left' }] },
         renderData: { type: 'dot_diagram', pattern: 'constant', direction: 'right' }
       },
       {
@@ -452,7 +452,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionAnswer: 'Constant Speed',
       forceAnswer: 'Balanced',
       explanation: 'A horizontal line on a velocity-time graph indicates that velocity remains constant over time. The slope (acceleration) is zero. Zero acceleration signifies that all forces acting on the object are balanced.',
-      simParams: { fNet: 0, initialV: vConst1, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_1', value: 25, dir: 'right' }, { name: 'F_2', value: 25, dir: 'left' }] },
+      simParams: { fNet: 0, initialV: vConst1, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_app', value: 25, dir: 'right' }, { name: 'F_frict', value: 25, dir: 'left' }] },
       renderData: { type: 'velocity_time_graph', curveType: 'constant_pos' }
     },
     {
@@ -488,7 +488,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionAnswer: 'Constant Speed',
       forceAnswer: 'Balanced',
       explanation: 'The graph is a horizontal line below the zero axis. The velocity is constant at a negative value. Because the velocity does not change, acceleration is zero, indicating balanced forces.',
-      simParams: { fNet: 0, initialV: -vConstNeg, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_1', value: 25, dir: 'left' }, { name: 'F_2', value: 25, dir: 'right' }] },
+      simParams: { fNet: 0, initialV: -vConstNeg, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_app', value: 25, dir: 'left' }, { name: 'F_frict', value: 25, dir: 'right' }] },
       renderData: { type: 'velocity_time_graph', curveType: 'constant_neg' }
     },
     {
@@ -524,7 +524,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionAnswer: 'Constant Speed',
       forceAnswer: 'Balanced',
       explanation: `During each 1.0-second time interval, the position changes by exactly +${stepPos7}.0 m. A constant rate of displacement means constant velocity (${stepPos7} m/s). With zero acceleration, the forces are balanced.`,
-      simParams: { fNet: 0, initialV: stepPos7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_1', value: 20, dir: 'right' }, { name: 'F_2', value: 20, dir: 'left' }] },
+      simParams: { fNet: 0, initialV: stepPos7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_app', value: 20, dir: 'right' }, { name: 'F_frict', value: 20, dir: 'left' }] },
       renderData: {
         type: 'kinematic_table',
         colHeader: 'Position (m)',
@@ -547,7 +547,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionAnswer: 'Constant Speed',
       forceAnswer: 'Balanced',
       explanation: `The position decreases by exactly ${stepNeg8}.0 m every single second (-${stepNeg8} m/s). Because velocity is constant, there is no acceleration, which means net force is zero and forces are balanced.`,
-      simParams: { fNet: 0, initialV: -stepNeg8, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_1', value: 20, dir: 'left' }, { name: 'F_2', value: 20, dir: 'right' }] },
+      simParams: { fNet: 0, initialV: -stepNeg8, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_app', value: 20, dir: 'left' }, { name: 'F_frict', value: 20, dir: 'right' }] },
       renderData: {
         type: 'kinematic_table',
         colHeader: 'Position (m)',
@@ -616,7 +616,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionAnswer: 'Constant Speed',
       forceAnswer: 'Balanced',
       explanation: `The velocity table directly shows that velocity stays steady at ${velT11}.0 m/s for all time entries. A constant velocity means acceleration is 0 m/s², which requires balanced forces.`,
-      simParams: { fNet: 0, initialV: velT11, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_1', value: 20, dir: 'right' }, { name: 'F_2', value: 20, dir: 'left' }] },
+      simParams: { fNet: 0, initialV: velT11, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_app', value: 20, dir: 'right' }, { name: 'F_frict', value: 20, dir: 'left' }] },
       renderData: {
         type: 'kinematic_table',
         colHeader: 'Velocity (m/s)',
@@ -708,7 +708,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionAnswer: 'Constant Speed',
       forceAnswer: 'Balanced',
       explanation: 'The strobe flashes at equal time intervals, producing perfectly uniform spacing between dots. Consistent displacement per interval confirms constant speed. Newton’s first law requires forces to be balanced.',
-      simParams: { fNet: 0, initialV: 6, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_1', value: 20, dir: 'right' }, { name: 'F_2', value: 20, dir: 'left' }] },
+      simParams: { fNet: 0, initialV: 6, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_app', value: 20, dir: 'right' }, { name: 'F_frict', value: 20, dir: 'left' }] },
       renderData: { type: 'dot_diagram', pattern: 'constant', direction: 'right' }
     },
     {
