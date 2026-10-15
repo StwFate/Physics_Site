@@ -15,6 +15,12 @@ import PhysicsVisualizer from './PhysicsVisualizer'
 import BalancedForcesVisuals from './BalancedForcesVisuals'
 import { generateBalancedQuestions } from '../utils/balancedForcesGenerator'
 
+const MASTERY_GOALS = {
+  Apprentice: 8,
+  Master: 14,
+  Wizard: 20
+}
+
 const LEVEL_COUNTS = {
   Apprentice: 8,
   Master: 14,
@@ -44,6 +50,7 @@ export default function BalancedForcesModule() {
   }, [currentLevel, seed])
 
   const currentQ = questions[currentIndex] || questions[0]
+  const masteryGoal = MASTERY_GOALS[currentLevel] || 8
 
   const formatQuestionId = (id) => {
     if (!id) return ''
@@ -82,10 +89,9 @@ export default function BalancedForcesModule() {
       setCompletedQuestions(newCompleted)
       localStorage.setItem('physix_balanced_completed', JSON.stringify(newCompleted))
 
-      const levelQuestions = questions.map((q) => q.id)
-      const allDone = levelQuestions.every((id) => newCompleted[id])
-      if (allDone) {
-        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } })
+      const newlyCompletedInLevel = questions.filter((q) => newCompleted[q.id]).length
+      if (newlyCompletedInLevel === masteryGoal || newlyCompletedInLevel === questions.length) {
+        confetti({ particleCount: 75, spread: 65, origin: { y: 0.6 } })
       }
     }
   }
@@ -103,7 +109,8 @@ export default function BalancedForcesModule() {
   }
 
   const completedInLevel = questions.filter((q) => completedQuestions[q.id]).length
-  const allDoneInLevel = questions.length > 0 && questions.every((q) => completedQuestions[q.id])
+  const isLevelMastered = completedInLevel >= masteryGoal
+  const allPoolDone = questions.length > 0 && questions.every((q) => completedQuestions[q.id])
   const firstUnmasteredIndex = questions.findIndex((q) => !completedQuestions[q.id])
 
   // Simulation parameters directly from dynamic question physics
@@ -158,13 +165,13 @@ export default function BalancedForcesModule() {
           </button>
 
           <span className="text-xs text-slate-500 font-medium font-mono">
-            {completedInLevel} / {questions.length} Mastered
+            {completedInLevel} / {masteryGoal} Mastered ({questions.length} in pool)
           </span>
-          <div className="w-24 bg-slate-100 h-2 rounded overflow-hidden border border-slate-200">
+          <div className="w-24 bg-slate-100 h-2 rounded overflow-hidden border border-slate-200" title={`${completedInLevel} / ${masteryGoal} Mastered`}>
             <div
-              className="bg-blue-600 h-full transition-all duration-300"
+              className={`h-full transition-all duration-300 ${isLevelMastered ? 'bg-emerald-500' : 'bg-blue-600'}`}
               style={{
-                width: `${questions.length > 0 ? (completedInLevel / questions.length) * 100 : 0}%`
+                width: `${Math.min(100, (completedInLevel / masteryGoal) * 100)}%`
               }}
             ></div>
           </div>
@@ -172,18 +179,18 @@ export default function BalancedForcesModule() {
       </div>
 
       {/* Level Mastered Celebration Banner */}
-      {allDoneInLevel && (
+      {isLevelMastered && (
         <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-300 rounded-lg p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs animate-in fade-in">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎉</span>
             <div>
               <div className="text-xs font-bold text-emerald-900">
-                {currentLevel} Level Mastered! ({completedInLevel} / {questions.length} Stars)
+                {currentLevel} Level Mastered! ({completedInLevel} / {masteryGoal} Mastered • {questions.length} in Pool)
               </div>
               <div className="text-[11px] text-emerald-700">
                 {currentLevel === 'Wizard'
-                  ? 'Grandmaster achievement unlocked! You have mastered all three tiers of Balanced Forces.'
-                  : `All ${currentLevel} questions mastered. Ready to advance to ${currentLevel === 'Apprentice' ? 'Master' : 'Wizard'}?`}
+                  ? 'Grandmaster achievement unlocked! You have mastered all three tiers of Balanced Forces. Feel free to explore the remaining questions in the pool or shuffle for a new run!'
+                  : `Mastery goal reached! You can advance to ${currentLevel === 'Apprentice' ? 'Master (14)' : 'Wizard (20)'} anytime, or keep practicing the remaining questions in this pool.`}
               </div>
             </div>
           </div>
@@ -192,7 +199,7 @@ export default function BalancedForcesModule() {
               onClick={() => handleLevelChange('Master')}
               className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded shadow-sm flex items-center gap-1.5 transition-colors whitespace-nowrap"
             >
-              <span>Proceed to Master Level (14 Qs)</span>
+              <span>Proceed to Master Level (14)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
@@ -201,42 +208,49 @@ export default function BalancedForcesModule() {
               onClick={() => handleLevelChange('Wizard')}
               className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded shadow-sm flex items-center gap-1.5 transition-colors whitespace-nowrap"
             >
-              <span>Proceed to Wizard Level (20 Qs)</span>
+              <span>Proceed to Wizard Level (20)</span>
               <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {currentLevel === 'Wizard' && (
+            <button
+              onClick={handleShuffle}
+              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded shadow-sm flex items-center gap-1.5 transition-colors whitespace-nowrap"
+            >
+              <span>🏆 Grandmaster Replay (Shuffle Pool)</span>
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       )}
 
       {/* Question Selector Strip */}
-      <div className="bg-white border border-slate-200 rounded-lg p-2.5 flex items-center justify-between gap-2 shadow-sm overflow-x-auto scrollbar-thin">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-semibold whitespace-nowrap pl-1">
-            Questions:
-          </span>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {questions.map((q, idx) => {
-              const isMastered = !!completedQuestions[q.id]
-              const isCurrent = currentIndex === idx
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1 border whitespace-nowrap ${
-                    isCurrent
-                      ? 'bg-blue-600 border-blue-600 text-white font-bold shadow-sm'
-                      : isMastered
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100 font-semibold'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                  title={`Question ${idx + 1} (${isMastered ? 'Mastered ⭐' : 'Unmastered'})`}
-                >
-                  <span>Q{idx + 1}</span>
-                  {isMastered && <span className="text-amber-500 text-[11px] leading-none">⭐</span>}
-                </button>
-              )
-            })}
-          </div>
+      <div className="bg-white border border-slate-200 rounded-lg p-2.5 flex items-center gap-2 shadow-sm">
+        <span className="text-xs text-slate-500 font-semibold whitespace-nowrap pl-1 shrink-0">
+          Questions:
+        </span>
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-thin w-full">
+          {questions.map((q, idx) => {
+            const isMastered = !!completedQuestions[q.id]
+            const isCurrent = currentIndex === idx
+            return (
+              <button
+                key={q.id}
+                onClick={() => setCurrentIndex(idx)}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1 border whitespace-nowrap shrink-0 ${
+                  isCurrent
+                    ? 'bg-blue-600 border-blue-600 text-white font-bold shadow-sm'
+                    : isMastered
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100 font-semibold'
+                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                }`}
+                title={`Question ${idx + 1} (${isMastered ? 'Mastered ⭐' : 'Unmastered'})`}
+              >
+                <span>Q{idx + 1}</span>
+                {isMastered && <span className="text-amber-500 text-[11px] leading-none">⭐</span>}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -405,13 +419,13 @@ export default function BalancedForcesModule() {
                         <span>Next Question</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
-                    ) : allDoneInLevel ? (
+                    ) : isLevelMastered ? (
                       currentLevel === 'Apprentice' ? (
                         <button
                           onClick={() => handleLevelChange('Master')}
                           className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs flex items-center justify-center gap-2 transition-colors shadow-md animate-pulse"
                         >
-                          <span>Level Mastered! Proceed to Master Level (14 Qs)</span>
+                          <span>Level Mastered! Proceed to Master Level (14)</span>
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       ) : currentLevel === 'Master' ? (
@@ -419,7 +433,7 @@ export default function BalancedForcesModule() {
                           onClick={() => handleLevelChange('Wizard')}
                           className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs flex items-center justify-center gap-2 transition-colors shadow-md animate-pulse"
                         >
-                          <span>Level Mastered! Proceed to Wizard Level (20 Qs)</span>
+                          <span>Level Mastered! Proceed to Wizard Level (20)</span>
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       ) : (
@@ -434,7 +448,7 @@ export default function BalancedForcesModule() {
                     ) : (
                       <div className="space-y-2">
                         <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded p-2 text-center font-medium">
-                          You completed Question {questions.length}, but have {completedInLevel} of {questions.length} stars mastered.
+                          You completed Question {questions.length}, but have {completedInLevel} of {masteryGoal} stars needed for mastery.
                         </div>
                         {firstUnmasteredIndex >= 0 && (
                           <button
