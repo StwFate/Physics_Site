@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Atom, Compass, ArrowRightLeft, Calculator, Award, RotateCcw } from 'lucide-react'
+import { Atom, Compass, ArrowRightLeft, Calculator, Award, RotateCcw, User, LogOut } from 'lucide-react'
 import BalancedForcesModule from './components/BalancedForcesModule'
 import FBDModule from './components/FBDModule'
 import SolveItModule from './components/SolveItModule'
+import AuthScreen from './components/AuthScreen'
+import { getCurrentUser, logoutStudent, backupUserProgress } from './utils/authService'
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser())
   const [activeTab, setActiveTab] = useState('balanced')
   const [stats, setStats] = useState({ balanced: 0, fbd: 0, solveit: 0 })
 
@@ -18,28 +21,55 @@ export default function App() {
         fbd: Object.keys(f).length,
         solveit: Object.keys(s).length,
       })
+      if (currentUser?.username) {
+        backupUserProgress(currentUser.username)
+      }
     } catch {
       // ignore
     }
   }
 
   useEffect(() => {
-    updateStats()
-    const interval = setInterval(updateStats, 1000)
-    return () => clearInterval(interval)
-  }, [])
+    if (currentUser) {
+      updateStats()
+      const interval = setInterval(updateStats, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [currentUser])
 
   const handleResetAllProgress = () => {
-    if (window.confirm('Reset all earned stars and progress?')) {
+    if (!currentUser) return
+    if (window.confirm(`Reset all earned stars and progress for ${currentUser.username}?`)) {
       localStorage.removeItem('physix_balanced_completed')
       localStorage.removeItem('physix_fbd_completed')
       localStorage.removeItem('physix_solveit_completed')
+      backupUserProgress(currentUser.username)
       updateStats()
       window.location.reload()
     }
   }
 
+  const handleLogout = () => {
+    if (!currentUser) return
+    if (window.confirm(`Log out of ${currentUser.username}'s account?`)) {
+      logoutStudent()
+      setCurrentUser(null)
+      setStats({ balanced: 0, fbd: 0, solveit: 0 })
+    }
+  }
+
   const totalMastered = stats.balanced + stats.fbd + stats.solveit
+
+  // Gate the application: Require login / account creation first
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onLoginSuccess={(user) => {
+          setCurrentUser(user)
+        }}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
@@ -122,12 +152,21 @@ export default function App() {
             </button>
           </nav>
 
-          {/* Quick Stats & Reset */}
+          {/* Student Badge, Quick Stats, Reset & Logout */}
           <div className="flex items-center gap-2">
+            {/* Student Username Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-semibold text-slate-800" title={`Logged in as ${currentUser.username}`}>
+              <User className="w-3.5 h-3.5 text-blue-600" />
+              <span className="max-w-[110px] truncate">{currentUser.username}</span>
+            </div>
+
+            {/* Stars counter */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-xs font-semibold">
               <Award className="w-3.5 h-3.5 text-amber-600" />
               <span>{totalMastered} Stars</span>
             </div>
+
+            {/* Reset Progress */}
             <button
               onClick={handleResetAllProgress}
               title="Reset Progress"
@@ -135,6 +174,17 @@ export default function App() {
               className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Log Out */}
+            <button
+              onClick={handleLogout}
+              title="Log Out"
+              aria-label="Log out of student account"
+              className="flex items-center gap-1 px-2.5 py-1 text-slate-700 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-md text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5 text-slate-600 hover:text-rose-600" />
+              <span className="hidden md:inline">Log Out</span>
             </button>
           </div>
         </div>
