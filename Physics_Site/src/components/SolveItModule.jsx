@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Calculator, CheckCircle2, XCircle, Shuffle, BookOpen } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import ForceSymbol from './ForceSymbol'
+import { createSeededRng, getStudentSeed, shuffleWithSeed } from '../utils/studentSeed'
 
-// Generates randomized problem parameters with authentic physics ranges
-function generateProblemInstance(problemId) {
+// Generates randomized problem parameters with authentic physics ranges deterministically per student
+function generateProblemInstance(problemId, variationSeed = 12345) {
   const g = 9.8
-  const rA = Math.random()
-  const rB = Math.random()
-  const rC = Math.random()
+  const rng = createSeededRng(variationSeed + problemId * 7919)
+  const rA = rng()
+  const rB = rng()
+  const rC = rng()
 
   let p = {
     id: problemId,
@@ -132,10 +134,48 @@ function generateProblemInstance(problemId) {
   return p
 }
 
-export default function SolveItModule() {
+export default function SolveItModule({ currentUser }) {
+  const seed = useMemo(() => getStudentSeed(currentUser?.uid), [currentUser?.uid])
   const [level, setLevel] = useState('Apprentice')
+
+  // Variation offsets per problem for deterministic reloads & student-requested re-randomization
+  const [variationOffsets, setVariationOffsets] = useState(() => {
+    try {
+      const key = `physix_solveit_offsets_${currentUser?.uid || 'default'}`
+      const saved = localStorage.getItem(key)
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  // Synchronize variation offsets if student changes
+  useEffect(() => {
+    try {
+      const key = `physix_solveit_offsets_${currentUser?.uid || 'default'}`
+      const saved = localStorage.getItem(key)
+      setVariationOffsets(saved ? JSON.parse(saved) : {})
+    } catch {
+      setVariationOffsets({})
+    }
+  }, [currentUser?.uid])
+
+  // Problems per level
+  const rawProblemIds = useMemo(() => {
+    return level === 'Apprentice' ? [1, 2] : level === 'Master' ? [3, 4, 5] : [6, 7, 8]
+  }, [level])
+
+  // Pre-shuffle problems deterministically per student
+  const levelOffset = level === 'Apprentice' ? 501 : level === 'Master' ? 602 : 703
+  const levelProblemIds = useMemo(() => {
+    return shuffleWithSeed(rawProblemIds, seed + levelOffset)
+  }, [rawProblemIds, seed, levelOffset])
+
   const [problemId, setProblemId] = useState(1)
-  const [currentProblem, setCurrentProblem] = useState(() => generateProblemInstance(1))
+  const [currentProblem, setCurrentProblem] = useState(() => {
+    const initialSeed = getStudentSeed(currentUser?.uid)
+    return generateProblemInstance(1, initialSeed)
+  })
   const [inputs, setInputs] = useState({})
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [fieldResults, setFieldResults] = useState({})
@@ -149,10 +189,10 @@ export default function SolveItModule() {
     }
   })
 
-  const levelProblemIds = level === 'Apprentice' ? [1, 2] : level === 'Master' ? [3, 4, 5] : [6, 7, 8]
-
-  const loadNewProblem = (id) => {
-    const p = generateProblemInstance(id)
+  const loadNewProblem = (id, offsetOverride) => {
+    const offset = offsetOverride !== undefined ? offsetOverride : (variationOffsets[id] || 0)
+    const variationSeed = seed + offset * 10007
+    const p = generateProblemInstance(id, variationSeed)
     setCurrentProblem(p)
     setProblemId(id)
 
@@ -165,9 +205,29 @@ export default function SolveItModule() {
     setFieldResults({})
   }
 
+  // Load problem when level or shuffled list changes
   useEffect(() => {
-    loadNewProblem(levelProblemIds[0])
-  }, [level])
+    if (levelProblemIds && levelProblemIds.length > 0) {
+      if (!levelProblemIds.includes(problemId)) {
+        loadNewProblem(levelProblemIds[0])
+      } else {
+        loadNewProblem(problemId)
+      }
+    }
+  }, [level, levelProblemIds])
+
+  const handleRandomize = () => {
+    const nextOffset = (variationOffsets[problemId] || 0) + 1
+    const updated = { ...variationOffsets, [problemId]: nextOffset }
+    setVariationOffsets(updated)
+    try {
+      const key = `physix_solveit_offsets_${currentUser?.uid || 'default'}`
+      localStorage.setItem(key, JSON.stringify(updated))
+    } catch {
+      // ignore
+    }
+    loadNewProblem(problemId, nextOffset)
+  }
 
   const handleInputChange = (field, val) => {
     setInputs((prev) => ({ ...prev, [field]: val }))
@@ -278,8 +338,8 @@ export default function SolveItModule() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => loadNewProblem(problemId)}
-            className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+            onClick={handleRandomize}
+            className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded text-xs font-medium transition-colors cursor-pointer"
             title="Generate new numbers"
           >
             <Shuffle className="w-3 h-3" />
