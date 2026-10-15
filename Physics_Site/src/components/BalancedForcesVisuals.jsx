@@ -270,9 +270,9 @@ export function PositionTimeGraphView({ renderData }) {
         <line x1="40" y1="180" x2="40" y2="25" stroke="#64748b" strokeWidth="2" markerEnd="url(#axis-arr)" />
 
         {/* Labels */}
-        <text x="280" y="198" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">Time (t)</text>
-        <text x="12" y="32" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">Pos (x)</text>
-        <text x="28" y="194" fill="#94a3b8" fontSize="11" fontFamily="monospace">0</text>
+        <text x="280" y="198" fill="#334155" fontSize="11" fontWeight="600" fontFamily="monospace">Time (t)</text>
+        <text x="12" y="32" fill="#334155" fontSize="11" fontWeight="600" fontFamily="monospace">Pos (x)</text>
+        <text x="28" y="194" fill="#334155" fontSize="11" fontWeight="600" fontFamily="monospace">0</text>
 
         {/* Plotted Curves */}
         {curveType === 'constant_pos' && (
@@ -362,7 +362,7 @@ export function DotDiagramView({ renderData }) {
           {dots.map((y, idx) => (
             <g key={idx}>
               <circle cx="47.5" cy={y} r="5" fill="#1e293b" />
-              <text x="80" y={y + 3.5} textAnchor="start" fill="#64748b" fontSize="10" fontFamily="monospace">
+              <text x="80" y={y + 3.5} textAnchor="start" fill="#334155" fontSize="10" fontWeight="600" fontFamily="monospace">
                 t{idx}
               </text>
             </g>
@@ -378,14 +378,14 @@ export function DotDiagramView({ renderData }) {
           {dots.map((x, idx) => (
             <g key={idx}>
               <circle cx={x} cy="52.5" r="5" fill="#1e293b" />
-              <text x={x} y="90" textAnchor="middle" fill="#64748b" fontSize="10" fontFamily="monospace">
+              <text x={x} y="90" textAnchor="middle" fill="#334155" fontSize="10" fontWeight="600" fontFamily="monospace">
                 t{idx}
               </text>
             </g>
           ))}
         </svg>
       )}
-      <div className="text-[11px] text-slate-400 font-mono mt-1">Equal time intervals (Δt = 0.2s)</div>
+      <div className="text-[11px] text-slate-700 font-semibold font-mono mt-1">Equal time intervals (Δt = 0.2s)</div>
     </div>
   )
 }
@@ -423,9 +423,9 @@ export function VelocityTimeGraphView({ renderData }) {
         {/* Labels */}
         <text x="280" y="196" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">t (s)</text>
         <text x="8" y="25" fill="#475569" fontSize="11" fontWeight="600" fontFamily="monospace">v (m/s)</text>
-        <text x="22" y="114" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">0</text>
-        <text x="18" y="55" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">+v</text>
-        <text x="18" y="175" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="monospace">-v</text>
+        <text x="22" y="114" fill="#334155" fontSize="10" fontWeight="600" fontFamily="monospace">0</text>
+        <text x="18" y="55" fill="#334155" fontSize="10" fontWeight="600" fontFamily="monospace">+v</text>
+        <text x="18" y="175" fill="#334155" fontSize="10" fontWeight="600" fontFamily="monospace">-v</text>
 
         {/* Velocity lines */}
         {curveType === 'constant_pos' && (
@@ -484,7 +484,7 @@ export function KinematicTableView({ renderData }) {
 // Unified Visual Switcher
 export default function BalancedForcesVisuals({ question }) {
   if (!question || !question.renderData) {
-    return <div className="text-slate-400 text-xs">No diagram available</div>
+    return <div className="text-slate-700 font-semibold text-xs">No diagram available</div>
   }
 
   const { type } = question.renderData
@@ -505,5 +505,5 @@ export default function BalancedForcesVisuals({ question }) {
     return <KinematicTableView renderData={question.renderData} />
   }
 
-  return <div className="text-slate-400 text-xs">Unsupported representation: {type}</div>
+  return <div className="text-slate-700 font-semibold text-xs">Unsupported representation: {type}</div>
 }
