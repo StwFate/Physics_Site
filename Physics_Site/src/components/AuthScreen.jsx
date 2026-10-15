@@ -86,28 +86,28 @@ export default function AuthScreen({ onLoginSuccess }) {
           {/* Center Graphic: Prominent Scaled Physics Illustration */}
           <div className="my-auto py-8 sm:py-12 lg:py-14 flex items-center justify-start w-full">
             <svg
-              className="w-full max-w-[620px] lg:max-w-[680px] xl:max-w-[760px] 2xl:max-w-[880px] h-auto drop-shadow-md transition-all duration-300"
-              viewBox="0 0 520 220"
+              className="w-full max-w-[640px] lg:max-w-[700px] xl:max-w-[780px] 2xl:max-w-[900px] h-auto drop-shadow-md transition-all duration-300"
+              viewBox="0 0 540 250"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               {/* Horizontal dashed center-line */}
               <line
                 x1="0"
-                y1="105"
-                x2="265"
-                y2="105"
+                y1="115"
+                x2="246"
+                y2="115"
                 stroke="white"
                 strokeWidth="3"
                 strokeDasharray="7 7"
               />
 
-              {/* Dashed Strobe Circles with Accelerating Spacing */}
+              {/* Dashed Strobe Circles (radius 48) */}
               {/* Circle 1 */}
               <circle
-                cx="65"
-                cy="105"
-                r="54"
+                cx="58"
+                cy="115"
+                r="48"
                 stroke="white"
                 strokeWidth="3"
                 strokeDasharray="7 7"
@@ -115,9 +115,9 @@ export default function AuthScreen({ onLoginSuccess }) {
               />
               {/* Circle 2 */}
               <circle
-                cx="138"
-                cy="105"
-                r="54"
+                cx="132"
+                cy="115"
+                r="48"
                 stroke="white"
                 strokeWidth="3"
                 strokeDasharray="7 7"
@@ -125,42 +125,42 @@ export default function AuthScreen({ onLoginSuccess }) {
               />
               {/* Circle 3 */}
               <circle
-                cx="218"
-                cy="105"
-                r="54"
+                cx="216"
+                cy="115"
+                r="48"
                 stroke="white"
                 strokeWidth="3"
                 strokeDasharray="7 7"
                 fill="none"
               />
 
-              {/* Solid White Disc */}
-              <circle cx="326" cy="105" r="64" fill="#ffffff" />
+              {/* Solid White Disc (radius 84 = 1.75x of 48) */}
+              <circle cx="330" cy="115" r="84" fill="#ffffff" />
 
               {/* Bold Yellow Force Vector Arrow */}
               {/* Arrow Shaft */}
               <rect
-                x="262"
-                y="95"
-                width="156"
-                height="20"
+                x="246"
+                y="103"
+                width="186"
+                height="24"
                 fill="#FFE500"
               />
               {/* Large Crisp Arrow Head */}
               <polygon
-                points="412,74 480,105 412,136"
+                points="430,75 506,115 430,155"
                 fill="#FFE500"
               />
 
               {/* Force Label Centered in Top Half of White Disc */}
               <text
-                x="348"
-                y="77"
+                x="330"
+                y="78"
                 textAnchor="middle"
                 fill="#000000"
                 fontFamily="inherit"
                 fontWeight="900"
-                fontSize="15"
+                fontSize="17"
                 letterSpacing="0.16em"
               >
                 FORCE
@@ -168,22 +168,22 @@ export default function AuthScreen({ onLoginSuccess }) {
 
               {/* Motion Indicator Baseline */}
               <line
-                x1="268"
-                y1="184"
-                x2="384"
-                y2="184"
+                x1="250"
+                y1="212"
+                x2="410"
+                y2="212"
                 stroke="white"
                 strokeWidth="3"
               />
               {/* Motion Label */}
               <text
-                x="326"
-                y="207"
+                x="330"
+                y="236"
                 textAnchor="middle"
                 fill="#ffffff"
                 fontFamily="inherit"
                 fontWeight="700"
-                fontSize="13.5"
+                fontSize="14"
                 letterSpacing="0.24em"
               >
                 MOTION →
