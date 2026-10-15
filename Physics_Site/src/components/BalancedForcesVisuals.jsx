@@ -82,7 +82,7 @@ export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
       x={x}
       y={y}
       textAnchor={anchor}
-      fill="#dc2626"
+      fill="#000000"
       className="select-none"
     >
       {tokens.map((tok, idx) => {
@@ -92,7 +92,7 @@ export function SvgForceLabel({ label, code, x, y, anchor = 'start' }) {
               <tspan
                 fontFamily="Georgia, Cambria, 'Times New Roman', serif"
                 fontStyle="italic"
-                fontSize="21"
+                fontSize="22"
                 fontWeight="700"
               >
                 F
@@ -131,45 +131,124 @@ export function ForceDiagramView({ renderData, motionDirection }) {
   const forces = renderData?.forces || []
   const cx = 200
   const cy = 150
-  const boxSize = 52
+  const boxSize = 54
   const halfBox = boxSize / 2
 
   const getLength = (mag) => {
-    if (mag === 'small') return 40
-    if (mag === 'large') return 85
-    return 60 // medium
+    if (mag === 'small') return 45
+    if (mag === 'large') return 90
+    return 65 // medium
   }
 
   return (
-    <div className="relative w-full flex flex-col items-center justify-center p-2">
-      <svg viewBox="0 0 400 300" className="w-full max-w-[400px] h-68 select-none">
+    <div className="relative w-full flex flex-col items-center justify-center p-0">
+      <svg viewBox="0 0 400 300" className="w-full max-w-[420px] h-72 select-none rounded-lg border border-slate-200 bg-white">
         <defs>
+          {/* Cartesian Grid Pattern */}
+          <pattern id="cartesian-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" strokeWidth="1" />
+          </pattern>
+          {/* Royal Blue Force Arrowhead */}
           <marker
-            id="arrowhead-red"
+            id="arrowhead-blue"
+            markerWidth="10"
+            markerHeight="10"
+            refX="8"
+            refY="5"
+            orient="auto"
+          >
+            <polygon points="0 1.5, 9 5, 0 8.5" fill="#0052FF" />
+          </marker>
+          {/* Black Motion Indicator Arrowhead */}
+          <marker
+            id="motion-arr"
             markerWidth="8"
             markerHeight="8"
             refX="7"
             refY="4"
             orient="auto"
           >
-            <polygon points="0 0, 8 4, 0 8" fill="#dc2626" />
+            <polygon points="0 1, 7 4, 0 7" fill="#000000" />
+          </marker>
+          <marker
+            id="motion-arr-left"
+            markerWidth="8"
+            markerHeight="8"
+            refX="1"
+            refY="4"
+            orient="auto"
+          >
+            <polygon points="7 1, 0 4, 7 7" fill="#000000" />
           </marker>
         </defs>
 
-        {/* Center Object Box */}
+        {/* Cartesian Grid Background */}
+        <rect width="100%" height="100%" fill="url(#cartesian-grid)" />
+
+        {/* Top-Right Motion Indicator */}
+        <g className="select-none">
+          {motionDirection === 'left' || motionDirection === 'leftward' ? (
+            <>
+              <line
+                x1="375"
+                y1="34"
+                x2="320"
+                y2="34"
+                stroke="#000000"
+                strokeWidth="1.5"
+                markerEnd="url(#motion-arr-left)"
+              />
+              <text
+                x="348"
+                y="52"
+                textAnchor="middle"
+                fill="#000000"
+                fontSize="12"
+                fontWeight="500"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                ← Motion
+              </text>
+            </>
+          ) : (
+            <>
+              <line
+                x1="320"
+                y1="34"
+                x2="375"
+                y2="34"
+                stroke="#000000"
+                strokeWidth="1.5"
+                markerEnd="url(#motion-arr)"
+              />
+              <text
+                x="348"
+                y="52"
+                textAnchor="middle"
+                fill="#000000"
+                fontSize="12"
+                fontWeight="500"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                Motion →
+              </text>
+            </>
+          )}
+        </g>
+
+        {/* Center Object Box (White 54x54 with crisp black stroke) */}
         <rect
-          x={cx - boxSize / 2}
-          y={cy - boxSize / 2}
+          x={cx - halfBox}
+          y={cy - halfBox}
           width={boxSize}
           height={boxSize}
-          rx="4"
-          fill="#f8fafc"
-          stroke="#334155"
-          strokeWidth="2.5"
+          fill="#FFFFFF"
+          stroke="#000000"
+          strokeWidth="1.75"
         />
 
-        {/* Center Mass Point */}
-        <circle cx={cx} cy={cy} r="4.5" fill="#0f172a" />
+        {/* Center Mass Point (Solid black dot) */}
+        <circle cx={cx} cy={cy} r="3.5" fill="#000000" />
 
         {/* Dynamic Force Arrows & Non-overlapping Subscript Labels */}
         {forces.map((f, i) => {
@@ -223,9 +302,10 @@ export function ForceDiagramView({ renderData, motionDirection }) {
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke="#dc2626"
-                strokeWidth="3"
-                markerEnd="url(#arrowhead-red)"
+                stroke="#0052FF"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                markerEnd="url(#arrowhead-blue)"
               />
               <SvgForceLabel
                 label={f.label}
