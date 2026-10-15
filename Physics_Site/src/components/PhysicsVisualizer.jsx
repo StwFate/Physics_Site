@@ -195,7 +195,7 @@ export default function PhysicsVisualizer({
                 .map((f, i) => (
                   <div
                     key={i}
-                    className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center pt-1 pointer-events-none"
+                    className="absolute top-full left-1/2 -translate-x-1/2 flex items-center pt-1 pointer-events-none"
                   >
                     <div
                       className="w-0.5 bg-rose-600 relative"
@@ -206,8 +206,9 @@ export default function PhysicsVisualizer({
                       <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
                     </div>
                     <ForceSymbol
-                      code={f.name || 'Fgrav'}
-                      className="text-[11px] text-rose-600 mt-0.5"
+                      code="Fgrav"
+                      sub="g"
+                      className="text-[11px] text-rose-600 ml-1.5 font-bold"
                     />
                   </div>
                 ))}
@@ -216,9 +217,9 @@ export default function PhysicsVisualizer({
         </div>
       ) : (
         /* Horizontal Motion Track (Carts / Crates) */
-        <div className="relative h-36 bg-slate-50 rounded border border-slate-200 overflow-hidden flex flex-col justify-end">
+        <div className="relative h-44 bg-slate-50 rounded border border-slate-200 overflow-hidden flex flex-col justify-end">
           {/* Ground Track Line */}
-          <div className="absolute inset-x-0 bottom-9 h-0.5 bg-slate-300"></div>
+          <div className="absolute inset-x-0 bottom-14 h-0.5 bg-slate-300"></div>
 
           {/* Tick marks */}
           <div className="absolute inset-x-0 bottom-0 h-5 border-t border-slate-200 flex justify-between px-4 text-[10px] text-slate-400 font-mono select-none">
@@ -231,7 +232,7 @@ export default function PhysicsVisualizer({
 
           {/* The Cart Object */}
           <div
-            className="absolute bottom-9 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
+            className="absolute bottom-14 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center"
             style={{ left: `${position}%` }}
           >
             {/* Upward force vector (e.g. Normal Force FN) */}
@@ -243,8 +244,9 @@ export default function PhysicsVisualizer({
                   className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center pb-1 pointer-events-none"
                 >
                   <ForceSymbol
-                    code={f.name || 'Fnorm'}
-                    className="text-[11px] text-blue-600 mb-0.5"
+                    code="Fnorm"
+                    sub="N"
+                    className="text-[11px] text-blue-600 mb-0.5 font-bold"
                   />
                   <div
                     className="w-0.5 bg-blue-600 relative"
@@ -322,7 +324,7 @@ export default function PhysicsVisualizer({
               .map((f, i) => (
                 <div
                   key={i}
-                  className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center pt-0.5 pointer-events-none z-10"
+                  className="absolute top-full left-1/2 -translate-x-1/2 flex items-center pt-0.5 pointer-events-none z-10"
                 >
                   <div
                     className="w-0.5 bg-rose-600 relative"
@@ -333,8 +335,9 @@ export default function PhysicsVisualizer({
                     <div className="absolute -bottom-1 -left-1 border-t-4 border-l-4 border-r-4 border-transparent border-t-rose-600"></div>
                   </div>
                   <ForceSymbol
-                    code={f.name || 'Fgrav'}
-                    className="text-[11px] text-rose-600 mt-0.5"
+                    code="Fgrav"
+                    sub="g"
+                    className="text-[12px] text-rose-600 ml-1.5 font-bold"
                   />
                 </div>
               ))}
