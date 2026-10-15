@@ -51,7 +51,7 @@ export default function App() {
             <Atom className="w-5 h-5 text-blue-600" />
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-base tracking-tight text-slate-900">
-                PhysixLab
+                Mr. William's Practice Site
               </span>
               <span className="text-xs text-slate-500 hidden sm:inline">
                 Newton's Laws
