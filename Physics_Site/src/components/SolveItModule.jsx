@@ -330,7 +330,7 @@ export default function SolveItModule() {
 
       {/* Problem Description Card */}
       <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-        <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-semibold">
+        <div className="text-[11px] font-mono text-slate-700 uppercase tracking-wider mb-1 font-bold">
           Problem #{problemId} Description
         </div>
         <p className="text-slate-900 text-xs sm:text-sm leading-relaxed font-medium">
@@ -342,7 +342,7 @@ export default function SolveItModule() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Diagram Area */}
         <div className="lg:col-span-7 bg-white border border-slate-200 rounded-lg p-5 flex flex-col items-center justify-center relative min-h-[420px] shadow-sm">
-          <div className="text-[11px] font-mono text-slate-400 mb-6">
+          <div className="text-xs font-mono text-slate-700 mb-6 font-semibold">
             Enter Force Values Directly on Diagram Vectors (in Newtons)
           </div>
 
@@ -350,27 +350,29 @@ export default function SolveItModule() {
             {/* Top / Normal Force Vector */}
             <div className="absolute bottom-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center pb-10">
               <div className="flex items-center gap-1 mb-1.5">
-                <span className="text-xs font-bold text-blue-600 flex items-center gap-0.5">
+                <label htmlFor="diagram-input-fnorm" className="text-xs font-bold text-blue-700 flex items-center gap-0.5 cursor-pointer">
                   <ForceSymbol type="Fnorm" />:
-                </span>
+                </label>
                 <input
+                  id="diagram-input-fnorm"
                   type="number"
                   step="any"
                   disabled={isFieldGiven('Fnorm')}
                   value={inputs['Fnorm'] || ''}
                   onChange={(e) => handleInputChange('Fnorm', e.target.value)}
                   placeholder="?"
+                  aria-label="Normal force (F_N) in Newtons"
                   className={`w-20 px-1.5 py-0.5 bg-white border rounded text-xs font-mono text-center text-slate-900 focus:outline-none ${
                     isSubmitted
                       ? fieldResults['Fnorm']
                         ? 'border-emerald-500 bg-emerald-50'
                         : 'border-rose-500 bg-rose-50'
                       : isFieldGiven('Fnorm')
-                      ? 'border-slate-200 bg-slate-50 text-slate-500'
+                      ? 'border-slate-200 bg-slate-50 text-slate-600'
                       : 'border-slate-300 focus:border-blue-600 shadow-sm'
                   }`}
                 />
-                <span className="text-[10px] text-slate-400 font-mono">N</span>
+                <span className="text-xs text-slate-700 font-bold font-mono">N</span>
               </div>
               <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-blue-600"></div>
               <div className="w-0.5 h-10 bg-blue-600"></div>
@@ -381,55 +383,59 @@ export default function SolveItModule() {
               <div className="w-0.5 h-10 bg-rose-600"></div>
               <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] border-t-rose-600"></div>
               <div className="flex items-center gap-1 mt-1.5">
-                <span className="text-xs font-bold text-rose-600 flex items-center gap-0.5">
+                <label htmlFor="diagram-input-fgrav" className="text-xs font-bold text-rose-700 flex items-center gap-0.5 cursor-pointer">
                   <ForceSymbol type="Fgrav" />:
-                </span>
+                </label>
                 <input
+                  id="diagram-input-fgrav"
                   type="number"
                   step="any"
                   disabled={isFieldGiven('Fgrav')}
                   value={inputs['Fgrav'] || ''}
                   onChange={(e) => handleInputChange('Fgrav', e.target.value)}
                   placeholder="?"
+                  aria-label="Gravity force (F_g) in Newtons"
                   className={`w-20 px-1.5 py-0.5 bg-white border rounded text-xs font-mono text-center text-slate-900 focus:outline-none ${
                     isSubmitted
                       ? fieldResults['Fgrav']
                         ? 'border-emerald-500 bg-emerald-50'
                         : 'border-rose-500 bg-rose-50'
                       : isFieldGiven('Fgrav')
-                      ? 'border-slate-200 bg-slate-50 text-slate-500'
+                      ? 'border-slate-200 bg-slate-50 text-slate-600'
                       : 'border-slate-300 focus:border-rose-600 shadow-sm'
                   }`}
                 />
-                <span className="text-[10px] text-slate-400 font-mono">N</span>
+                <span className="text-xs text-slate-700 font-bold font-mono">N</span>
               </div>
             </div>
 
             {/* Left / Friction Vector */}
             <div className="absolute right-1/2 top-1/2 -translate-y-1/2 flex items-center pr-10">
               <div className="flex flex-col items-end mr-1.5">
-                <span className="text-xs font-bold text-amber-600 flex items-center gap-0.5">
+                <label htmlFor="diagram-input-ffrict" className="text-xs font-bold text-amber-700 flex items-center gap-0.5 cursor-pointer">
                   <ForceSymbol type="Ffrict" />:
-                </span>
+                </label>
                 <div className="flex items-center gap-1">
                   <input
+                    id="diagram-input-ffrict"
                     type="number"
                     step="any"
                     disabled={isFieldGiven('Ffrict')}
                     value={inputs['Ffrict'] || ''}
                     onChange={(e) => handleInputChange('Ffrict', e.target.value)}
                     placeholder="?"
+                    aria-label="Friction force (F_f) in Newtons"
                     className={`w-18 px-1.5 py-0.5 bg-white border rounded text-xs font-mono text-center text-slate-900 focus:outline-none ${
                       isSubmitted
                         ? fieldResults['Ffrict']
                           ? 'border-emerald-500 bg-emerald-50'
                           : 'border-rose-500 bg-rose-50'
                         : isFieldGiven('Ffrict')
-                        ? 'border-slate-200 bg-slate-50 text-slate-500'
+                        ? 'border-slate-200 bg-slate-50 text-slate-600'
                         : 'border-slate-300 focus:border-amber-600 shadow-sm'
                     }`}
                   />
-                  <span className="text-[10px] text-slate-400 font-mono">N</span>
+                  <span className="text-xs text-slate-700 font-bold font-mono">N</span>
                 </div>
               </div>
               <div className="w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-r-[8px] border-r-amber-600"></div>
@@ -442,28 +448,30 @@ export default function SolveItModule() {
                 <div className="h-0.5 w-10 bg-emerald-600"></div>
                 <div className="w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[8px] border-l-emerald-600"></div>
                 <div className="flex flex-col items-start ml-1.5">
-                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
+                  <label htmlFor="diagram-input-fapp" className="text-xs font-bold text-emerald-700 flex items-center gap-0.5 cursor-pointer">
                     <ForceSymbol type="Fapp" />:
-                  </span>
+                  </label>
                   <div className="flex items-center gap-1">
                     <input
+                      id="diagram-input-fapp"
                       type="number"
                       step="any"
                       disabled={isFieldGiven('Fapp')}
                       value={inputs['Fapp'] || ''}
                       onChange={(e) => handleInputChange('Fapp', e.target.value)}
                       placeholder="?"
+                      aria-label="Applied force (F_a) in Newtons"
                       className={`w-18 px-1.5 py-0.5 bg-white border rounded text-xs font-mono text-center text-slate-900 focus:outline-none ${
                         isSubmitted
                           ? fieldResults['Fapp']
                             ? 'border-emerald-500 bg-emerald-50'
                             : 'border-rose-500 bg-rose-50'
                           : isFieldGiven('Fapp')
-                          ? 'border-slate-200 bg-slate-50 text-slate-500'
+                          ? 'border-slate-200 bg-slate-50 text-slate-600'
                           : 'border-slate-300 focus:border-emerald-600 shadow-sm'
                       }`}
                     />
-                    <span className="text-[10px] text-slate-400 font-mono">N</span>
+                    <span className="text-xs text-slate-700 font-bold font-mono">N</span>
                   </div>
                 </div>
               </div>
@@ -472,7 +480,7 @@ export default function SolveItModule() {
             {/* Center Box */}
             <div className="w-20 h-20 bg-slate-900 rounded-md border border-slate-800 shadow-sm flex flex-col items-center justify-center p-1 text-center">
               <span className="text-xs font-bold text-white uppercase tracking-wider">BOX</span>
-              <span className="text-[10px] text-slate-300 font-mono mt-0.5">m = {currentProblem.given.mass || '?'} kg</span>
+              <span className="text-xs text-slate-200 font-mono mt-0.5 font-semibold">m = {currentProblem.given.mass || '?'} kg</span>
             </div>
           </div>
         </div>
@@ -480,95 +488,109 @@ export default function SolveItModule() {
         {/* Right Table */}
         <div className="lg:col-span-5 space-y-3">
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Dynamics Variables Table
             </h3>
 
             <div className="space-y-2">
               {/* Mass */}
               <div className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-xs font-medium text-slate-700">Mass (m):</span>
+                <label htmlFor="table-input-mass" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                  Mass (m):
+                </label>
                 <div className="flex items-center gap-1 font-mono">
                   <input
+                    id="table-input-mass"
                     type="number"
                     step="any"
                     disabled={isFieldGiven('mass')}
                     value={inputs['mass'] || ''}
                     onChange={(e) => handleInputChange('mass', e.target.value)}
                     placeholder="?"
+                    aria-label="Mass (m) in kilograms"
                     className={`w-20 px-1.5 py-0.5 bg-white border rounded text-xs text-center text-slate-900 focus:outline-none ${
                       isSubmitted
                         ? fieldResults['mass'] ? 'border-emerald-500' : 'border-rose-500'
-                        : isFieldGiven('mass') ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'
+                        : isFieldGiven('mass') ? 'border-slate-200 bg-slate-100 text-slate-600 font-medium' : 'border-slate-300'
                     }`}
                   />
-                  <span className="text-xs text-slate-500">kg</span>
+                  <span className="text-xs text-slate-700 font-bold">kg</span>
                 </div>
               </div>
 
               {/* Net Force */}
               <div className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-xs font-medium text-slate-700 flex items-center gap-1">
+                <label htmlFor="table-input-fnet" className="text-xs font-semibold text-slate-800 flex items-center gap-1 cursor-pointer">
                   Net Force (<ForceSymbol type="Fnet" />):
-                </span>
+                </label>
                 <div className="flex items-center gap-1 font-mono">
                   <input
+                    id="table-input-fnet"
                     type="number"
                     step="any"
                     disabled={isFieldGiven('Fnet')}
                     value={inputs['Fnet'] || ''}
                     onChange={(e) => handleInputChange('Fnet', e.target.value)}
                     placeholder="?"
+                    aria-label="Net force (F_net) in Newtons"
                     className={`w-20 px-1.5 py-0.5 bg-white border rounded text-xs text-center text-slate-900 focus:outline-none ${
                       isSubmitted
                         ? fieldResults['Fnet'] ? 'border-emerald-500' : 'border-rose-500'
-                        : isFieldGiven('Fnet') ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'
+                        : isFieldGiven('Fnet') ? 'border-slate-200 bg-slate-100 text-slate-600 font-medium' : 'border-slate-300'
                     }`}
                   />
-                  <span className="text-xs text-slate-500">N</span>
+                  <span className="text-xs text-slate-700 font-bold">N</span>
                 </div>
               </div>
 
               {/* Acceleration */}
               <div className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-xs font-medium text-slate-700">Acceleration (a):</span>
+                <label htmlFor="table-input-acceln" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                  Acceleration (a):
+                </label>
                 <div className="flex items-center gap-1 font-mono">
                   <input
+                    id="table-input-acceln"
                     type="number"
                     step="any"
                     disabled={isFieldGiven('acceln')}
                     value={inputs['acceln'] || ''}
                     onChange={(e) => handleInputChange('acceln', e.target.value)}
                     placeholder="?"
+                    aria-label="Acceleration (a) in meters per second squared"
                     className={`w-20 px-1.5 py-0.5 bg-white border rounded text-xs text-center text-slate-900 focus:outline-none ${
                       isSubmitted
                         ? fieldResults['acceln'] ? 'border-emerald-500' : 'border-rose-500'
-                        : isFieldGiven('acceln') ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'
+                        : isFieldGiven('acceln') ? 'border-slate-200 bg-slate-100 text-slate-600 font-medium' : 'border-slate-300'
                     }`}
                   />
-                  <span className="text-xs text-slate-500">m/s²</span>
+                  <span className="text-xs text-slate-700 font-bold">m/s²</span>
                 </div>
               </div>
 
               {/* Friction Coeff (µ) */}
               {currentProblem.target.mu !== undefined && (
                 <div className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
-                  <span className="text-xs font-medium text-slate-700">Coeff. of Friction (µ):</span>
+                  <label htmlFor="table-input-mu" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                    Coeff. of Friction (µ):
+                  </label>
                   <div className="flex items-center gap-1 font-mono">
                     <input
+                      id="table-input-mu"
                       type="number"
                       step="any"
                       disabled={isFieldGiven('mu')}
                       value={inputs['mu'] || ''}
                       onChange={(e) => handleInputChange('mu', e.target.value)}
                       placeholder="?"
+                      aria-label="Coefficient of friction (mu), unitless ratio"
                       className={`w-20 px-1.5 py-0.5 bg-white border rounded text-xs text-center text-slate-900 focus:outline-none ${
                         isSubmitted
                           ? fieldResults['mu'] ? 'border-emerald-500' : 'border-rose-500'
-                          : isFieldGiven('mu') ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'
+                          : isFieldGiven('mu') ? 'border-slate-200 bg-slate-100 text-slate-600 font-medium' : 'border-slate-300'
                       }`}
                     />
-                    <span className="text-xs text-slate-500">ratio</span>
+                    <span className="text-xs text-slate-700 font-bold">ratio</span>
                   </div>
                 </div>
               )}
