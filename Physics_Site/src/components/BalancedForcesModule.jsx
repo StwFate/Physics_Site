@@ -14,6 +14,7 @@ import confetti from 'canvas-confetti'
 import PhysicsVisualizer from './PhysicsVisualizer'
 import BalancedForcesVisuals from './BalancedForcesVisuals'
 import { generateBalancedQuestions } from '../utils/balancedForcesGenerator'
+import { getStudentSeed, shuffleWithSeed, incrementStudentSeed } from '../utils/studentSeed'
 
 const MASTERY_GOALS = {
   Apprentice: 8,
@@ -27,9 +28,9 @@ const LEVEL_COUNTS = {
   Wizard: 20
 }
 
-export default function BalancedForcesModule() {
+export default function BalancedForcesModule({ currentUser }) {
   const [currentLevel, setCurrentLevel] = useState('Apprentice')
-  const [seed, setSeed] = useState(0)
+  const [seed, setSeed] = useState(() => getStudentSeed(currentUser?.uid))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedMotion, setSelectedMotion] = useState(null)
   const [selectedForce, setSelectedForce] = useState(null)
@@ -44,9 +45,11 @@ export default function BalancedForcesModule() {
     }
   })
 
-  // Procedurally generate unique questions for the active level
+  // Procedurally generate unique questions for the active level and pre-shuffle per student
   const questions = useMemo(() => {
-    return generateBalancedQuestions(currentLevel, seed)
+    const raw = generateBalancedQuestions(currentLevel, seed)
+    const levelOffset = currentLevel === 'Apprentice' ? 101 : currentLevel === 'Master' ? 202 : 303
+    return shuffleWithSeed(raw, seed + levelOffset)
   }, [currentLevel, seed])
 
   const currentQ = questions[currentIndex] || questions[0]
@@ -70,7 +73,8 @@ export default function BalancedForcesModule() {
   }
 
   const handleShuffle = () => {
-    setSeed((s) => s + 1)
+    const nextSeed = incrementStudentSeed(currentUser?.uid)
+    setSeed(nextSeed)
     setCurrentIndex(0)
   }
 
