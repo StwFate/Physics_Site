@@ -29,6 +29,13 @@ export function parseForceTokens(label, code) {
       { type: 'force', sub: 'air' }
     ]
   }
+  if (str === 'FT1 + FT2') {
+    return [
+      { type: 'force', sub: 'T1' },
+      { type: 'text', val: ' + ' },
+      { type: 'force', sub: 'T2' }
+    ]
+  }
   if (str.toLowerCase().includes('(brakes)')) {
     return [
       { type: 'force', sub: 'f' },
@@ -53,6 +60,7 @@ export function parseForceTokens(label, code) {
   if (code === 'Fspring' || lower === 'fs' || lower === 'fspring') return [{ type: 'force', sub: 's' }]
   if (code === 'Fthrust' || lower === 'fthrust') return [{ type: 'force', sub: 'thrust' }]
   if (code === 'Fdrag' || lower === 'fdrag') return [{ type: 'force', sub: 'drag' }]
+  if (code === 'Fbuoy' || lower === 'fb' || lower === 'fbuoy') return [{ type: 'force', sub: 'b' }]
   if (code === 'Fnet' || lower === 'fnet') return [{ type: 'force', sub: 'net' }]
 
   if (str.startsWith('F_')) {
@@ -281,6 +289,9 @@ export function PositionTimeGraphView({ renderData }) {
         )}
         {curveType === 'speeding_up_neg' && (
           <path d="M 40 45 Q 170 50 280 175" stroke="#2563eb" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        )}
+        {curveType === 'slowing_down_neg' && (
+          <path d="M 40 45 Q 130 170 280 175" stroke="#2563eb" strokeWidth="3.5" fill="none" strokeLinecap="round" />
         )}
       </svg>
     </div>
