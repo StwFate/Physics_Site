@@ -61,6 +61,10 @@ export default function BalancedForcesModule({ currentUser }) {
   }
 
   useEffect(() => {
+    setSeed(getStudentSeed(currentUser?.uid))
+  }, [currentUser?.uid])
+
+  useEffect(() => {
     setSelectedMotion(null)
     setSelectedForce(null)
     setIsSubmitted(false)
