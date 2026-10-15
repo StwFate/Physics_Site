@@ -220,9 +220,9 @@ export default function App() {
 
       {/* Main Interactive Content (Footer removed per user request) */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
-        {activeTab === 'balanced' && <BalancedForcesModule />}
-        {activeTab === 'fbd' && <FBDModule />}
-        {activeTab === 'solveit' && <SolveItModule />}
+        {activeTab === 'balanced' && <BalancedForcesModule currentUser={currentUser} />}
+        {activeTab === 'fbd' && <FBDModule currentUser={currentUser} />}
+        {activeTab === 'solveit' && <SolveItModule currentUser={currentUser} />}
       </main>
     </div>
   )
