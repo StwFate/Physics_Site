@@ -247,7 +247,7 @@ async function run() {
     // Fill inputs
     await page.locator('#diagram-input-fnorm').fill(String(fnormTarget))
     await page.locator('#diagram-input-fgrav').fill(String(fgravTarget))
-    await page.locator('#table-input-a').fill(String(aTarget))
+    await page.locator('#table-input-acceln').fill(String(aTarget))
     await page.locator('#table-input-fnet').fill(String(fnetTarget))
     await page.waitForTimeout(200)
 
