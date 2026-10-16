@@ -81,9 +81,17 @@ async function main() {
     assert.ok(progressBarBefore.includes('2 / 8 mastered'), `Expected 2 / 8 mastered before sign out, got: ${progressBarBefore}`)
 
     // 4. Test Sign Out (handle window.confirm)
-    page.on('dialog', dialog => dialog.accept())
+    let dialogFired = false
+    page.on('dialog', async dialog => {
+      console.log('Dialog intercepted:', dialog.message())
+      dialogFired = true
+      await dialog.accept()
+    })
     await page.getByRole('button', { name: 'Sign out' }).click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
+
+    console.log('Dialog fired?', dialogFired)
+    console.log('Body after sign out click:', (await page.locator('body').innerText()).slice(0, 300))
 
     // Verify user is on login screen and local active keys are cleared
     const authScreenVisible = await page.locator('text=Put physics in motion.').isVisible()
