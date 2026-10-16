@@ -103,7 +103,7 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
   const acceleration = model.projectile ? Math.hypot(model.a.x, model.a.y) : vertical ? model.a.y : model.a.x
   const force = model.projectile ? Math.hypot(model.force.x, model.force.y) : vertical ? model.force.y : model.force.x
   const balanced = Math.abs(model.force.x) + Math.abs(model.force.y) < 0.001
-  const atEnd = time >= model.duration - 0.0001
+  const atEnd = time >= model.duration - 0.015
   const isStoppedAtRest = Boolean((atEnd && (model.stops || model.isBraking)) || state.atRest)
   const currentSpeed = isStoppedAtRest ? 0 : speed
   const power = state.vx * model.a.x + state.vy * model.a.y
@@ -123,7 +123,13 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
   const pastDots = Array.from({ length: 13 }, (_, i) => model.sample(i * model.duration / 12)).filter(p => p.t <= time + 0.001)
   const reset = () => { clock.current = 0; setTime(0); setPlaying(false) }
   const togglePlayback = () => { if (atEnd) { clock.current = 0; setTime(0) }; setPlaying(p => !p) }
-  const scrub = e => { clock.current = Number(e.target.value); setTime(clock.current); setPlaying(false) }
+  const scrub = e => {
+    const v = Number(e.target.value)
+    const t = v >= model.duration - 0.015 ? model.duration : v
+    clock.current = t
+    setTime(t)
+    setPlaying(false)
+  }
   const display = (v, digits) => isSubmitted ? number(v, digits) : '—'
   const velocityLabel = model.projectile ? 'Speed' : 'Velocity'
   const velocityAngle = model.projectile ? Math.atan2(-state.vy, state.vx) * 180 / Math.PI : vertical ? -90 : 0
