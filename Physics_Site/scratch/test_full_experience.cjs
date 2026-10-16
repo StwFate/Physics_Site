@@ -140,8 +140,8 @@ async function run() {
     console.log(`[Mod 2] Simulation visible before answer: ${simVisible} (Expected: false)`)
     assert.equal(simVisible, false, 'Simulation should be hidden in FBD before solving')
 
-    // Scenario 1: Book at rest on tabletop
-    console.log('[Mod 2] Constructing FBD for Scenario 1 (Normal up, Gravity down)...')
+    // Scenario 1: Crate pushed at constant speed
+    console.log('[Mod 2] Constructing FBD for Scenario 1 (Normal up, Gravity down, Applied right, Friction left)...')
     const topPlus = page.locator('button[aria-label="Add force pointing up"]')
     if (await topPlus.isVisible()) {
       await topPlus.click()
@@ -155,6 +155,22 @@ async function run() {
       await bottomPlus.click()
       await page.waitForTimeout(200)
       await page.getByRole('button', { name: /Gravity Force/i }).click()
+      await page.waitForTimeout(200)
+    }
+
+    const rightPlus = page.locator('button[aria-label="Add force pointing right"]')
+    if (await rightPlus.isVisible()) {
+      await rightPlus.click()
+      await page.waitForTimeout(200)
+      await page.getByRole('button', { name: /Applied Force/i }).click()
+      await page.waitForTimeout(200)
+    }
+
+    const leftPlus = page.locator('button[aria-label="Add force pointing left"]')
+    if (await leftPlus.isVisible()) {
+      await leftPlus.click()
+      await page.waitForTimeout(200)
+      await page.getByRole('button', { name: /Friction Force/i }).click()
       await page.waitForTimeout(200)
     }
 
