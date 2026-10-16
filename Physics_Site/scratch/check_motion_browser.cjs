@@ -54,7 +54,13 @@ async function main() {
     const capture = name => model.screenshot({ path: path.join(output, name), style: 'body > #root header { visibility: hidden !important; }' })
     const scrub = async value => {
       const slider = model.getByRole('slider', { name: 'Scrub motion timeline' })
-      await slider.evaluate((el, v) => { el.value = String(Math.min(v, Number(el.max) - Number(el.step))) }, value)
+      await slider.evaluate((el, v) => {
+        const targetVal = String(Math.min(v, Number(el.max) - Number(el.step)))
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+        set.call(el, targetVal)
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+      }, value)
       await slider.press('ArrowRight')
     }
     await scrub(1)
