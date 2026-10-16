@@ -1183,6 +1183,9 @@ def setup_lighting(scene):
       3. Subtle cool ambient fill from the overhead sky
     """
     world = scene.world
+    if world is None:
+        world = bpy.data.worlds.new("World")
+        scene.world = world
     world.use_nodes = True
     nodes = world.node_tree.nodes
     links = world.node_tree.links
