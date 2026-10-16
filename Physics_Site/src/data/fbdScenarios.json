@@ -169,6 +169,7 @@
   },
   {
     "id": 3,
+    "motionBehavior": "braking",
     "title": "Car Skidding to a Stop",
     "objectContext": "Car",
     "description": "A rightward-moving <B>car</B> is skidding to a stop across a level roadway with locked wheels. Ignore air resistance.",
@@ -247,6 +248,7 @@
   },
   {
     "id": 4,
+    "motionBehavior": "projectile",
     "title": "Football Rising Toward Peak",
     "objectContext": "Football",
     "description": "A <B>football</B> is moving upward and rightward towards the peak of its trajectory. Ignore air resistance.",
@@ -515,6 +517,7 @@
   },
   {
     "id": 8,
+    "motionBehavior": "braking",
     "title": "Sledder Coasting and Slowing Down on Snow",
     "objectContext": "Sledder",
     "description": "A <B>sledder</B> has reached the bottom of a hill and is coasting to the right while slowing down along the loosely-packed snow. Ignore air resistance.",
@@ -589,6 +592,7 @@
   },
   {
     "id": 9,
+    "motionBehavior": "projectile",
     "title": "Football at the Peak of Trajectory",
     "objectContext": "Football at Peak",
     "description": "A <B>football</B>, originally kicked at a 40-degree angle to the horizontal, is at the peak of its trajectory. Ignore air resistance.",
@@ -651,6 +655,7 @@
   },
   {
     "id": 10,
+    "motionBehavior": "parachute",
     "title": "Skydiver Opening Parachute and Slowing Down",
     "objectContext": "Skydiver with Parachute",
     "description": "A downward-moving <B>skydiver</B> who has just opened the parachute is slowing down. (Diagram the forces on the skydiver/parachute system.)",
@@ -721,6 +726,7 @@
   },
   {
     "id": 11,
+    "motionBehavior": "braking",
     "title": "Freight Elevator Ascending and Slowing Down",
     "objectContext": "Freight Elevator Cabin",
     "description": "The <B>cabin of a small freight elevator</B> is secured to a motor by a cable and is moving upward while slowing down. There is no contact between the cabin and the elevator shaft. Ignore air resistance.",
@@ -787,6 +793,7 @@
   },
   {
     "id": 12,
+    "motionBehavior": "braking",
     "title": "Softball Player Diving and Sliding into Dirt",
     "objectContext": "Softball Player",
     "description": "A <B>softball player</B> does a head-first dive while sliding to the right across the infield dirt. Ignore air resistance.",
