@@ -4,11 +4,11 @@ import BalancedForcesModule from './components/BalancedForcesModule'
 import FBDModule from './components/FBDModule'
 import SolveItModule from './components/SolveItModule'
 import AuthScreen, { DopplerLogo } from './components/AuthScreen'
-import { subscribeToAuth, signOutStudent, backupUserProgress } from './utils/authService'
+import { subscribeToAuth, signOutStudent, backupUserProgress, getCachedAuthUser } from './utils/authService'
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null)
-  const [authInitialized, setAuthInitialized] = useState(false)
+  const [currentUser, setCurrentUser] = useState(() => getCachedAuthUser())
+  const [authInitialized, setAuthInitialized] = useState(() => !!getCachedAuthUser())
   const [activeTab, setActiveTab] = useState('balanced')
   const [stats, setStats] = useState({ balanced: 0, fbd: 0, solveit: 0 })
 
@@ -70,6 +70,11 @@ export default function App() {
 
   const totalMastered = stats.balanced + stats.fbd + stats.solveit
 
+  // Prevent brief flash of login screen on page refresh while restoring auth state
+  if (!authInitialized && !currentUser) {
+    return <div className="min-h-screen bg-white" />
+  }
+
   // Gate the application: Require login / account creation first
   if (!currentUser) {
     return (
@@ -85,7 +90,7 @@ export default function App() {
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
       {/* Tier 1: Top Global Header */}
       <header className="h-14 bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 h-full flex items-center justify-between">
           {/* Left: DopplerLogo + Mr. William's Practice Site */}
           <div className="flex items-center gap-3">
             <DopplerLogo className="h-6 w-auto" />
@@ -136,7 +141,7 @@ export default function App() {
 
       {/* Tier 2: Secondary Module Navigation Bar */}
       <nav aria-label="Module Navigation" className="h-12 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center gap-8">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 h-full flex items-center gap-8">
           <button
             role="tab"
             aria-selected={activeTab === 'balanced'}
@@ -182,7 +187,7 @@ export default function App() {
       </nav>
 
       {/* Main Interactive Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+      <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-3 sm:py-4">
         {activeTab === 'balanced' && <BalancedForcesModule currentUser={currentUser} />}
         {activeTab === 'fbd' && <FBDModule currentUser={currentUser} />}
         {activeTab === 'solveit' && <SolveItModule currentUser={currentUser} />}
