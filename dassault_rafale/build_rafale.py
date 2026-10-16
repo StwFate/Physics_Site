@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
 Dassault Rafale C - Photorealistic 3D Model & Scene Builder for Headless Blender
-Builds a detailed, accurate 3D model of a modern Dassault Rafale C parked on a concrete apron,
-with realistic PBR materials, procedural panel lines and surface wear, warm late-afternoon lighting,
-and Cycles rendering.
+Rebuilt with unified fuselage/intake/spine bodywork, smooth curvature-continuous nose-to-fuselage
+transition, separated 3D control surfaces (slats, inner/outer elevons, rudder), recessed wheel wells
+with internal ribs and detailed Messier-Dowty landing gear, reference-based panel seam maps,
+and weathered concrete apron with puddles and oil stains.
 """
 
 import os
 import sys
 import math
+import numpy as np
 import bpy
 import bmesh
 from mathutils import Vector, Matrix, Euler
@@ -43,7 +45,6 @@ def create_mesh_obj(name, verts, faces, collection=None, smooth=True, subsurf_le
         for poly, m_idx in zip(mesh.polygons, mat_indices):
             poly.material_index = m_idx
 
-    # Repair & recalculate normals using BMesh
     bm = bmesh.new()
     bm.from_mesh(mesh)
     bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-5)
@@ -69,17 +70,10 @@ def create_mesh_obj(name, verts, faces, collection=None, smooth=True, subsurf_le
 
 def loft_closed_profiles(name, profiles, cap_start=True, cap_end=True, collection=None,
                          smooth=True, subsurf_levels=1, ring_materials=None):
-    """
-    profiles: list of rings, where each ring is a list of (x, y, z) tuples of identical length N.
-    Notice: No N-gon center vertex caps when subsurf_levels > 0 unless explicitly needed, or we inset the cap
-    by adding a tiny inner ring so Catmull-Clark Subdivision never puckers or pinches!
-    ring_materials: optional list of material slot indices for each ring segment r in range(n_rings - 1).
-    """
     verts = []
     faces = []
     mat_indices = []
 
-    # Build expanded profile list with smooth inset caps so Catmull-Clark Subsurf is 100% pinch-free
     work_profiles = list(profiles)
     work_ring_mats = list(ring_materials) if ring_materials is not None else [0] * (len(profiles) - 1)
 
@@ -143,16 +137,14 @@ def loft_closed_profiles(name, profiles, cap_start=True, cap_end=True, collectio
                            smooth=smooth, subsurf_levels=subsurf_levels, mat_indices=mat_indices)
 
 
-def make_airfoil_section(chord, thickness_ratio, camber=0.015, n_pts=28):
+def make_airfoil_section(chord, thickness_ratio, camber=0.012, u_min=0.0, u_max=1.0, n_pts=24):
     """
-    Returns 2D airfoil coordinates [(u, w), ...] for u in [0, 1] (leading edge 0 to trailing edge 1),
-    starting from trailing edge upper surface -> leading edge -> trailing edge lower surface.
+    Returns 2D airfoil coordinates [(u_dist, w_dist), ...] for a chordwise slice u in [u_min, u_max].
     """
     pts = []
-    # Upper surface: from TE (1.0) to LE (0.0)
     for i in range(n_pts, -1, -1):
-        beta = math.pi * i / n_pts
-        u = 0.5 * (1.0 - math.cos(beta))
+        t = i / n_pts
+        u = u_min + (u_max - u_min) * (0.5 * (1.0 - math.cos(math.pi * t)))
         yt = 5.0 * thickness_ratio * (
             0.2969 * math.sqrt(max(u, 1e-6))
             - 0.1260 * u
@@ -163,10 +155,9 @@ def make_airfoil_section(chord, thickness_ratio, camber=0.015, n_pts=28):
         yc = camber * 4.0 * u * (1.0 - u)
         pts.append((u * chord, (yc + yt) * chord))
 
-    # Lower surface: from LE (skip index 0) to TE (1.0)
     for i in range(1, n_pts + 1):
-        beta = math.pi * i / n_pts
-        u = 0.5 * (1.0 - math.cos(beta))
+        t = i / n_pts
+        u = u_min + (u_max - u_min) * (0.5 * (1.0 - math.cos(math.pi * t)))
         yt = 5.0 * thickness_ratio * (
             0.2969 * math.sqrt(max(u, 1e-6))
             - 0.1260 * u
@@ -180,192 +171,391 @@ def make_airfoil_section(chord, thickness_ratio, camber=0.015, n_pts=28):
     return pts
 
 
-def build_airfoil_surface(name, stations, collection=None, smooth=True, subsurf_levels=1,
-                          cap_start=False, cap_end=True):
+def build_airfoil_slice(name, stations, u_min=0.0, u_max=1.0, deflect_deg=0.0,
+                        collection=None, smooth=True, subsurf_levels=1,
+                        cap_start=False, cap_end=False, ring_materials=None):
     """
-    Builds a crisp, pinch-free airfoil lifting surface.
-    Note: Root station (inside fuselage/spine) uses cap_start=False so Catmull-Clark Subsurf never
-    pulls the root boundary toward an N-gon centroid (eliminating vertical tail & wing root pleating!).
+    Builds a 3D airfoil section (full airfoil or separated slat / main box / elevon / rudder).
+    When cap_start=False and cap_end=False, we insert tight boundary rings at 1.5% span from both ends
+    and cap with a flush flat polygon so Catmull-Clark Subdivision never rounds off or shrinks the tips!
     """
-    n_pts = 26
-    profiles = []
+    n_pts = 22
+    raw_profiles = []
+    deflect_rad = math.radians(deflect_deg)
+    hinge_u = u_min if u_min > 0.01 else u_max
+
     for st in stations:
         le = Vector(st['le'])
         chord = st['chord']
-        t_ratio = st.get('t_ratio', 0.045)
-        camber = st.get('camber', 0.01)
+        t_ratio = st.get('t_ratio', 0.044)
+        camber = st.get('camber', 0.010)
         twist = math.radians(st.get('twist_deg', 0.0))
         vertical = st.get('vertical', False)
 
-        sec_2d = make_airfoil_section(chord, t_ratio, camber=camber, n_pts=n_pts)
+        sec_2d = make_airfoil_section(chord, t_ratio, camber=camber, u_min=u_min, u_max=u_max, n_pts=n_pts)
+        hinge_dist = hinge_u * chord
         ring = []
         for u_dist, thick_dist in sec_2d:
-            dy = -u_dist * math.cos(twist) - thick_dist * math.sin(twist)
-            dh = -u_dist * math.sin(twist) + thick_dist * math.cos(twist)
+            if abs(deflect_rad) > 1e-5:
+                du = u_dist - hinge_dist
+                u_rot = hinge_dist + du * math.cos(deflect_rad) - thick_dist * math.sin(deflect_rad)
+                t_rot = du * math.sin(deflect_rad) + thick_dist * math.cos(deflect_rad)
+            else:
+                u_rot, t_rot = u_dist, thick_dist
+
+            dy = -u_rot * math.cos(twist) - t_rot * math.sin(twist)
+            dh = -u_rot * math.sin(twist) + t_rot * math.cos(twist)
             if vertical:
                 ring.append((le.x + dh, le.y + dy, le.z))
             else:
                 ring.append((le.x, le.y + dy, le.z + dh))
-        profiles.append(ring)
+        raw_profiles.append(ring)
+
+    # Add tight boundary support rings near start and end so Subsurf preserves exact sharp spanwise edges!
+    profiles = []
+    if len(raw_profiles) >= 2:
+        r0 = [ tuple(Vector(a).lerp(Vector(b), 0.02)) for a, b in zip(raw_profiles[0], raw_profiles[1]) ]
+        r_end = [ tuple(Vector(a).lerp(Vector(b), 0.98)) for a, b in zip(raw_profiles[-2], raw_profiles[-1]) ]
+        profiles = [raw_profiles[0], r0] + raw_profiles[1:-1] + [r_end, raw_profiles[-1]]
+    else:
+        profiles = raw_profiles
 
     return loft_closed_profiles(name, profiles, cap_start=cap_start, cap_end=cap_end,
-                                collection=collection, smooth=smooth, subsurf_levels=subsurf_levels)
+                                collection=collection, smooth=smooth, subsurf_levels=subsurf_levels,
+                                ring_materials=ring_materials)
+
+
+# ==============================================================================
+# REFERENCE-BASED PANEL SEAM & WEATHERING TEXTURE GENERATOR (NumPy + bpy.data.images)
+# ==============================================================================
+
+def create_reference_panel_textures(outdir):
+    """
+    Generates high-resolution 2048x2048 reference-based panel seam, access hatch, and tonal variation
+    textures using NumPy.
+    - Top/Planform Map: covers X in [-6.0, 6.0], Y in [-8.0, 8.0]
+    - Side Profile Map: covers Y in [-8.0, 8.0], Z in [0.0, 6.0]
+    """
+    W, H = 2048, 2048
+
+    def draw_line_segment(canvas, x1, y1, x2, y2, u_range, v_range, width_px=1.6, depth=0.65):
+        u0, u1 = u_range
+        v0, v1 = v_range
+        px1 = (x1 - u0) / (u1 - u0) * (W - 1)
+        py1 = (y1 - v0) / (v1 - v0) * (H - 1)
+        px2 = (x2 - u0) / (u1 - u0) * (W - 1)
+        py2 = (y2 - v0) / (v1 - v0) * (H - 1)
+
+        pad = int(width_px * 3) + 2
+        ix_min = max(0, int(min(px1, px2)) - pad)
+        ix_max = min(W - 1, int(max(px1, px2)) + pad)
+        iy_min = max(0, int(min(py1, py2)) - pad)
+        iy_max = min(H - 1, int(max(py1, py2)) + pad)
+        if ix_min >= ix_max or iy_min >= iy_max:
+            return
+
+        gx, gy = np.meshgrid(np.arange(ix_min, ix_max + 1, dtype=np.float32),
+                             np.arange(iy_min, iy_max + 1, dtype=np.float32))
+        dx = px2 - px1
+        dy = py2 - py1
+        seg_len_sq = dx * dx + dy * dy
+        if seg_len_sq < 1e-6:
+            return
+        t = np.clip(((gx - px1) * dx + (gy - py1) * dy) / seg_len_sq, 0.0, 1.0)
+        proj_x = px1 + t * dx
+        proj_y = py1 + t * dy
+        dist = np.sqrt((gx - proj_x) ** 2 + (gy - proj_y) ** 2)
+
+        seam = np.clip(1.0 - dist / width_px, 0.0, 1.0) ** 1.5
+        sub = canvas[iy_min:iy_max + 1, ix_min:ix_max + 1]
+        canvas[iy_min:iy_max + 1, ix_min:ix_max + 1] = np.minimum(sub, 1.0 - depth * seam)
+
+    # --- 1. TOP / PLANFORM PANEL MAP (X in [-6, 6], Y in [-8, 8]) ---
+    top_map = np.ones((H, W), dtype=np.float32)
+    xr = (-6.0, 6.0)
+    yr = (-8.0, 8.0)
+
+    # Fuselage & Spine circumferential bulkheads
+    for y_frame, x_half in [
+        (4.86, 0.56),   # Radome bulkhead
+        (3.85, 0.65),   # Forward avionics frame
+        (1.32, 0.82),   # Rear cockpit bulkhead
+        (-0.40, 1.05),  # Center fuselage frame
+        (-2.20, 1.10),  # Main gear bulkhead
+        (-4.20, 1.05),  # Forward engine bay bulkhead
+        (-5.85, 0.90),  # Rear engine bay frame
+        (-6.60, 0.84),  # Exhaust shroud seam
+    ]:
+        draw_line_segment(top_map, -x_half, y_frame, x_half, y_frame, xr, yr, width_px=1.5, depth=0.68)
+
+    # Dorsal spine longitudinal avionics bay seams
+    draw_line_segment(top_map, -0.26, -6.50, -0.34, 1.32, xr, yr, width_px=1.4, depth=0.58)
+    draw_line_segment(top_map,  0.26, -6.50,  0.34, 1.32, xr, yr, width_px=1.4, depth=0.58)
+
+    # Symmetric Wing & LERX Reference Panel Seams
+    for s in (-1.0, 1.0):
+        # Main wing box front spar & leading-edge slat boundary (swept at 48 deg)
+        draw_line_segment(top_map, s * 1.15,  0.05, s * 5.25, -4.65, xr, yr, width_px=1.6, depth=0.72)
+        # Main wing rear spar / elevon hinge line
+        draw_line_segment(top_map, s * 1.10, -5.28, s * 5.20, -5.58, xr, yr, width_px=1.6, depth=0.72)
+        # Mid-chord composite skin seam
+        draw_line_segment(top_map, s * 1.12, -2.50, s * 4.55, -4.55, xr, yr, width_px=1.3, depth=0.52)
+        # Spanwise wing rib seams (4 main structural ribs per wing, starting outboard of fuselage X=1.2m so they never project onto the fuselage spine!)
+        for x_rib, y_le, y_te in [
+            (1.95, -0.95, -5.34),
+            (2.95, -2.05, -5.42),
+            (3.95, -3.20, -5.50),
+            (4.75, -4.12, -5.55),
+        ]:
+            draw_line_segment(top_map, s * x_rib, y_le, s * x_rib, y_te, xr, yr, width_px=1.3, depth=0.52)
+
+        # Engine servicing access hatches on upper rear fuselage nacelles
+        for y_h1, y_h2 in [(-2.0, -3.8), (-4.0, -5.6)]:
+            draw_line_segment(top_map, s * 0.35, y_h1, s * 0.85, y_h1, xr, yr, width_px=1.3, depth=0.50)
+            draw_line_segment(top_map, s * 0.85, y_h1, s * 0.85, y_h2, xr, yr, width_px=1.3, depth=0.50)
+            draw_line_segment(top_map, s * 0.85, y_h2, s * 0.35, y_h2, xr, yr, width_px=1.3, depth=0.50)
+
+    # --- 2. SIDE PROFILE PANEL MAP (Y in [-8, 8], Z in [0, 6]) ---
+    side_map = np.ones((H, W), dtype=np.float32)
+    zr = (0.0, 6.0)
+
+    # Vertical Stabilizer (Tailfin) Reference Seams (all strictly at Z >= 2.25m so they only hit the vertical tail!):
+    # Leading-edge dielectric spar line
+    draw_line_segment(side_map, -3.62, 2.25, -6.28, 5.20, yr, zr, width_px=1.6, depth=0.70)
+    # Rudder hinge line (swept rear spar from Z=2.25m to Z=5.18m)
+    draw_line_segment(side_map, -6.08, 2.25, -6.88, 5.18, yr, zr, width_px=1.8, depth=0.78)
+    # 5 angled structural ribs inside the main fin box
+    for z_r, y_le_r, y_te_r in [
+        (2.65, -4.02, -6.18),
+        (3.20, -4.52, -6.34),
+        (3.75, -5.00, -6.50),
+        (4.30, -5.50, -6.66),
+        (4.82, -5.96, -6.80),
+    ]:
+        draw_line_segment(side_map, y_le_r, z_r, y_te_r, z_r - 0.08, yr, zr, width_px=1.3, depth=0.50)
+    # Horizontal rudder segment divisions (3 segments on rudder)
+    for z_rud, y_r1, y_r2 in [
+        (3.15, -6.34, -7.12),
+        (4.15, -6.60, -7.24),
+    ]:
+        draw_line_segment(side_map, y_r1, z_rud, y_r2, z_rud, yr, zr, width_px=1.4, depth=0.58)
+
+    # Forward Fuselage & Intake Nacelle Side Seams (strictly below Z = 2.05m so they never cross into the spine):
+    draw_line_segment(side_map, 4.86, 1.00, 4.86, 2.00, yr, zr, width_px=1.6, depth=0.72)
+    # Avionics bay side access hatches below cockpit (Y = 2.75m to 4.45m, Z = 1.24m to 1.74m)
+    for y_a1, y_a2, z_b, z_t in [
+        (3.65, 4.45, 1.24, 1.72),
+        (2.75, 3.50, 1.22, 1.74),
+    ]:
+        draw_line_segment(side_map, y_a1, z_b, y_a2, z_b, yr, zr, width_px=1.3, depth=0.52)
+        draw_line_segment(side_map, y_a2, z_b, y_a2, z_t, yr, zr, width_px=1.3, depth=0.52)
+        draw_line_segment(side_map, y_a2, z_t, y_a1, z_t, yr, zr, width_px=1.3, depth=0.52)
+        draw_line_segment(side_map, y_a1, z_t, y_a1, z_b, yr, zr, width_px=1.3, depth=0.52)
+
+    # Intake nacelle structural ring frames (strictly below Z = 1.62m so they only appear on the lower nacelle sides!)
+    for y_nf in (1.40, -0.40, -2.40, -4.40, -6.45):
+        draw_line_segment(side_map, y_nf, 0.85, y_nf, 1.56, yr, zr, width_px=1.4, depth=0.55)
+    # Longitudinal nacelle maintenance seam (from Y = -6.45m to +1.40m so it stops behind the intake lip!)
+    draw_line_segment(side_map, -6.45, 1.32, 1.40, 1.35, yr, zr, width_px=1.4, depth=0.55)
+
+    def array_to_blender_image(name, gray_arr, filepath):
+        rgba = np.ones((H, W, 4), dtype=np.float32)
+        rgba[:, :, 0] = gray_arr
+        rgba[:, :, 1] = gray_arr
+        rgba[:, :, 2] = gray_arr
+        img = bpy.data.images.new(name, width=W, height=H, alpha=True)
+        img.pixels.foreach_set(rgba.ravel())
+        img.filepath_raw = filepath
+        img.file_format = 'PNG'
+        img.save()
+        img.pack()
+        return img
+
+    img_top = array_to_blender_image("Rafale_Panels_Top", top_map, os.path.join(outdir, "tex_panels_top.png"))
+    img_side = array_to_blender_image("Rafale_Panels_Side", side_map, os.path.join(outdir, "tex_panels_side.png"))
+    return img_top, img_side
 
 
 # ==============================================================================
 # MATERIALS & PROCEDURAL SHADERS
 # ==============================================================================
 
-def create_materials():
+def create_materials(outdir):
     mats = {}
+    img_top, img_side = create_reference_panel_textures(outdir)
 
-    # 1. Main Rafale Airframe Tactical Grey Paint (with restrained panel lines & subtle surface wear)
-    mat_airframe = bpy.data.materials.new("Rafale_Airframe_Grey")
-    tree = mat_airframe.node_tree
-    nodes = tree.nodes
-    links = tree.links
-    nodes.clear()
+    def build_airframe_shader(mat_name, base_col_dark, base_col_light, rough_min=0.32, rough_max=0.54, metallic=0.15):
+        mat = bpy.data.materials.new(mat_name)
+        tree = mat.node_tree
+        nodes = tree.nodes
+        links = tree.links
+        nodes.clear()
 
-    out = nodes.new("ShaderNodeOutputMaterial")
-    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
-    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+        out = nodes.new("ShaderNodeOutputMaterial")
+        bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+        links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
 
-    # Use World/Object Position from Geometry node so panel lines & wear have uniform real-world metric scale across all parts!
-    geom = nodes.new("ShaderNodeNewGeometry")
+        geom = nodes.new("ShaderNodeNewGeometry")
+        sep_pos = nodes.new("ShaderNodeSeparateXYZ")
+        links.new(geom.outputs["Position"], sep_pos.inputs["Vector"])
 
-    # Subtle surface wear / mottling (two-scale noise)
-    noise_large = nodes.new("ShaderNodeTexNoise")
-    noise_large.inputs["Scale"].default_value = 0.85
-    noise_large.inputs["Detail"].default_value = 6.0
-    noise_large.inputs["Roughness"].default_value = 0.65
-    links.new(geom.outputs["Position"], noise_large.inputs["Vector"])
+        # Top/Planform projection
+        u_top = nodes.new("ShaderNodeMapRange")
+        u_top.inputs["From Min"].default_value = -6.0
+        u_top.inputs["From Max"].default_value = 6.0
+        links.new(sep_pos.outputs["X"], u_top.inputs["Value"])
 
-    noise_fine = nodes.new("ShaderNodeTexNoise")
-    noise_fine.inputs["Scale"].default_value = 6.5
-    noise_fine.inputs["Detail"].default_value = 8.0
-    noise_fine.inputs["Roughness"].default_value = 0.72
-    links.new(geom.outputs["Position"], noise_fine.inputs["Vector"])
+        v_top = nodes.new("ShaderNodeMapRange")
+        v_top.inputs["From Min"].default_value = -8.0
+        v_top.inputs["From Max"].default_value = 8.0
+        links.new(sep_pos.outputs["Y"], v_top.inputs["Value"])
 
-    # Restrained panel lines using Brick Texture in 2 projections (Top/Bottom XY and Side YZ)
-    mapping_xy = nodes.new("ShaderNodeMapping")
-    mapping_xy.inputs["Scale"].default_value = (1.15, 0.75, 1.0)
-    links.new(geom.outputs["Position"], mapping_xy.inputs["Vector"])
+        uv_top = nodes.new("ShaderNodeCombineXYZ")
+        links.new(u_top.outputs["Result"], uv_top.inputs["X"])
+        links.new(v_top.outputs["Result"], uv_top.inputs["Y"])
 
-    brick_xy = nodes.new("ShaderNodeTexBrick")
-    brick_xy.offset = 0.5
-    brick_xy.squash = 1.0
-    brick_xy.inputs["Color1"].default_value = (1.0, 1.0, 1.0, 1.0)
-    brick_xy.inputs["Color2"].default_value = (0.94, 0.94, 0.94, 1.0)
-    brick_xy.inputs["Mortar"].default_value = (0.0, 0.0, 0.0, 1.0)
-    brick_xy.inputs["Scale"].default_value = 1.65
-    brick_xy.inputs["Mortar Size"].default_value = 0.0055
-    brick_xy.inputs["Mortar Smooth"].default_value = 0.20
-    brick_xy.inputs["Bias"].default_value = 0.0
-    brick_xy.inputs["Brick Width"].default_value = 0.95
-    brick_xy.inputs["Row Height"].default_value = 0.52
-    links.new(mapping_xy.outputs["Vector"], brick_xy.inputs["Vector"])
+        tex_top = nodes.new("ShaderNodeTexImage")
+        tex_top.image = img_top
+        tex_top.extension = 'CLIP'
+        links.new(uv_top.outputs["Vector"], tex_top.inputs["Vector"])
 
-    # Side projection YZ mapped to XY for fuselage & vertical tail side panel lines
-    sep_xyz = nodes.new("ShaderNodeSeparateXYZ")
-    links.new(geom.outputs["Position"], sep_xyz.inputs["Vector"])
-    comb_yz = nodes.new("ShaderNodeCombineXYZ")
-    links.new(sep_xyz.outputs["Y"], comb_yz.inputs["X"])
-    links.new(sep_xyz.outputs["Z"], comb_yz.inputs["Y"])
-    links.new(sep_xyz.outputs["X"], comb_yz.inputs["Z"])
+        # Side Profile projection
+        z_side = nodes.new("ShaderNodeMapRange")
+        z_side.inputs["From Min"].default_value = 0.0
+        z_side.inputs["From Max"].default_value = 6.0
+        links.new(sep_pos.outputs["Z"], z_side.inputs["Value"])
 
-    brick_yz = nodes.new("ShaderNodeTexBrick")
-    brick_yz.offset = 0.35
-    brick_yz.inputs["Color1"].default_value = (1.0, 1.0, 1.0, 1.0)
-    brick_yz.inputs["Color2"].default_value = (0.95, 0.95, 0.95, 1.0)
-    brick_yz.inputs["Mortar"].default_value = (0.0, 0.0, 0.0, 1.0)
-    brick_yz.inputs["Scale"].default_value = 1.55
-    brick_yz.inputs["Mortar Size"].default_value = 0.0055
-    brick_yz.inputs["Mortar Smooth"].default_value = 0.20
-    brick_yz.inputs["Brick Width"].default_value = 1.05
-    brick_yz.inputs["Row Height"].default_value = 0.48
-    links.new(comb_yz.outputs["Vector"], brick_yz.inputs["Vector"])
+        uv_side = nodes.new("ShaderNodeCombineXYZ")
+        links.new(v_top.outputs["Result"], uv_side.inputs["X"])
+        links.new(z_side.outputs["Result"], uv_side.inputs["Y"])
 
-    # Combine top/bottom and side brick patterns based on surface normal!
-    sep_norm = nodes.new("ShaderNodeSeparateXYZ")
-    links.new(geom.outputs["Normal"], sep_norm.inputs["Vector"])
-    abs_nx = nodes.new("ShaderNodeMath")
-    abs_nx.operation = 'ABSOLUTE'
-    links.new(sep_norm.outputs["X"], abs_nx.inputs[0])
+        tex_side = nodes.new("ShaderNodeTexImage")
+        tex_side.image = img_side
+        tex_side.extension = 'CLIP'
+        links.new(uv_side.outputs["Vector"], tex_side.inputs["Vector"])
 
-    mix_brick = nodes.new("ShaderNodeMix")
-    mix_brick.data_type = 'RGBA'
-    links.new(abs_nx.outputs["Value"], mix_brick.inputs["Factor"])
-    links.new(brick_xy.outputs["Color"], mix_brick.inputs[6])
-    links.new(brick_yz.outputs["Color"], mix_brick.inputs[7])
+        # Blend Top and Side projections smoothly based on |Normal.X|
+        sep_norm = nodes.new("ShaderNodeSeparateXYZ")
+        links.new(geom.outputs["Normal"], sep_norm.inputs["Vector"])
+        abs_nx = nodes.new("ShaderNodeMath")
+        abs_nx.operation = 'ABSOLUTE'
+        links.new(sep_norm.outputs["X"], abs_nx.inputs[0])
 
-    # Combine noise for base color variation (French Air Force Celomer tactical grey)
-    mix_noise = nodes.new("ShaderNodeMix")
-    mix_noise.data_type = 'FLOAT'
-    mix_noise.inputs["Factor"].default_value = 0.42
-    links.new(noise_large.outputs["Fac"], mix_noise.inputs[2])
-    links.new(noise_fine.outputs["Fac"], mix_noise.inputs[3])
+        ramp_proj = nodes.new("ShaderNodeValToRGB")
+        ramp_proj.color_ramp.elements[0].position = 0.35
+        ramp_proj.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
+        ramp_proj.color_ramp.elements[1].position = 0.65
+        ramp_proj.color_ramp.elements[1].color = (1.0, 1.0, 1.0, 1.0)
+        links.new(abs_nx.outputs["Value"], ramp_proj.inputs["Fac"])
 
-    ramp_color = nodes.new("ShaderNodeValToRGB")
-    ramp_color.color_ramp.elements[0].position = 0.25
-    ramp_color.color_ramp.elements[0].color = (0.175, 0.195, 0.220, 1.0)  # Weathered tactical slate grey
-    ramp_color.color_ramp.elements[1].position = 0.75
-    ramp_color.color_ramp.elements[1].color = (0.235, 0.258, 0.285, 1.0)  # Standard Celomer grey-blue
-    links.new(mix_noise.outputs[0], ramp_color.inputs["Fac"])
+        mix_seams = nodes.new("ShaderNodeMix")
+        mix_seams.data_type = 'RGBA'
+        links.new(ramp_proj.outputs["Color"], mix_seams.inputs["Factor"])
+        links.new(tex_top.outputs["Color"], mix_seams.inputs[6])
+        links.new(tex_side.outputs["Color"], mix_seams.inputs[7])
 
-    # Darken slightly inside panel seams and give subtle panel-to-panel tonal variation
-    panel_col_ramp = nodes.new("ShaderNodeValToRGB")
-    panel_col_ramp.color_ramp.elements[0].position = 0.0
-    panel_col_ramp.color_ramp.elements[0].color = (0.08, 0.09, 0.105, 1.0)
-    panel_col_ramp.color_ramp.elements[1].position = 1.0
-    panel_col_ramp.color_ramp.elements[1].color = (0.22, 0.24, 0.268, 1.0)
-    links.new(mix_brick.outputs[2], panel_col_ramp.inputs["Fac"])
+        # Multi-scale surface weathering & airflow streaking
+        map_streak = nodes.new("ShaderNodeMapping")
+        map_streak.inputs["Scale"].default_value = (2.8, 0.45, 2.8)
+        links.new(geom.outputs["Position"], map_streak.inputs["Vector"])
 
-    mix_panel_col = nodes.new("ShaderNodeMix")
-    mix_panel_col.data_type = 'RGBA'
-    mix_panel_col.inputs["Factor"].default_value = 0.42
-    links.new(ramp_color.outputs["Color"], mix_panel_col.inputs[6])
-    links.new(panel_col_ramp.outputs["Color"], mix_panel_col.inputs[7])
+        noise_streak = nodes.new("ShaderNodeTexNoise")
+        noise_streak.inputs["Scale"].default_value = 1.8
+        noise_streak.inputs["Detail"].default_value = 8.0
+        noise_streak.inputs["Roughness"].default_value = 0.68
+        links.new(map_streak.outputs["Vector"], noise_streak.inputs["Vector"])
 
-    links.new(mix_panel_col.outputs[2], bsdf.inputs["Base Color"])
-    bsdf.inputs["Metallic"].default_value = 0.14
+        noise_mottle = nodes.new("ShaderNodeTexNoise")
+        noise_mottle.inputs["Scale"].default_value = 0.95
+        noise_mottle.inputs["Detail"].default_value = 6.0
+        noise_mottle.inputs["Roughness"].default_value = 0.62
+        links.new(geom.outputs["Position"], noise_mottle.inputs["Vector"])
 
-    # Roughness variation (satin matte military finish: 0.34 to 0.55)
-    ramp_rough = nodes.new("ShaderNodeValToRGB")
-    ramp_rough.color_ramp.elements[0].position = 0.2
-    ramp_rough.color_ramp.elements[0].color = (0.34, 0.34, 0.34, 1.0)
-    ramp_rough.color_ramp.elements[1].position = 0.8
-    ramp_rough.color_ramp.elements[1].color = (0.55, 0.55, 0.55, 1.0)
-    links.new(mix_noise.outputs[0], ramp_rough.inputs["Fac"])
-    links.new(ramp_rough.outputs["Color"], bsdf.inputs["Roughness"])
+        noise_micro = nodes.new("ShaderNodeTexNoise")
+        noise_micro.inputs["Scale"].default_value = 16.0
+        noise_micro.inputs["Detail"].default_value = 10.0
+        noise_micro.inputs["Roughness"].default_value = 0.75
+        links.new(geom.outputs["Position"], noise_micro.inputs["Vector"])
 
-    # Bump node for restrained panel lines + micro surface texture
-    bump_panel = nodes.new("ShaderNodeBump")
-    bump_panel.inputs["Strength"].default_value = 0.22
-    bump_panel.inputs["Distance"].default_value = 0.0035
-    links.new(mix_brick.outputs[2], bump_panel.inputs["Height"])
+        mix_wear = nodes.new("ShaderNodeMix")
+        mix_wear.data_type = 'FLOAT'
+        mix_wear.inputs["Factor"].default_value = 0.48
+        links.new(noise_mottle.outputs["Fac"], mix_wear.inputs[2])
+        links.new(noise_streak.outputs["Fac"], mix_wear.inputs[3])
 
-    bump_wear = nodes.new("ShaderNodeBump")
-    bump_wear.inputs["Strength"].default_value = 0.045
-    bump_wear.inputs["Distance"].default_value = 0.002
-    links.new(noise_fine.outputs["Fac"], bump_wear.inputs["Height"])
-    links.new(bump_panel.outputs["Normal"], bump_wear.inputs["Normal"])
-    links.new(bump_wear.outputs["Normal"], bsdf.inputs["Normal"])
+        ramp_col = nodes.new("ShaderNodeValToRGB")
+        ramp_col.color_ramp.elements[0].position = 0.22
+        ramp_col.color_ramp.elements[0].color = base_col_dark
+        ramp_col.color_ramp.elements[1].position = 0.78
+        ramp_col.color_ramp.elements[1].color = base_col_light
+        links.new(mix_wear.outputs[0], ramp_col.inputs["Fac"])
 
-    mats['airframe'] = mat_airframe
+        # Multiply seam darkening into base paint color
+        seam_col_mult = nodes.new("ShaderNodeMix")
+        seam_col_mult.data_type = 'RGBA'
+        seam_col_mult.blend_type = 'MULTIPLY'
+        seam_col_mult.inputs["Factor"].default_value = 0.68
+        links.new(ramp_col.outputs["Color"], seam_col_mult.inputs[6])
+        links.new(mix_seams.outputs[2], seam_col_mult.inputs[7])
 
-    # 2. Radome / Nose Cone Material (Slightly darker slate composite dielectric with subtle weathering)
-    mat_radome = bpy.data.materials.new("Rafale_Radome")
-    tree = mat_radome.node_tree
-    bsdf = tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.135, 0.150, 0.172, 1.0)
-    bsdf.inputs["Metallic"].default_value = 0.04
-    bsdf.inputs["Roughness"].default_value = 0.36
-    if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.18
-        bsdf.inputs["Coat Roughness"].default_value = 0.24
-    mats['radome'] = mat_radome
+        links.new(seam_col_mult.outputs[2], bsdf.inputs["Base Color"])
+        bsdf.inputs["Metallic"].default_value = metallic
 
-    # 3. Dielectric Sensor / Leading Edge / Fin Tip Material (Dark Charcoal)
+        # Roughness variation
+        ramp_rough = nodes.new("ShaderNodeValToRGB")
+        ramp_rough.color_ramp.elements[0].position = 0.20
+        ramp_rough.color_ramp.elements[0].color = (rough_min, rough_min, rough_min, 1.0)
+        ramp_rough.color_ramp.elements[1].position = 0.82
+        ramp_rough.color_ramp.elements[1].color = (rough_max, rough_max, rough_max, 1.0)
+        links.new(mix_wear.outputs[0], ramp_rough.inputs["Fac"])
+        links.new(ramp_rough.outputs["Color"], bsdf.inputs["Roughness"])
+
+        # Engraved panel seam bump + subtle metallic skin orange-peel/wear bump
+        bump_seam = nodes.new("ShaderNodeBump")
+        bump_seam.inputs["Strength"].default_value = 0.22
+        bump_seam.inputs["Distance"].default_value = 0.0028
+        links.new(mix_seams.outputs[2], bump_seam.inputs["Height"])
+
+        bump_skin = nodes.new("ShaderNodeBump")
+        bump_skin.inputs["Strength"].default_value = 0.035
+        bump_skin.inputs["Distance"].default_value = 0.0015
+        links.new(noise_micro.outputs["Fac"], bump_skin.inputs["Height"])
+        links.new(bump_seam.outputs["Normal"], bump_skin.inputs["Normal"])
+        links.new(bump_skin.outputs["Normal"], bsdf.inputs["Normal"])
+
+        return mat
+
+    # 1. Primary Rafale Tactical Celomer Grey-Blue Airframe
+    mats['airframe'] = build_airframe_shader(
+        "Rafale_Airframe_Grey",
+        base_col_dark=(0.170, 0.190, 0.215, 1.0),
+        base_col_light=(0.235, 0.258, 0.286, 1.0),
+        rough_min=0.33,
+        rough_max=0.54,
+        metallic=0.16,
+    )
+
+    # 1b. Secondary Control-Surface & Composite Access Panel Grey
+    mats['airframe_alt'] = build_airframe_shader(
+        "Rafale_Airframe_Composite_Alt",
+        base_col_dark=(0.148, 0.165, 0.188, 1.0),
+        base_col_light=(0.205, 0.226, 0.252, 1.0),
+        rough_min=0.36,
+        rough_max=0.58,
+        metallic=0.12,
+    )
+
+    # 2. Radome / Nose Cone Material
+    mats['radome'] = build_airframe_shader(
+        "Rafale_Radome_Slate",
+        base_col_dark=(0.125, 0.140, 0.162, 1.0),
+        base_col_light=(0.162, 0.180, 0.204, 1.0),
+        rough_min=0.30,
+        rough_max=0.46,
+        metallic=0.04,
+    )
+
+    # 3. Dielectric Sensor / Leading Edge / Fin Tip Material
     mat_sensor = bpy.data.materials.new("Rafale_Sensor_Dark")
     bsdf = mat_sensor.node_tree.nodes.get("Principled BSDF")
     bsdf.inputs["Base Color"].default_value = (0.065, 0.070, 0.080, 1.0)
@@ -373,7 +563,7 @@ def create_materials():
     bsdf.inputs["Roughness"].default_value = 0.30
     mats['sensor'] = mat_sensor
 
-    # 4. Gold-Tinted Canopy Glass (Rafale signature radar-absorbent gold/amber iridescent tint)
+    # 4. Gold-Tinted Canopy Glass
     mat_canopy = bpy.data.materials.new("Rafale_Canopy_GoldTint")
     tree = mat_canopy.node_tree
     nodes = tree.nodes
@@ -389,27 +579,27 @@ def create_materials():
 
     ramp_tint = nodes.new("ShaderNodeValToRGB")
     ramp_tint.color_ramp.elements[0].position = 0.0
-    ramp_tint.color_ramp.elements[0].color = (0.16, 0.13, 0.07, 1.0)   # Smoked warm amber-bronze core
+    ramp_tint.color_ramp.elements[0].color = (0.16, 0.13, 0.07, 1.0)
     ramp_tint.color_ramp.elements[1].position = 0.75
-    ramp_tint.color_ramp.elements[1].color = (0.82, 0.60, 0.22, 1.0)   # Metallic gold reflection at grazing angles
+    ramp_tint.color_ramp.elements[1].color = (0.82, 0.60, 0.22, 1.0)
     links.new(fresnel.outputs["Facing"], ramp_tint.inputs["Fac"])
 
     links.new(ramp_tint.outputs["Color"], bsdf.inputs["Base Color"])
     bsdf.inputs["Metallic"].default_value = 0.20
-    bsdf.inputs["Roughness"].default_value = 0.025
+    bsdf.inputs["Roughness"].default_value = 0.02
     bsdf.inputs["IOR"].default_value = 1.52
     if "Transmission Weight" in bsdf.inputs:
         bsdf.inputs["Transmission Weight"].default_value = 0.78
     if "Coat Weight" in bsdf.inputs:
         bsdf.inputs["Coat Weight"].default_value = 0.90
-        bsdf.inputs["Coat Roughness"].default_value = 0.012
+        bsdf.inputs["Coat Roughness"].default_value = 0.01
         bsdf.inputs["Coat Tint"].default_value = (0.96, 0.76, 0.34, 1.0)
     if "Thin Film Thickness" in bsdf.inputs:
         bsdf.inputs["Thin Film Thickness"].default_value = 420.0
         bsdf.inputs["Thin Film IOR"].default_value = 1.65
     mats['canopy'] = mat_canopy
 
-    # 5. Cockpit Interior (Dark matte anthracite instrument/seat finish)
+    # 5. Cockpit Interior
     mat_cockpit = bpy.data.materials.new("Rafale_Cockpit_Interior")
     bsdf = mat_cockpit.node_tree.nodes.get("Principled BSDF")
     bsdf.inputs["Base Color"].default_value = (0.025, 0.028, 0.032, 1.0)
@@ -417,7 +607,7 @@ def create_materials():
     bsdf.inputs["Roughness"].default_value = 0.75
     mats['cockpit'] = mat_cockpit
 
-    # 6. HUD Glass (Greenish reflective combiner glass)
+    # 6. HUD Glass
     mat_hud = bpy.data.materials.new("Rafale_HUD_Glass")
     bsdf = mat_hud.node_tree.nodes.get("Principled BSDF")
     bsdf.inputs["Base Color"].default_value = (0.1, 0.85, 0.45, 1.0)
@@ -430,7 +620,7 @@ def create_materials():
         bsdf.inputs["Emission Strength"].default_value = 0.4
     mats['hud'] = mat_hud
 
-    # 7. Snecma M88 Exhaust Outer Petals (Heat-stained Titanium / Carbon-Ceramic Dark Metallic)
+    # 7. Snecma M88 Exhaust Outer Petals
     mat_exhaust = bpy.data.materials.new("Rafale_Exhaust_Metal")
     tree = mat_exhaust.node_tree
     nodes = tree.nodes
@@ -448,9 +638,9 @@ def create_materials():
 
     ramp_ex = nodes.new("ShaderNodeValToRGB")
     ramp_ex.color_ramp.elements[0].position = 0.2
-    ramp_ex.color_ramp.elements[0].color = (0.075, 0.070, 0.068, 1.0)  # Dark carbon/soot titanium
+    ramp_ex.color_ramp.elements[0].color = (0.075, 0.070, 0.068, 1.0)
     ramp_ex.color_ramp.elements[1].position = 0.8
-    ramp_ex.color_ramp.elements[1].color = (0.19, 0.160, 0.135, 1.0)  # Warm bronze heat-tinted titanium
+    ramp_ex.color_ramp.elements[1].color = (0.19, 0.160, 0.135, 1.0)
     links.new(noise_ex.outputs["Fac"], ramp_ex.inputs["Fac"])
 
     links.new(ramp_ex.outputs["Color"], bsdf.inputs["Base Color"])
@@ -460,31 +650,59 @@ def create_materials():
         bsdf.inputs["Anisotropic"].default_value = 0.45
     mats['exhaust'] = mat_exhaust
 
-    # 8. Exhaust Inner Liner & Turbine (Deep blackened metallic carbon)
+    # 8. Exhaust Inner Liner & Deep Duct Shadow Material
     mat_exhaust_inner = bpy.data.materials.new("Rafale_Exhaust_Inner")
     bsdf = mat_exhaust_inner.node_tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.032, 0.032, 0.035, 1.0)
-    bsdf.inputs["Metallic"].default_value = 0.75
-    bsdf.inputs["Roughness"].default_value = 0.50
+    bsdf.inputs["Base Color"].default_value = (0.022, 0.022, 0.025, 1.0)
+    bsdf.inputs["Metallic"].default_value = 0.65
+    bsdf.inputs["Roughness"].default_value = 0.55
     mats['exhaust_inner'] = mat_exhaust_inner
 
-    # 9. Landing Gear Struts (Gloss White / Light Grey French Air Force Messier-Dowty finish)
+    # 9. Landing Gear Struts & Wheel Bays
     mat_gear_strut = bpy.data.materials.new("Rafale_Gear_Strut_White")
-    bsdf = mat_gear_strut.node_tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.78, 0.79, 0.81, 1.0)
-    bsdf.inputs["Metallic"].default_value = 0.18
-    bsdf.inputs["Roughness"].default_value = 0.28
+    tree = mat_gear_strut.node_tree
+    nodes = tree.nodes
+    links = tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+
+    geom_g = nodes.new("ShaderNodeNewGeometry")
+    noise_g = nodes.new("ShaderNodeTexNoise")
+    noise_g.inputs["Scale"].default_value = 12.0
+    noise_g.inputs["Detail"].default_value = 6.0
+    links.new(geom_g.outputs["Position"], noise_g.inputs["Vector"])
+
+    ramp_g = nodes.new("ShaderNodeValToRGB")
+    ramp_g.color_ramp.elements[0].position = 0.20
+    ramp_g.color_ramp.elements[0].color = (0.68, 0.69, 0.71, 1.0)
+    ramp_g.color_ramp.elements[1].position = 0.80
+    ramp_g.color_ramp.elements[1].color = (0.83, 0.84, 0.86, 1.0)
+    links.new(noise_g.outputs["Fac"], ramp_g.inputs["Fac"])
+
+    links.new(ramp_g.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Metallic"].default_value = 0.15
+    bsdf.inputs["Roughness"].default_value = 0.26
     mats['gear_strut'] = mat_gear_strut
 
-    # 10. Oleo Chrome & Brake Discs (Mirror polished hydraulic cylinder / steel)
+    # 10. Oleo Chrome & Actuators
     mat_chrome = bpy.data.materials.new("Rafale_Oleo_Chrome")
     bsdf = mat_chrome.node_tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.90, 0.91, 0.94, 1.0)
+    bsdf.inputs["Base Color"].default_value = (0.92, 0.93, 0.95, 1.0)
     bsdf.inputs["Metallic"].default_value = 0.98
-    bsdf.inputs["Roughness"].default_value = 0.06
+    bsdf.inputs["Roughness"].default_value = 0.05
     mats['chrome'] = mat_chrome
 
-    # 11. Tire Rubber (Deep charcoal vulcanized rubber with procedural circumferential ribs & wear)
+    # 10b. Hydraulic Lines / Brake Hoses
+    mat_hyd = bpy.data.materials.new("Rafale_Hydraulic_Line")
+    bsdf = mat_hyd.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (0.08, 0.075, 0.07, 1.0)
+    bsdf.inputs["Metallic"].default_value = 0.45
+    bsdf.inputs["Roughness"].default_value = 0.48
+    mats['hydraulic'] = mat_hyd
+
+    # 11. Tire Rubber
     mat_tire = bpy.data.materials.new("Rafale_Tire_Rubber")
     tree = mat_tire.node_tree
     nodes = tree.nodes
@@ -500,21 +718,18 @@ def create_materials():
     noise_t.inputs["Detail"].default_value = 8.0
     links.new(geom_t.outputs["Position"], noise_t.inputs["Vector"])
 
-    # Circumferential tread grooves along X coordinate of tire
-    sep_t = nodes.new("ShaderNodeSeparateXYZ")
-    links.new(geom_t.outputs["Position"], sep_t.inputs["Vector"])
     wave_t = nodes.new("ShaderNodeTexWave")
     wave_t.wave_type = 'BANDS'
     wave_t.bands_direction = 'X'
-    wave_t.inputs["Scale"].default_value = 24.0
+    wave_t.inputs["Scale"].default_value = 28.0
     wave_t.inputs["Distortion"].default_value = 0.0
     links.new(geom_t.outputs["Position"], wave_t.inputs["Vector"])
 
     ramp_t = nodes.new("ShaderNodeValToRGB")
     ramp_t.color_ramp.elements[0].position = 0.2
-    ramp_t.color_ramp.elements[0].color = (0.022, 0.022, 0.024, 1.0)  # Deep vulcanized black rubber
+    ramp_t.color_ramp.elements[0].color = (0.020, 0.020, 0.022, 1.0)
     ramp_t.color_ramp.elements[1].position = 0.85
-    ramp_t.color_ramp.elements[1].color = (0.045, 0.044, 0.046, 1.0)  # Subtle greyed rubber tread wear
+    ramp_t.color_ramp.elements[1].color = (0.048, 0.046, 0.044, 1.0)
     links.new(noise_t.outputs["Fac"], ramp_t.inputs["Fac"])
 
     links.new(ramp_t.outputs["Color"], bsdf.inputs["Base Color"])
@@ -522,13 +737,13 @@ def create_materials():
     bsdf.inputs["Roughness"].default_value = 0.82
 
     bump_t = nodes.new("ShaderNodeBump")
-    bump_t.inputs["Strength"].default_value = 0.25
+    bump_t.inputs["Strength"].default_value = 0.28
     bump_t.inputs["Distance"].default_value = 0.003
     links.new(wave_t.outputs["Color"], bump_t.inputs["Height"])
     links.new(bump_t.outputs["Normal"], bsdf.inputs["Normal"])
     mats['tire'] = mat_tire
 
-    # 12. Concrete Apron (Photorealistic weathered concrete slabs with expansion joints & oil/tire stains)
+    # 12. Concrete Apron
     mat_apron = bpy.data.materials.new("Concrete_Apron")
     tree = mat_apron.node_tree
     nodes = tree.nodes
@@ -541,74 +756,83 @@ def create_materials():
 
     geom_a = nodes.new("ShaderNodeNewGeometry")
 
-    # Concrete slab joints using Brick Texture (5m x 5m square concrete slabs in world meters)
     brick_apron = nodes.new("ShaderNodeTexBrick")
     brick_apron.offset = 0.0
-    brick_apron.inputs["Color1"].default_value = (0.96, 0.96, 0.96, 1.0)
+    brick_apron.inputs["Color1"].default_value = (0.94, 0.94, 0.94, 1.0)
     brick_apron.inputs["Color2"].default_value = (1.0, 1.0, 1.0, 1.0)
-    brick_apron.inputs["Mortar"].default_value = (0.06, 0.055, 0.05, 1.0)
+    brick_apron.inputs["Mortar"].default_value = (0.03, 0.028, 0.025, 1.0)
     brick_apron.inputs["Scale"].default_value = 0.20
-    brick_apron.inputs["Mortar Size"].default_value = 0.006
-    brick_apron.inputs["Mortar Smooth"].default_value = 0.30
+    brick_apron.inputs["Mortar Size"].default_value = 0.0065
+    brick_apron.inputs["Mortar Smooth"].default_value = 0.35
     brick_apron.inputs["Brick Width"].default_value = 1.0
     brick_apron.inputs["Row Height"].default_value = 1.0
     links.new(geom_a.outputs["Position"], brick_apron.inputs["Vector"])
 
-    # Macro concrete stains / weathering
     noise_macro = nodes.new("ShaderNodeTexNoise")
-    noise_macro.inputs["Scale"].default_value = 0.28
-    noise_macro.inputs["Detail"].default_value = 8.0
-    noise_macro.inputs["Roughness"].default_value = 0.68
+    noise_macro.inputs["Scale"].default_value = 0.24
+    noise_macro.inputs["Detail"].default_value = 10.0
+    noise_macro.inputs["Roughness"].default_value = 0.72
     links.new(geom_a.outputs["Position"], noise_macro.inputs["Vector"])
 
-    # Micro concrete aggregate grain
+    map_skid = nodes.new("ShaderNodeMapping")
+    map_skid.inputs["Scale"].default_value = (2.5, 0.15, 1.0)
+    links.new(geom_a.outputs["Position"], map_skid.inputs["Vector"])
+    noise_skid = nodes.new("ShaderNodeTexNoise")
+    noise_skid.inputs["Scale"].default_value = 0.85
+    noise_skid.inputs["Detail"].default_value = 6.0
+    links.new(map_skid.outputs["Vector"], noise_skid.inputs["Vector"])
+
     noise_grain = nodes.new("ShaderNodeTexNoise")
-    noise_grain.inputs["Scale"].default_value = 32.0
-    noise_grain.inputs["Detail"].default_value = 12.0
-    noise_grain.inputs["Roughness"].default_value = 0.82
+    noise_grain.inputs["Scale"].default_value = 38.0
+    noise_grain.inputs["Detail"].default_value = 14.0
+    noise_grain.inputs["Roughness"].default_value = 0.85
     links.new(geom_a.outputs["Position"], noise_grain.inputs["Vector"])
 
     mix_conc = nodes.new("ShaderNodeMix")
     mix_conc.data_type = 'FLOAT'
-    mix_conc.inputs["Factor"].default_value = 0.45
+    mix_conc.inputs["Factor"].default_value = 0.38
     links.new(noise_macro.outputs["Fac"], mix_conc.inputs[2])
-    links.new(noise_grain.outputs["Fac"], mix_conc.inputs[3])
+    links.new(noise_skid.outputs["Fac"], mix_conc.inputs[3])
+
+    mix_conc2 = nodes.new("ShaderNodeMix")
+    mix_conc2.data_type = 'FLOAT'
+    mix_conc2.inputs["Factor"].default_value = 0.35
+    links.new(mix_conc.outputs[0], mix_conc2.inputs[2])
+    links.new(noise_grain.outputs["Fac"], mix_conc2.inputs[3])
 
     ramp_conc = nodes.new("ShaderNodeValToRGB")
-    ramp_conc.color_ramp.elements[0].position = 0.22
-    ramp_conc.color_ramp.elements[0].color = (0.18, 0.172, 0.160, 1.0)   # Darker oil/weathered concrete
-    ramp_conc.color_ramp.elements[1].position = 0.78
-    ramp_conc.color_ramp.elements[1].color = (0.33, 0.315, 0.295, 1.0)  # Warm grey concrete
-    links.new(mix_conc.outputs[0], ramp_conc.inputs["Fac"])
+    ramp_conc.color_ramp.elements[0].position = 0.24
+    ramp_conc.color_ramp.elements[0].color = (0.145, 0.138, 0.130, 1.0)
+    ramp_conc.color_ramp.elements[1].position = 0.76
+    ramp_conc.color_ramp.elements[1].color = (0.310, 0.298, 0.280, 1.0)
+    links.new(mix_conc2.outputs[0], ramp_conc.inputs["Fac"])
 
-    # Darken expansion joints
     mix_joint = nodes.new("ShaderNodeMix")
     mix_joint.data_type = 'RGBA'
-    links.new(brick_apron.outputs["Fac"], mix_joint.inputs["Factor"])
+    mix_joint.blend_type = 'MULTIPLY'
+    mix_joint.inputs["Factor"].default_value = 0.85
     links.new(ramp_conc.outputs["Color"], mix_joint.inputs[6])
-    mix_joint.inputs[7].default_value = (0.06, 0.055, 0.05, 1.0)
+    links.new(brick_apron.outputs["Color"], mix_joint.inputs[7])
 
     links.new(mix_joint.outputs[2], bsdf.inputs["Base Color"])
     bsdf.inputs["Metallic"].default_value = 0.0
 
-    # Concrete roughness variation (0.48 to 0.85 so golden hour sun + aircraft cast subtle reflections)
     ramp_c_rough = nodes.new("ShaderNodeValToRGB")
-    ramp_c_rough.color_ramp.elements[0].position = 0.2
-    ramp_c_rough.color_ramp.elements[0].color = (0.46, 0.46, 0.46, 1.0)
-    ramp_c_rough.color_ramp.elements[1].position = 0.8
-    ramp_c_rough.color_ramp.elements[1].color = (0.85, 0.85, 0.85, 1.0)
+    ramp_c_rough.color_ramp.elements[0].position = 0.25
+    ramp_c_rough.color_ramp.elements[0].color = (0.26, 0.26, 0.26, 1.0)
+    ramp_c_rough.color_ramp.elements[1].position = 0.72
+    ramp_c_rough.color_ramp.elements[1].color = (0.88, 0.88, 0.88, 1.0)
     links.new(mix_conc.outputs[0], ramp_c_rough.inputs["Fac"])
     links.new(ramp_c_rough.outputs["Color"], bsdf.inputs["Roughness"])
 
-    # Bump for slab joints + concrete grain
     bump_joint = nodes.new("ShaderNodeBump")
-    bump_joint.inputs["Strength"].default_value = 0.50
-    bump_joint.inputs["Distance"].default_value = 0.012
+    bump_joint.inputs["Strength"].default_value = 0.55
+    bump_joint.inputs["Distance"].default_value = 0.015
     links.new(brick_apron.outputs["Color"], bump_joint.inputs["Height"])
 
     bump_grain = nodes.new("ShaderNodeBump")
-    bump_grain.inputs["Strength"].default_value = 0.20
-    bump_grain.inputs["Distance"].default_value = 0.004
+    bump_grain.inputs["Strength"].default_value = 0.28
+    bump_grain.inputs["Distance"].default_value = 0.005
     links.new(noise_grain.outputs["Fac"], bump_grain.inputs["Height"])
     links.new(bump_joint.outputs["Normal"], bump_grain.inputs["Normal"])
     links.new(bump_grain.outputs["Normal"], bsdf.inputs["Normal"])
@@ -617,9 +841,31 @@ def create_materials():
 
     # 13. Apron Yellow Taxi Line Paint
     mat_marking = bpy.data.materials.new("Apron_Taxi_Yellow")
-    bsdf = mat_marking.node_tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.65, 0.44, 0.07, 1.0)
-    bsdf.inputs["Roughness"].default_value = 0.72
+    tree = mat_marking.node_tree
+    nodes = tree.nodes
+    links = tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    geom_m = nodes.new("ShaderNodeNewGeometry")
+    noise_m = nodes.new("ShaderNodeTexNoise")
+    noise_m.inputs["Scale"].default_value = 8.0
+    noise_m.inputs["Detail"].default_value = 8.0
+    links.new(geom_m.outputs["Position"], noise_m.inputs["Vector"])
+    ramp_m = nodes.new("ShaderNodeValToRGB")
+    ramp_m.color_ramp.elements[0].position = 0.25
+    ramp_m.color_ramp.elements[0].color = (0.42, 0.28, 0.05, 1.0)
+    ramp_m.color_ramp.elements[1].position = 0.75
+    ramp_m.color_ramp.elements[1].color = (0.68, 0.46, 0.08, 1.0)
+    links.new(noise_m.outputs["Fac"], ramp_m.inputs["Fac"])
+    links.new(ramp_m.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.68
+    bump_m = nodes.new("ShaderNodeBump")
+    bump_m.inputs["Strength"].default_value = 0.22
+    bump_m.inputs["Distance"].default_value = 0.004
+    links.new(noise_m.outputs["Fac"], bump_m.inputs["Height"])
+    links.new(bump_m.outputs["Normal"], bsdf.inputs["Normal"])
     mats['marking'] = mat_marking
 
     return mats
@@ -633,147 +879,246 @@ def assign_mat(obj, mat):
 
 
 # ==============================================================================
-# DASSAULT RAFALE 3D GEOMETRY CONSTRUCTION
+# UNIFIED DASSAULT RAFALE BODYWORK (FUSELAGE + RADOME + CANARD CHINES + INTAKE NACELLES + DORSAL SPINE)
 # ==============================================================================
 
-def make_fuselage_ring(y, z_bot, z_mid, z_top, half_w_bot, half_w_mid, half_w_top,
-                       twin_lobe=0.0, chine_sharpness=0.0, n_half=18):
+def evaluate_unified_body_ring(y, n_half=32):
     """
-    Generates a 2*n_half vertex closed cross-section ring at longitudinal station y.
-    Uses smooth parametric curves from bottom centerline (0, y, z_bot) -> right side -> top centerline (0, y, z_top) -> left side.
+    Evaluates a 64-vertex cross-section ring at longitudinal station `y` (from Y = -7.28m to Y = +7.62m)
+    that smoothly integrates:
+      - Smooth tangent-continuous ogival nose radome (Y = +4.86m to +7.62m) with nose chines
+      - Forward cockpit fuselage & flared canard-shoulder chines (Y = +0.50m to +4.86m)
+      - Blended intake nacelles & twin-engine rear fuselage (Y = -7.28m to +2.45m)
+      - Sleek low-profile dorsal avionics spine (Y = -6.75m to +1.55m, peak Z = 2.28m)
+      - Recessed wheel-well cavities on the underside at Nose Bay (Y = 3.65..4.55m) and Main Bays (Y = -2.25..-1.15m)
     """
+    def smoothstep(edge0, edge1, val):
+        t = max(0.0, min(1.0, (val - edge0) / (edge1 - edge0))) if abs(edge1 - edge0) > 1e-6 else 0.0
+        return t * t * (3.0 - 2.0 * t)
+
+    # 1. Analytical smooth envelope functions from tail (Y=-7.28) to nose tip (Y=+7.62)
+    if y >= 1.50:
+        u = max(0.0, (7.62 - y) / (7.62 - 1.50))  # 1.0 at Y=1.50, 0.0 at Y=7.62
+        ogive = (u ** 0.74) * (1.0 - 0.14 * (1.0 - u) * u)
+        hw_mid = 0.003 + 0.84 * ogive
+        hw_bot = 0.002 + 0.56 * (u ** 0.82)
+        hw_top = 0.002 + 0.38 * (u ** 0.78)
+        z_bot = 1.40 - 0.42 * (u ** 0.78)
+        z_mid = 1.40 + 0.16 * (u ** 0.72)
+        z_top = 1.40 + 0.68 * (u ** 0.68)  # 2.08m at Y=1.50m (matches rear canopy sill!)
+    else:
+        w_nacelle = smoothstep(2.45, 0.80, y) * (1.0 - 0.26 * smoothstep(-4.20, -7.28, y))
+        hw_mid = 0.84 + 0.30 * w_nacelle
+        hw_bot = 0.56 + 0.34 * w_nacelle
+        hw_top = 0.38 + 0.20 * smoothstep(-2.0, -7.0, y)
+        z_bot = 0.98 - 0.10 * w_nacelle + 0.24 * smoothstep(-4.80, -7.28, y)
+        z_mid = 1.56
+        # Sleek upper fuselage profile behind cockpit (2.08m at Y=1.5m, 2.12m mid-fuselage, tapering to 1.84m at tail)
+        z_top = 2.08 + 0.04 * smoothstep(1.50, -1.00, y) - 0.28 * smoothstep(-4.50, -7.28, y)
+
+    # 2. Sleek Integrated Dorsal Spine (Y from -6.75m to +1.45m, adding +0.16m so total spine crown is Z = 2.28m, matching the rear canopy fairing!)
+    spine_env = smoothstep(-6.80, -4.80, y) * smoothstep(1.55, 0.85, y)
+    z_spine_add = 0.16 * spine_env
+
+    # 3. Integrated Canard Shoulder Chines
+    shoulder_env = smoothstep(-0.40, 1.10, y) * smoothstep(4.35, 2.35, y)
+    nose_chine_env = smoothstep(1.50, 4.20, y) * smoothstep(7.45, 5.20, y)
+
+    # 4. Integrated Intake Nacelle Lateral Lobe
+    intake_env = smoothstep(2.48, 1.55, y) * smoothstep(-6.80, -4.20, y)
+    twin_gulley_env = smoothstep(1.20, -1.50, y)
+
+    # 5. Recessed Landing Gear Wheel Well Cutouts
+    nose_bay_env = smoothstep(3.50, 3.68, y) * smoothstep(4.68, 4.50, y)
+    main_bay_env = smoothstep(-2.38, -2.18, y) * smoothstep(-1.02, -1.22, y)
+
     ring = []
     total_pts = n_half * 2
     for i in range(total_pts):
         theta = 2.0 * math.pi * i / total_pts
         s = math.sin(theta)
-        c = -math.cos(theta)  # -1 at bottom, 0 at mid, +1 at top
+        c = -math.cos(theta)
+        abs_s = abs(s)
 
         if c < 0:
-            t = 1.0 + c  # 0 at bottom, 1 at mid
-            w_interp = half_w_bot + (half_w_mid - half_w_bot) * (t ** 0.65)
-            x = math.copysign(abs(s) ** 0.85, s) * w_interp
-            z_base = z_bot + (z_mid - z_bot) * (1.0 - (abs(c) ** 1.35))
-            gulley = twin_lobe * (1.0 - abs(s)) * math.exp(-4.0 * (s ** 2))
-            z = z_base + gulley * 0.14
+            t = 1.0 + c
+            w_interp = hw_bot + (hw_mid - hw_bot) * (t ** 0.62)
+            x_mag = (abs_s ** 0.82) * w_interp
+            z = z_bot + (z_mid - z_bot) * (1.0 - (abs(c) ** 1.40))
+
+            if intake_env > 0.0:
+                lobe_mask = math.exp(-((t - 0.55) / 0.38) ** 2) * (abs_s ** 0.7)
+                x_mag += intake_env * 0.09 * lobe_mask
+                z -= intake_env * 0.045 * lobe_mask
+
+            if twin_gulley_env > 0.0:
+                gulley = twin_gulley_env * (1.0 - abs_s) * math.exp(-5.5 * (s ** 2))
+                z += gulley * 0.15
+
+            if nose_bay_env > 0.0 and x_mag < 0.22 and c < -0.55:
+                well_mask = smoothstep(0.22, 0.15, x_mag)
+                z += nose_bay_env * well_mask * 0.26
+
+            if main_bay_env > 0.0 and 0.34 < x_mag < 0.96 and c < -0.25:
+                well_mask = smoothstep(0.34, 0.44, x_mag) * smoothstep(0.96, 0.84, x_mag)
+                z += main_bay_env * well_mask * 0.28
+
+            x = math.copysign(x_mag, s)
         else:
-            t = c  # 0 at mid, 1 at top
-            w_interp = half_w_mid * ((1.0 - (t ** 1.35)) ** 0.7) + half_w_top * (t ** 1.5)
-            x = s * w_interp
-            z = z_mid + (z_top - z_mid) * (t ** 0.88)
-            if chine_sharpness > 0.0 and t < 0.35:
-                x *= (1.0 + chine_sharpness * (0.35 - t))
+            t = c
+            w_interp = hw_mid * ((1.0 - (t ** 1.38)) ** 0.68) + hw_top * (t ** 1.55)
+            x_mag = abs_s * w_interp
+            z = z_mid + (z_top - z_mid) * (t ** 0.86)
+
+            if shoulder_env > 0.0:
+                sh_mask = math.exp(-((t - 0.42) / 0.24) ** 2)
+                x_mag += shoulder_env * 0.22 * sh_mask
+                z += shoulder_env * 0.08 * sh_mask
+
+            if nose_chine_env > 0.0:
+                ch_mask = math.exp(-((t - 0.18) / 0.16) ** 2)
+                x_mag += nose_chine_env * 0.045 * ch_mask
+
+            if spine_env > 0.0 and t > 0.45:
+                sp_mask = smoothstep(0.45, 0.82, t)
+                z += z_spine_add * sp_mask
+                x_mag = x_mag * (1.0 - 0.20 * sp_mask) + (0.34 * spine_env * math.sin(math.pi * (1.0 - t))) * 0.30 * sp_mask
+
+            x = math.copysign(x_mag, s)
 
         ring.append((x, y, z))
     return ring
 
 
-def build_fuselage_and_radome(coll, mats):
+def build_unified_airframe_body(coll, mats):
     """
-    Builds the main fuselage and radome nose cone as a SINGLE continuous, seamless lofted mesh
-    from Y = -7.28m (engine shroud) to Y = +7.62m (nose tip) so there is zero pinching at the radome joint!
-    Uses 2 material slots: slot 0 = tactical grey airframe (Y <= 4.86m), slot 1 = slate radome (Y > 4.86m).
+    Builds the primary unified airframe hull from Y = -7.28m to Y = +7.62m with dense, smooth stations,
+    plus the sculpted hollow S-duct intake mouths and boundary-layer splitter channels that blend
+    all the way back into the rear fuselage nacelles so there is zero external step or seam!
     """
-    # Combined continuous stations from tail (-7.28m) to nose tip (+7.62m)
-    # Tightly spaced rings around Y = 4.86m create a crisp panel break without any Catmull-Clark pinch!
-    all_specs = [
-        # (y, z_bot, z_mid, z_top, hw_bot, hw_mid, hw_top, twin_lobe, chine, mat_slot)
-        (-7.28, 1.22, 1.56, 1.88, 0.72, 0.80, 0.58, 1.0,  0.00, 0),
-        (-6.90, 1.16, 1.56, 1.98, 0.76, 0.85, 0.62, 1.0,  0.05, 0),
-        (-6.00, 1.08, 1.56, 2.12, 0.82, 0.94, 0.55, 0.9,  0.12, 0),
-        (-4.50, 1.02, 1.56, 2.22, 0.86, 1.02, 0.46, 0.75, 0.18, 0),
-        (-3.00, 0.98, 1.56, 2.26, 0.88, 1.05, 0.42, 0.55, 0.22, 0),
-        (-1.50, 0.96, 1.58, 2.28, 0.86, 1.02, 0.40, 0.35, 0.25, 0),
-        ( 0.00, 0.96, 1.60, 2.28, 0.80, 0.96, 0.38, 0.15, 0.25, 0),
-        ( 1.20, 0.98, 1.62, 2.25, 0.68, 0.86, 0.38, 0.0,  0.22, 0),
-        ( 2.20, 1.00, 1.60, 2.08, 0.52, 0.74, 0.40, 0.0,  0.20, 0),
-        ( 3.40, 1.02, 1.56, 2.04, 0.44, 0.68, 0.36, 0.0,  0.20, 0),
-        ( 4.30, 1.04, 1.52, 2.00, 0.38, 0.62, 0.28, 0.0,  0.18, 0),
-        ( 4.82, 1.06, 1.48, 1.95, 0.34, 0.56, 0.22, 0.0,  0.18, 0),
-        # Radome transition seam at Y=4.86m (tiny 4mm groove ring for crisp physical radome line)
-        ( 4.86, 1.063, 1.48, 1.946, 0.337, 0.556, 0.218, 0.0, 0.18, 1),
-        ( 4.90, 1.065, 1.48, 1.942, 0.335, 0.554, 0.216, 0.0, 0.18, 1),
-        ( 5.45, 1.12, 1.47, 1.84, 0.27, 0.46, 0.17, 0.0,  0.20, 1),
-        ( 6.05, 1.20, 1.45, 1.72, 0.19, 0.35, 0.12, 0.0,  0.22, 1),
-        ( 6.65, 1.28, 1.44, 1.59, 0.11, 0.22, 0.07, 0.0,  0.15, 1),
-        ( 7.20, 1.36, 1.43, 1.49, 0.045, 0.095, 0.035, 0.0, 0.05, 1),
-        ( 7.52, 1.40, 1.42, 1.44, 0.014, 0.024, 0.010, 0.0, 0.00, 1),
-        ( 7.62, 1.418, 1.42, 1.422, 0.003, 0.004, 0.003, 0.0, 0.00, 1),
+    y_stations = [
+        -7.28, -7.05, -6.70, -6.20, -5.50, -4.70, -3.80, -2.90,
+        -2.38, -2.20, -1.70, -1.20, -1.02, -0.50,  0.10,  0.65,
+         1.15,  1.50,  1.85,  2.20,  2.55,  2.95,  3.48,  3.68,
+         4.10,  4.50,  4.68,  4.84,  4.86,  4.88,  5.25,  5.65,
+         6.05,  6.45,  6.82,  7.15,  7.40,  7.55,  7.62
     ]
 
-    fuse_rings = [make_fuselage_ring(*sp[:9]) for sp in all_specs]
-    ring_mats = [all_specs[r][9] for r in range(len(all_specs) - 1)]
+    rings = [evaluate_unified_body_ring(y, n_half=32) for y in y_stations]
+    ring_mats = []
+    for r in range(len(y_stations) - 1):
+        y_mid = 0.5 * (y_stations[r] + y_stations[r + 1])
+        ring_mats.append(1 if y_mid > 4.86 else 0)
 
-    fuse_obj = loft_closed_profiles("Rafale_Fuselage_Body", fuse_rings, cap_start=True, cap_end=True,
+    body_obj = loft_closed_profiles("Rafale_Unified_Fuselage", rings, cap_start=True, cap_end=True,
                                     collection=coll, smooth=True, subsurf_levels=2, ring_materials=ring_mats)
-    fuse_obj.data.materials.append(mats['airframe'])
-    fuse_obj.data.materials.append(mats['radome'])
+    body_obj.data.materials.append(mats['airframe'])
+    body_obj.data.materials.append(mats['radome'])
 
-    # Pitot / nose tip lightning diverter probe
-    bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=0.012, radius2=0.002, depth=0.24,
-                                    location=(0.0, 7.72, 1.42), rotation=(math.radians(-90), 0, 0))
+    # Pitot / nose tip lightning diverter probe at Y = +7.62m..+7.88m, Z = 1.40m
+    bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=0.012, radius2=0.002, depth=0.26,
+                                    location=(0.0, 7.75, 1.40), rotation=(math.radians(-90), 0, 0))
     pitot = bpy.context.active_object
     pitot.name = "Rafale_Nose_Probe"
     coll.objects.link(pitot)
     bpy.context.scene.collection.objects.unlink(pitot)
     assign_mat(pitot, mats['sensor'])
 
-    # Dorsal Spine Fairing (smoothly faired into the upper fuselage without pinch)
-    spine_specs = [
-        (-6.75, 1.82, 1.94, 2.04, 0.26, 0.24, 0.08, 0.0, 0.0),
-        (-5.50, 1.95, 2.15, 2.34, 0.34, 0.30, 0.12, 0.0, 0.0),
-        (-3.50, 2.05, 2.26, 2.44, 0.38, 0.34, 0.15, 0.0, 0.0),
-        (-1.20, 2.08, 2.30, 2.50, 0.40, 0.36, 0.18, 0.0, 0.0),
-        ( 0.80, 2.08, 2.32, 2.54, 0.42, 0.38, 0.20, 0.0, 0.0),
-        ( 1.55, 2.05, 2.28, 2.48, 0.40, 0.36, 0.18, 0.0, 0.0),
-    ]
-    spine_rings = [make_fuselage_ring(*sp, n_half=14) for sp in spine_specs]
-    spine_obj = loft_closed_profiles("Rafale_Dorsal_Spine", spine_rings, cap_start=True, cap_end=True,
-                                     collection=coll, smooth=True, subsurf_levels=2)
-    assign_mat(spine_obj, mats['airframe'])
-
-    # Forward Canard Mounting Shoulders / LERX Chines (sleek integrated fairing blending into the fuselage sides)
+    # Sculpted Semi-Ventral Kidney Intake Lips & Full-Length Nacelle Fairing (extending from Y = +2.62m all the way back to Y = -5.80m!)
     for side in (-1.0, 1.0):
         side_name = "R" if side > 0 else "L"
-        shoulder_specs = []
-        raw_sh = [
-            # (y, x_in, x_out, z_bot, z_top)
-            (0.45, 0.42, 0.78, 1.72, 2.12),
-            (1.25, 0.40, 0.80, 1.76, 2.16),
-            (2.15, 0.36, 0.75, 1.78, 2.14),
-            (2.95, 0.32, 0.65, 1.76, 2.06),
-            (3.60, 0.28, 0.48, 1.70, 1.94),
-        ]
-        for y, xi, xo, zb, zt in raw_sh:
-            zm = 0.5 * (zb + zt)
-            xm = 0.5 * (xi + xo)
-            ring = [
-                (side * xi, y, zb),
-                (side * xm, y, zb - 0.03),
-                (side * xo, y, zm - 0.03),
-                (side * (xo + 0.03), y, zm),
-                (side * xo, y, zm + 0.05),
-                (side * xm, y, zt + 0.02),
-                (side * xi, y, zt),
-                (side * (xi - 0.04), y, zm),
-            ]
+        n_ring = 28
+
+        def make_sculpted_intake_ring(y, x_in, x_out, z_bot, z_top, y_sweep_out=0.0, y_sweep_bot=0.0):
+            ring = []
+            xc = 0.5 * (x_in + x_out)
+            rx = 0.5 * (x_out - x_in)
+            zc = 0.5 * (z_bot + z_top)
+            rz = 0.5 * (z_top - z_bot)
+            for i in range(n_ring):
+                ang = 2.0 * math.pi * i / n_ring
+                ca = math.cos(ang)  # +1 outboard, -1 inboard
+                sa = math.sin(ang)  # +1 top, -1 bottom
+                x_local = xc + rx * math.copysign(abs(ca) ** 0.80, ca) - 0.03 * (sa ** 2)
+                z_local = zc + rz * math.copysign(abs(sa) ** 0.84, sa) - 0.045 * ca
+                dy = -y_sweep_out * (0.5 * (ca + 1.0)) - y_sweep_bot * (0.5 * (1.0 - sa))
+                ring.append((side * x_local, y + dy, z_local))
             if side < 0:
                 ring.reverse()
-            shoulder_specs.append(ring)
-        sh_obj = loft_closed_profiles(f"Rafale_Canard_Shoulder_{side_name}", shoulder_specs,
-                                      cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=2)
-        assign_mat(sh_obj, mats['airframe'])
+            return ring
 
+        intake_rings = []
+        ring_mat_slots = []
+
+        # 1. Deep S-duct interior (Slot 1 = dark duct interior, transitioning to Slot 0 = airframe grey near lip)
+        s_duct_specs = [
+            (-1.20, 0.25, 0.65, 1.18, 1.56, 0.00, 0.00, 1),
+            (-0.20, 0.28, 0.74, 1.06, 1.60, 0.05, 0.04, 1),
+            ( 0.85, 0.30, 0.82, 0.98, 1.64, 0.12, 0.08, 1),
+            ( 1.75, 0.31, 0.86, 0.95, 1.66, 0.22, 0.14, 0),
+            ( 2.38, 0.32, 0.85, 0.95, 1.66, 0.28, 0.18, 0),
+            ( 2.58, 0.31, 0.84, 0.95, 1.67, 0.30, 0.20, 0),
+        ]
+        for sp in s_duct_specs:
+            intake_rings.append(make_sculpted_intake_ring(*sp[:7]))
+            ring_mat_slots.append(sp[7])
+
+        # 2. Sharp Leading-Edge Intake Lip Apex at Y = +2.62m
+        intake_rings.append(make_sculpted_intake_ring(2.62, 0.30, 0.86, 0.94, 1.68, 0.30, 0.20))
+        ring_mat_slots.append(0)
+
+        # 3. Outer Intake Nacelle Cowl marching continuously from the lip (Y=+2.56m) all the way to the rear fuselage (Y=-5.80m),
+        # with recessed cutout over the main landing gear bay (Y=-2.30..-1.10m) so it never overhangs the wheel well!
+        outer_cowl_specs = [
+            ( 2.56, 0.28, 0.89, 0.92, 1.70, 0.30, 0.20, 0),
+            ( 2.25, 0.26, 0.96, 0.90, 1.73, 0.24, 0.15, 0),
+            ( 1.55, 0.23, 1.05, 0.88, 1.76, 0.12, 0.08, 0),
+            ( 0.65, 0.22, 1.11, 0.88, 1.77, 0.00, 0.00, 0),
+            (-0.40, 0.22, 1.12, 0.89, 1.77, 0.00, 0.00, 0),
+            (-1.00, 0.22, 1.10, 0.92, 1.76, 0.00, 0.00, 0),
+            # Over main gear bay (Y=-1.20 to -2.20m), z_bot rises to 1.16m so the recessed wheel well is completely open!
+            (-1.25, 0.24, 1.06, 1.16, 1.75, 0.00, 0.00, 0),
+            (-1.75, 0.24, 1.05, 1.16, 1.75, 0.00, 0.00, 0),
+            (-2.20, 0.24, 1.04, 1.16, 1.74, 0.00, 0.00, 0),
+            (-2.45, 0.22, 1.06, 0.93, 1.73, 0.00, 0.00, 0),
+            (-3.60, 0.22, 1.02, 0.95, 1.70, 0.00, 0.00, 0),
+            (-4.80, 0.24, 0.94, 1.02, 1.65, 0.00, 0.00, 0),
+            (-5.80, 0.26, 0.82, 1.12, 1.60, 0.00, 0.00, 0),
+        ]
+        for sp in outer_cowl_specs:
+            intake_rings.append(make_sculpted_intake_ring(*sp[:7]))
+            ring_mat_slots.append(sp[7])
+
+        intake_obj = loft_closed_profiles(f"Rafale_Sculpted_Intake_{side_name}", intake_rings,
+                                          cap_start=True, cap_end=True, collection=coll,
+                                          smooth=True, subsurf_levels=2, ring_materials=ring_mat_slots[:-1])
+        intake_obj.data.materials.append(mats['airframe'])
+        intake_obj.data.materials.append(mats['exhaust_inner'])
+
+        # Boundary-layer diverter channel & upper splitter wedge between fuselage chine and intake lip
+        splitter_verts = [
+            (side * 0.24, 2.82, 1.10), (side * 0.30, 2.58, 1.00),
+            (side * 0.30, 2.48, 1.66), (side * 0.24, 2.76, 1.68),
+            (side * 0.20, 1.90, 1.00), (side * 0.30, 1.90, 1.00),
+            (side * 0.30, 1.90, 1.66), (side * 0.20, 1.90, 1.66),
+        ]
+        splitter_faces = [
+            (0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)
+        ]
+        splitter = create_mesh_obj(f"Rafale_Intake_Splitter_{side_name}", splitter_verts, splitter_faces,
+                                   collection=coll, smooth=False, subsurf_levels=0)
+        assign_mat(splitter, mats['sensor'])
+
+
+# ==============================================================================
+# COCKPIT, CANOPY, WINGS, CANARDS, TAIL & SEPARATED 3D CONTROL SURFACES
+# ==============================================================================
 
 def build_cockpit_and_canopy(coll, mats):
-    """
-    Builds the single-seat Rafale C teardrop bubble canopy, canopy frame arches,
-    cockpit coaming, HUD, Martin-Baker Mk16 ejection seat, FSO optronics ball, and IFR probe.
-    """
-    # 1. Cockpit Tub / Coaming & Glare Shield
+    # 1. Cockpit Tub / Coaming & Glare Shield (embedded flush inside the upper fuselage)
     coaming_verts = [
-        (-0.38, 1.50, 1.95), (0.38, 1.50, 1.95), (0.34, 4.45, 1.92), (-0.34, 4.45, 1.92),
-        (-0.32, 1.60, 2.14), (0.32, 1.60, 2.14), (0.24, 4.30, 2.08), (-0.24, 4.30, 2.08),
+        (-0.34, 1.50, 1.92), (0.34, 1.50, 1.92), (0.28, 4.35, 1.88), (-0.28, 4.35, 1.88),
+        (-0.30, 1.60, 2.08), (0.30, 1.60, 2.08), (0.20, 4.25, 2.01), (-0.20, 4.25, 2.01),
     ]
     coaming_faces = [
         (0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)
@@ -781,124 +1126,115 @@ def build_cockpit_and_canopy(coll, mats):
     coaming = create_mesh_obj("Rafale_Cockpit_Tub", coaming_verts, coaming_faces, collection=coll, smooth=True, subsurf_levels=1)
     assign_mat(coaming, mats['cockpit'])
 
-    # 2. Martin-Baker Mk 16F Ejection Seat (inclined 29 degrees as in Rafale)
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 2.55, 2.18))
+    # 2. Martin-Baker Mk 16F Ejection Seat
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 2.55, 2.16))
     seat_back = bpy.context.active_object
     seat_back.name = "Rafale_Ejection_Seat_Back"
-    seat_back.scale = (0.22, 0.12, 0.42)
+    seat_back.scale = (0.22, 0.12, 0.40)
     seat_back.rotation_euler = (math.radians(-29), 0, 0)
     coll.objects.link(seat_back)
     bpy.context.scene.collection.objects.unlink(seat_back)
     assign_mat(seat_back, mats['cockpit'])
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 2.34, 2.48))
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 2.34, 2.45))
     headrest = bpy.context.active_object
     headrest.name = "Rafale_Ejection_Seat_Headbox"
-    headrest.scale = (0.16, 0.14, 0.16)
+    headrest.scale = (0.16, 0.14, 0.15)
     headrest.rotation_euler = (math.radians(-20), 0, 0)
     coll.objects.link(headrest)
     bpy.context.scene.collection.objects.unlink(headrest)
     assign_mat(headrest, mats['sensor'])
 
     # 3. Holographic HUD Combiner Glass
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 3.68, 2.26))
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 3.68, 2.22))
     hud = bpy.context.active_object
     hud.name = "Rafale_HUD_Combiner"
-    hud.scale = (0.13, 0.008, 0.12)
+    hud.scale = (0.12, 0.008, 0.11)
     hud.rotation_euler = (math.radians(42), 0, 0)
     coll.objects.link(hud)
     bpy.context.scene.collection.objects.unlink(hud)
     assign_mat(hud, mats['hud'])
 
-    # 4. Gold-Tinted Teardrop Bubble Canopy Glass
+    # 4. Gold-Tinted Teardrop Bubble Canopy Glass + Integrated Rear Metal Spine Fairing
+    # Notice: Rear stations (Y = 0.85m to 1.45m) use material slot 1 (airframe_alt) and blend seamlessly into the dorsal spine at Z=2.28m!
+    # Forward stations (Y = 1.45m to 4.58m) use material slot 0 (gold canopy glass) and sit flush inside the fuselage deck!
     canopy_specs = [
-        (1.32, 2.08, 2.48, 0.36),
-        (1.75, 2.07, 2.58, 0.41),
-        (2.35, 2.06, 2.68, 0.44),
-        (2.95, 2.05, 2.65, 0.42),
-        (3.55, 2.03, 2.50, 0.37),
-        (4.05, 2.00, 2.28, 0.29),
-        (4.42, 1.97, 2.08, 0.19),
-        (4.58, 1.96, 1.99, 0.08),
+        # (y, z_sill, z_crown, hw, mat_slot)
+        (0.85, 2.02, 2.28, 0.32, 1),
+        (1.25, 2.02, 2.36, 0.36, 1),
+        (1.45, 2.01, 2.44, 0.38, 0),
+        (1.85, 2.00, 2.56, 0.41, 0),
+        (2.40, 1.99, 2.64, 0.43, 0),
+        (2.95, 1.98, 2.61, 0.41, 0),
+        (3.55, 1.96, 2.46, 0.36, 0),
+        (4.05, 1.93, 2.24, 0.28, 0),
+        (4.42, 1.90, 2.04, 0.18, 0),
+        (4.60, 1.88, 1.93, 0.07, 0),
     ]
     canopy_rings = []
-    n_c = 24
-    for y, z_sill, z_crown, hw in canopy_specs:
+    canopy_mats = [canopy_specs[r][4] for r in range(len(canopy_specs) - 1)]
+    n_c = 28
+    for y, z_sill, z_crown, hw, _ in canopy_specs:
         ring = []
         for i in range(n_c):
             theta = 2.0 * math.pi * i / n_c
             s = math.sin(theta)
             c = -math.cos(theta)
             if c < 0:
-                x = s * hw * (1.0 + 0.15 * c)
-                z = z_sill + 0.04 * c
+                x = s * hw * (1.0 + 0.20 * c)
+                z = z_sill + 0.06 * c
             else:
                 x = s * hw * ((1.0 - (c ** 1.65)) ** 0.48)
                 z = z_sill + (z_crown - z_sill) * (c ** 0.78)
             ring.append((x, y, z))
         canopy_rings.append(ring)
 
-    canopy_obj = loft_closed_profiles("Rafale_Canopy_Glass", canopy_rings, cap_start=True, cap_end=True,
-                                      collection=coll, smooth=True, subsurf_levels=2)
-    assign_mat(canopy_obj, mats['canopy'])
+    canopy_obj = loft_closed_profiles("Rafale_Canopy_Assembly", canopy_rings, cap_start=True, cap_end=True,
+                                      collection=coll, smooth=True, subsurf_levels=2, ring_materials=canopy_mats)
+    canopy_obj.data.materials.append(mats['canopy'])
+    canopy_obj.data.materials.append(mats['airframe_alt'])
 
-    # 5. Canopy Sill Frame & Internal Reinforcing Bow Frame
-    frame_specs = []
-    for y, z_sill, z_crown, hw in canopy_specs:
-        ring = []
-        for i in range(16):
-            theta = 2.0 * math.pi * i / 16
-            s = math.sin(theta)
-            c = -math.cos(theta)
-            x = s * (hw + 0.014) * (1.0 - 0.3 * max(0, c))
-            z = z_sill - 0.02 + 0.08 * c
-            ring.append((x, y, z))
-        frame_specs.append(ring)
-    sill_frame = loft_closed_profiles("Rafale_Canopy_Sill_Frame", frame_specs, cap_start=True, cap_end=True,
-                                      collection=coll, smooth=True, subsurf_levels=1)
-    assign_mat(sill_frame, mats['airframe'])
-
-    # Windshield forward arch frame at Y=3.60m
+    # 5. Flush Canopy Sill Trim & Windshield Bow Frame (hugs the fuselage deck without overhanging!)
     arch_rings = []
-    for dy in (-0.032, 0.032):
-        y = 3.60 + dy
-        z_sill = 2.02
-        z_crown = 2.49
-        hw = 0.368
+    for dy in (-0.028, 0.028):
+        y = 3.55 + dy
+        z_sill = 1.96
+        z_crown = 2.46
+        hw = 0.36
         ring = []
-        for i in range(20):
-            theta = 2.0 * math.pi * i / 20
+        for i in range(24):
+            theta = 2.0 * math.pi * i / 24
             s = math.sin(theta)
             c = -math.cos(theta)
             if c < 0:
-                x = s * hw
-                z = z_sill
+                x = s * hw * 0.95
+                z = z_sill - 0.02
             else:
-                x = s * (hw + 0.008) * ((1.0 - (c ** 1.65)) ** 0.48)
-                z = z_sill + (z_crown - z_sill + 0.008) * (c ** 0.78)
+                x = s * (hw + 0.006) * ((1.0 - (c ** 1.65)) ** 0.48)
+                z = z_sill + (z_crown - z_sill + 0.006) * (c ** 0.78)
             ring.append((x, y, z))
         arch_rings.append(ring)
     arch_obj = loft_closed_profiles("Rafale_Canopy_Arch", arch_rings, cap_start=True, cap_end=True,
                                     collection=coll, smooth=True, subsurf_levels=1)
-    assign_mat(arch_obj, mats['airframe'])
+    assign_mat(arch_obj, mats['airframe_alt'])
 
-    # 6. FSO (Front Sector Optronics) spherical turret + streamlined base fairing right in front of windshield
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=0.068, location=(0.11, 4.66, 2.00))
+    # 6. FSO (Front Sector Optronics) Turret ahead of windshield
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=0.065, location=(0.11, 4.66, 1.95))
     fso_ball = bpy.context.active_object
     fso_ball.name = "Rafale_FSO_Optronics"
     coll.objects.link(fso_ball)
     bpy.context.scene.collection.objects.unlink(fso_ball)
     assign_mat(fso_ball, mats['sensor'])
 
-    # 7. Fixed In-Flight Refueling (IFR) Probe on Starboard (Right, +X) side of forward cockpit/nose
+    # 7. Fixed In-Flight Refueling (IFR) Probe on Starboard side
     ifr_stations = [
-        (0.38, 3.25, 1.84, 0.042),
-        (0.43, 3.65, 1.89, 0.038),
-        (0.45, 4.15, 1.95, 0.032),
-        (0.44, 4.70, 1.98, 0.028),
-        (0.43, 5.05, 1.99, 0.022),
-        (0.43, 5.18, 1.99, 0.028),
-        (0.43, 5.28, 1.99, 0.014),
+        (0.38, 3.25, 1.82, 0.040),
+        (0.43, 3.65, 1.87, 0.036),
+        (0.45, 4.15, 1.93, 0.030),
+        (0.44, 4.70, 1.96, 0.026),
+        (0.43, 5.05, 1.97, 0.020),
+        (0.43, 5.18, 1.97, 0.026),
+        (0.43, 5.28, 1.97, 0.012),
     ]
     ifr_rings = []
     for xc, yc, zc, rad in ifr_stations:
@@ -912,123 +1248,84 @@ def build_cockpit_and_canopy(coll, mats):
     assign_mat(ifr_obj, mats['airframe'])
 
 
-def build_air_intakes(coll, mats):
-    """
-    Builds the Rafale's signature semi-ventral kidney-shaped fixed air intakes with
-    boundary-layer splitter gap, swept outer lips, and deep internal S-ducts leading to the engines.
-    """
-    for side in (-1.0, 1.0):
-        side_name = "R" if side > 0 else "L"
-
-        duct_and_cowl_rings = []
-        n_ring = 22
-
-        def make_kidney_ring(y, x_in, x_out, z_bot, z_top, y_rake=0.0):
-            ring = []
-            xc = 0.5 * (x_in + x_out)
-            rx = 0.5 * (x_out - x_in)
-            zc = 0.5 * (z_bot + z_top)
-            rz = 0.5 * (z_top - z_bot)
-            for i in range(n_ring):
-                ang = 2.0 * math.pi * i / n_ring
-                ca = math.cos(ang)
-                sa = math.sin(ang)
-                x_local = xc + rx * math.copysign(abs(ca) ** 0.82, ca)
-                z_local = zc + rz * math.copysign(abs(sa) ** 0.85, sa) - 0.04 * (ca - 0.2)
-                dy = y_rake * (0.45 * sa - 0.35 * ca)
-                ring.append((side * x_local, y + dy, z_local))
-            if side < 0:
-                ring.reverse()
-            return ring
-
-        # 1. Deep internal S-duct (dark engine compressor entrance at Y=-0.6m forward to lip at Y=2.48m)
-        inner_specs = [
-            (-0.60, 0.34, 0.72, 1.12, 1.52, 0.0),
-            ( 0.50, 0.33, 0.78, 1.04, 1.58, 0.0),
-            ( 1.50, 0.32, 0.84, 1.00, 1.62, 0.08),
-            ( 2.25, 0.32, 0.85, 0.99, 1.64, 0.14),
-            ( 2.48, 0.32, 0.82, 0.98, 1.65, 0.18),
-        ]
-        for sp in inner_specs:
-            duct_and_cowl_rings.append(make_kidney_ring(*sp))
-
-        # 2. Lip apex at Y=2.55m
-        duct_and_cowl_rings.append(make_kidney_ring(2.55, 0.30, 0.85, 0.96, 1.67, 0.18))
-
-        # 3. Outer nacelle cowl marching aft from Y=2.46m to Y=-6.00m
-        outer_specs = [
-            ( 2.46, 0.28, 0.89, 0.94, 1.70, 0.18),
-            ( 2.10, 0.26, 0.96, 0.91, 1.73, 0.12),
-            ( 1.30, 0.23, 1.05, 0.88, 1.76, 0.04),
-            ( 0.20, 0.20, 1.12, 0.87, 1.78, 0.0),
-            (-1.20, 0.18, 1.14, 0.88, 1.77, 0.0),
-            (-2.80, 0.18, 1.10, 0.91, 1.74, 0.0),
-            (-4.40, 0.20, 1.02, 0.96, 1.68, 0.0),
-            (-5.85, 0.22, 0.88, 1.06, 1.62, 0.0),
-        ]
-        for sp in outer_specs:
-            duct_and_cowl_rings.append(make_kidney_ring(*sp))
-
-        intake_obj = loft_closed_profiles(f"Rafale_Air_Intake_{side_name}", duct_and_cowl_rings,
-                                          cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=2)
-        assign_mat(intake_obj, mats['airframe'])
-
-        # Dark compressor face disc deep inside the intake duct
-        bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=0.24, depth=0.06,
-                                            location=(side * 0.52, -0.45, 1.32),
-                                            rotation=(math.radians(90), 0, 0))
-        comp_disc = bpy.context.active_object
-        comp_disc.name = f"Rafale_Intake_Compressor_{side_name}"
-        coll.objects.link(comp_disc)
-        bpy.context.scene.collection.objects.unlink(comp_disc)
-        assign_mat(comp_disc, mats['exhaust_inner'])
-
-        # Boundary-layer splitter plate / diverter strut between fuselage and intake lip
-        splitter_verts = [
-            (side * 0.24, 2.75, 1.12), (side * 0.31, 2.55, 1.02),
-            (side * 0.31, 2.40, 1.64), (side * 0.24, 2.70, 1.66),
-            (side * 0.20, 2.00, 1.02), (side * 0.31, 2.00, 1.02),
-            (side * 0.31, 2.00, 1.64), (side * 0.20, 2.00, 1.64),
-        ]
-        splitter_faces = [
-            (0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)
-        ]
-        splitter = create_mesh_obj(f"Rafale_Intake_Splitter_{side_name}", splitter_verts, splitter_faces,
-                                   collection=coll, smooth=False, subsurf_levels=0)
-        assign_mat(splitter, mats['sensor'])
-
-
 def build_wings_and_canards(coll, mats):
     """
-    Builds the main compound delta wings (span 10.90m, X=±5.45m), wingtip launcher rails,
-    underwing actuator fairings, and high-mounted close-coupled canards.
-    Uses cap_start=False on root stations inside the fuselage to guarantee 0% root pleating!
+    Builds the compound delta wings with separated 3D control-surface geometry and crisp spanwise edges:
+      1. Main Wing Torque Box (u = 0.00 to 0.835)
+      2. Leading-Edge Slat (u = 0.00 to 0.125)
+      3. Inner Elevon (u = 0.838 to 1.00, static hydraulic droop -2.2 deg)
+      4. Outer Elevon (u = 0.838 to 1.00, static hydraulic droop -1.8 deg)
+      5. Close-coupled forward canards & wingtip MICA launcher rails
     """
     for side in (-1.0, 1.0):
         side_name = "R" if side > 0 else "L"
 
-        # 1. Main Delta Wing with LERX
-        wing_stations = [
-            {'le': (side * 0.55,  1.05, 1.64), 'chord': 7.05, 't_ratio': 0.054, 'camber': 0.012, 'twist_deg':  0.5},
-            {'le': (side * 1.05,  0.30, 1.62), 'chord': 6.35, 't_ratio': 0.050, 'camber': 0.014, 'twist_deg':  0.2},
-            {'le': (side * 1.45, -0.55, 1.60), 'chord': 5.55, 't_ratio': 0.046, 'camber': 0.015, 'twist_deg':  0.0},
-            {'le': (side * 2.50, -1.75, 1.56), 'chord': 4.42, 't_ratio': 0.043, 'camber': 0.014, 'twist_deg': -0.5},
-            {'le': (side * 3.80, -3.22, 1.51), 'chord': 3.02, 't_ratio': 0.039, 'camber': 0.012, 'twist_deg': -1.2},
-            {'le': (side * 4.95, -4.52, 1.47), 'chord': 1.78, 't_ratio': 0.036, 'camber': 0.008, 'twist_deg': -1.8},
-            {'le': (side * 5.32, -4.95, 1.45), 'chord': 1.40, 't_ratio': 0.034, 'camber': 0.005, 'twist_deg': -2.0},
+        # 1. Main Delta Wing Torque Box
+        wing_box_stations = [
+            {'le': (side * 0.55,  1.05, 1.62), 'chord': 7.05, 't_ratio': 0.052, 'camber': 0.012, 'twist_deg':  0.5},
+            {'le': (side * 1.05,  0.30, 1.60), 'chord': 6.35, 't_ratio': 0.049, 'camber': 0.014, 'twist_deg':  0.2},
+            {'le': (side * 1.45, -0.55, 1.58), 'chord': 5.55, 't_ratio': 0.045, 'camber': 0.014, 'twist_deg':  0.0},
+            {'le': (side * 2.50, -1.75, 1.54), 'chord': 4.42, 't_ratio': 0.042, 'camber': 0.013, 'twist_deg': -0.5},
+            {'le': (side * 3.80, -3.22, 1.50), 'chord': 3.02, 't_ratio': 0.038, 'camber': 0.011, 'twist_deg': -1.2},
+            {'le': (side * 4.95, -4.52, 1.46), 'chord': 1.78, 't_ratio': 0.035, 'camber': 0.008, 'twist_deg': -1.8},
+            {'le': (side * 5.32, -4.95, 1.45), 'chord': 1.40, 't_ratio': 0.033, 'camber': 0.005, 'twist_deg': -2.0},
         ]
-        if side < 0:
-            wing_stations = list(reversed(wing_stations))
-            wing_obj = build_airfoil_surface(f"Rafale_Delta_Wing_{side_name}", wing_stations,
-                                             collection=coll, smooth=True, subsurf_levels=1,
-                                             cap_start=True, cap_end=False)
-        else:
-            wing_obj = build_airfoil_surface(f"Rafale_Delta_Wing_{side_name}", wing_stations,
-                                             collection=coll, smooth=True, subsurf_levels=1,
-                                             cap_start=False, cap_end=True)
+        st_box = list(reversed(wing_box_stations)) if side < 0 else wing_box_stations
+        wing_obj = build_airfoil_slice(
+            f"Rafale_Delta_Wing_Box_{side_name}", st_box,
+            u_min=0.0, u_max=0.835, deflect_deg=0.0,
+            collection=coll, smooth=True, subsurf_levels=1,
+            cap_start=(side < 0), cap_end=(side > 0)
+        )
         assign_mat(wing_obj, mats['airframe'])
 
-        # 2. Wingtip MICA Launch Rail & SPECTRA Wingtip Sensor Pods (X = ±5.38m)
+        # 2. Separated 3D Leading-Edge Slats
+        slat_stations = [
+            {'le': (side * 1.38, -0.42, 1.582), 'chord': 5.62, 't_ratio': 0.046, 'camber': 0.014, 'twist_deg':  0.0},
+            {'le': (side * 2.50, -1.75, 1.542), 'chord': 4.42, 't_ratio': 0.043, 'camber': 0.013, 'twist_deg': -0.5},
+            {'le': (side * 3.80, -3.22, 1.502), 'chord': 3.02, 't_ratio': 0.039, 'camber': 0.011, 'twist_deg': -1.2},
+            {'le': (side * 5.22, -4.82, 1.454), 'chord': 1.52, 't_ratio': 0.034, 'camber': 0.006, 'twist_deg': -1.9},
+        ]
+        st_slat = list(reversed(slat_stations)) if side < 0 else slat_stations
+        slat_obj = build_airfoil_slice(
+            f"Rafale_LE_Slat_{side_name}", st_slat,
+            u_min=0.0, u_max=0.125, deflect_deg=1.8,
+            collection=coll, smooth=True, subsurf_levels=1,
+            cap_start=False, cap_end=False
+        )
+        assign_mat(slat_obj, mats['airframe_alt'])
+
+        # 3. Separated 3D Inner Elevon (crisp spanwise ends with cap_start=False, cap_end=False)
+        inner_elev_stations = [
+            {'le': (side * 1.06,  0.26, 1.60), 'chord': 6.32, 't_ratio': 0.049, 'camber': 0.014, 'twist_deg':  0.2},
+            {'le': (side * 2.10, -1.28, 1.56), 'chord': 4.86, 't_ratio': 0.044, 'camber': 0.013, 'twist_deg': -0.3},
+            {'le': (side * 3.13, -2.46, 1.52), 'chord': 3.74, 't_ratio': 0.040, 'camber': 0.012, 'twist_deg': -0.8},
+        ]
+        st_ie = list(reversed(inner_elev_stations)) if side < 0 else inner_elev_stations
+        ie_obj = build_airfoil_slice(
+            f"Rafale_Inner_Elevon_{side_name}", st_ie,
+            u_min=0.838, u_max=1.00, deflect_deg=-2.2,
+            collection=coll, smooth=True, subsurf_levels=1,
+            cap_start=False, cap_end=False
+        )
+        assign_mat(ie_obj, mats['airframe_alt'])
+
+        # 4. Separated 3D Outer Elevon (only 8mm spanwise clearance from inner elevon so there is no triangular gap!)
+        outer_elev_stations = [
+            {'le': (side * 3.14, -2.47, 1.52), 'chord': 3.73, 't_ratio': 0.040, 'camber': 0.012, 'twist_deg': -0.8},
+            {'le': (side * 4.20, -3.68, 1.48), 'chord': 2.58, 't_ratio': 0.037, 'camber': 0.010, 'twist_deg': -1.4},
+            {'le': (side * 5.25, -4.87, 1.45), 'chord': 1.47, 't_ratio': 0.034, 'camber': 0.006, 'twist_deg': -1.9},
+        ]
+        st_oe = list(reversed(outer_elev_stations)) if side < 0 else outer_elev_stations
+        oe_obj = build_airfoil_slice(
+            f"Rafale_Outer_Elevon_{side_name}", st_oe,
+            u_min=0.838, u_max=1.00, deflect_deg=-1.8,
+            collection=coll, smooth=True, subsurf_levels=1,
+            cap_start=False, cap_end=False
+        )
+        assign_mat(oe_obj, mats['airframe_alt'])
+
+        # 5. Wingtip MICA Launch Rail & SPECTRA Wingtip Sensor Pods
         rail_stations = [
             (side * 5.38, -6.52, 1.45, 0.022, 0.040),
             (side * 5.38, -6.20, 1.45, 0.038, 0.068),
@@ -1045,15 +1342,15 @@ def build_wings_and_canards(coll, mats):
             rail_rings.append(ring)
         rail_obj = loft_closed_profiles(f"Rafale_Wingtip_Rail_{side_name}", rail_rings,
                                         cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=1)
-        assign_mat(rail_obj, mats['airframe'])
+        assign_mat(rail_obj, mats['airframe_alt'])
 
-        # 3. Underwing Elevon Hydraulic Actuator Fairings (low-profile streamlined blisters integrated into lower wing skin)
-        for idx, x_f in enumerate((1.85, 3.05, 4.15), 1):
-            y_te = -6.08 - (x_f - 1.5) * 0.06
-            z_w = 1.56 - (x_f - 1.5) * 0.025
+        # 6. Underwing Elevon Hydraulic Actuator Fairings
+        for idx, x_f in enumerate((1.85, 3.13, 4.25), 1):
+            y_te = -5.45 - (x_f - 1.5) * 0.05
+            z_w = 1.54 - (x_f - 1.5) * 0.025
             f_rings = []
-            for dy, r_x, r_z, dz in [(-0.18, 0.010, 0.012, 0.0), (0.05, 0.028, 0.036, -0.018),
-                                     (0.42, 0.030, 0.040, -0.022), (0.85, 0.010, 0.012, 0.0)]:
+            for dy, r_x, r_z, dz in [(-0.35, 0.010, 0.012, 0.0), (-0.05, 0.026, 0.034, -0.016),
+                                     (0.35, 0.028, 0.038, -0.020), (0.75, 0.010, 0.012, 0.0)]:
                 ring = []
                 for i in range(10):
                     ang = 2.0 * math.pi * i / 10
@@ -1063,27 +1360,24 @@ def build_wings_and_canards(coll, mats):
                                          cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=1)
             assign_mat(f_obj, mats['airframe'])
 
-        # 4. Close-Coupled Forward All-Moving Canards
+        # 7. Close-Coupled Forward All-Moving Canards
         canard_stations = [
-            {'le': (side * 0.68, 2.38, 2.02), 'chord': 1.48, 't_ratio': 0.044, 'camber': 0.008, 'twist_deg': -2.5},
-            {'le': (side * 1.40, 1.72, 2.11), 'chord': 1.12, 't_ratio': 0.041, 'camber': 0.006, 'twist_deg': -2.5},
-            {'le': (side * 2.15, 1.02, 2.21), 'chord': 0.72, 't_ratio': 0.038, 'camber': 0.004, 'twist_deg': -2.5},
-            {'le': (side * 2.56, 0.62, 2.27), 'chord': 0.42, 't_ratio': 0.034, 'camber': 0.002, 'twist_deg': -2.5},
+            {'le': (side * 0.68, 2.38, 1.98), 'chord': 1.48, 't_ratio': 0.044, 'camber': 0.008, 'twist_deg': -2.5},
+            {'le': (side * 1.40, 1.72, 2.07), 'chord': 1.12, 't_ratio': 0.041, 'camber': 0.006, 'twist_deg': -2.5},
+            {'le': (side * 2.15, 1.02, 2.17), 'chord': 0.72, 't_ratio': 0.038, 'camber': 0.004, 'twist_deg': -2.5},
+            {'le': (side * 2.56, 0.62, 2.23), 'chord': 0.42, 't_ratio': 0.034, 'camber': 0.002, 'twist_deg': -2.5},
         ]
-        if side < 0:
-            canard_stations = list(reversed(canard_stations))
-            canard_obj = build_airfoil_surface(f"Rafale_Canard_{side_name}", canard_stations,
-                                               collection=coll, smooth=True, subsurf_levels=1,
-                                               cap_start=True, cap_end=False)
-        else:
-            canard_obj = build_airfoil_surface(f"Rafale_Canard_{side_name}", canard_stations,
-                                               collection=coll, smooth=True, subsurf_levels=1,
-                                               cap_start=False, cap_end=True)
-        assign_mat(canard_obj, mats['airframe'])
+        st_can = list(reversed(canard_stations)) if side < 0 else canard_stations
+        canard_obj = build_airfoil_slice(
+            f"Rafale_Canard_{side_name}", st_can,
+            u_min=0.0, u_max=1.0, deflect_deg=0.0,
+            collection=coll, smooth=True, subsurf_levels=1,
+            cap_start=(side < 0), cap_end=(side > 0)
+        )
+        assign_mat(canard_obj, mats['airframe_alt'])
 
-        # Canard pivot spindle
-        bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.075, depth=0.32,
-                                            location=(side * 0.66, 1.55, 2.02),
+        bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.072, depth=0.32,
+                                            location=(side * 0.66, 1.55, 1.98),
                                             rotation=(0, math.radians(82 * side), 0))
         spindle = bpy.context.active_object
         spindle.name = f"Rafale_Canard_Spindle_{side_name}"
@@ -1094,12 +1388,12 @@ def build_wings_and_canards(coll, mats):
 
 def build_vertical_tail(coll, mats):
     """
-    Builds the swept vertical stabilizer (tailfin) with base heat-exchanger ram air scoop,
-    smooth root fillet fairing, and top SPECTRA electronic warfare pod.
-    Notice: cap_start=False on the fin root (embedded inside the dorsal spine at Z=1.95m)
-    completely eliminates the Catmull-Clark root wrinkling seen in the initial preview!
+    Builds the swept vertical stabilizer with:
+      1. Main Fin Torque Box (u = 0.00 to 0.738)
+      2. Separated 3D Rudder Control Surface (u = 0.740 to 1.00) with a tight 5mm hinge line gap so sky never leaks through!
+      3. Internal Cylindrical Rudder Hinge Spar Tube inside the 5mm seam
+      4. Fin-Root Heat Exchanger Ram Air Scoop & SPECTRA Top Fin Pod
     """
-    # 1. Main Vertical Fin Airfoil (from Z=1.95m inside spine to Z=5.22m under top pod)
     tail_stations = [
         {'le': (0.0, -3.35, 1.95), 'chord': 3.55, 't_ratio': 0.056, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
         {'le': (0.0, -3.65, 2.25), 'chord': 3.25, 't_ratio': 0.052, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
@@ -1108,15 +1402,50 @@ def build_vertical_tail(coll, mats):
         {'le': (0.0, -5.95, 4.65), 'chord': 1.32, 't_ratio': 0.040, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
         {'le': (0.0, -6.48, 5.22), 'chord': 0.90, 't_ratio': 0.036, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
     ]
-    tail_obj = build_airfoil_surface("Rafale_Vertical_Tail", tail_stations,
-                                     collection=coll, smooth=True, subsurf_levels=1,
-                                     cap_start=False, cap_end=True)
-    assign_mat(tail_obj, mats['airframe'])
+    # 1. Main Vertical Fin Box (u = 0.0 to 0.738)
+    fin_box = build_airfoil_slice(
+        "Rafale_Vertical_Tail_Box", tail_stations,
+        u_min=0.0, u_max=0.738, deflect_deg=0.0,
+        collection=coll, smooth=True, subsurf_levels=1,
+        cap_start=False, cap_end=False
+    )
+    assign_mat(fin_box, mats['airframe'])
 
-    # 2. Fin-Root Heat Exchanger Ram Air Scoop (characteristic scoop at the base of the fin leading edge)
+    # 2. Separated 3D Rudder Control Surface (from Z=2.18m to Z=5.18m, u = 0.740 to 1.00)
+    rudder_stations = [
+        {'le': (0.0, -3.58, 2.18), 'chord': 3.32, 't_ratio': 0.053, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
+        {'le': (0.0, -4.35, 2.95), 'chord': 2.68, 't_ratio': 0.048, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
+        {'le': (0.0, -5.20, 3.85), 'chord': 1.95, 't_ratio': 0.044, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
+        {'le': (0.0, -5.95, 4.65), 'chord': 1.32, 't_ratio': 0.040, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
+        {'le': (0.0, -6.44, 5.18), 'chord': 0.94, 't_ratio': 0.036, 'camber': 0.0, 'twist_deg': 0.0, 'vertical': True},
+    ]
+    rudder_obj = build_airfoil_slice(
+        "Rafale_Vertical_Rudder", rudder_stations,
+        u_min=0.740, u_max=1.00, deflect_deg=1.2,
+        collection=coll, smooth=True, subsurf_levels=1,
+        cap_start=False, cap_end=False
+    )
+    assign_mat(rudder_obj, mats['airframe_alt'])
+
+    # 3. Internal Rudder Hinge Spar Tube along the hinge line (prevents any sky light from passing through the 5mm hinge seam!)
+    spar_rings = []
+    for st in rudder_stations:
+        y_hinge = st['le'][1] - 0.739 * st['chord']
+        z_hinge = st['le'][2]
+        r_spar = 0.32 * st['chord'] * st['t_ratio']
+        ring = []
+        for i in range(16):
+            ang = 2.0 * math.pi * i / 16
+            ring.append((r_spar * math.cos(ang), y_hinge + r_spar * math.sin(ang), z_hinge))
+        spar_rings.append(ring)
+    spar_obj = loft_closed_profiles("Rafale_Rudder_Hinge_Spar", spar_rings, cap_start=True, cap_end=True,
+                                    collection=coll, smooth=True, subsurf_levels=0)
+    assign_mat(spar_obj, mats['sensor'])
+
+    # 4. Fin-Root Heat Exchanger Ram Air Scoop
     scoop_rings = []
-    for y, rx, rz, zc in [(-4.40, 0.11, 0.10, 2.34), (-3.65, 0.13, 0.14, 2.38),
-                          (-3.32, 0.10, 0.12, 2.38), (-3.38, 0.07, 0.09, 2.38)]:
+    for y, rx, rz, zc in [(-4.40, 0.10, 0.09, 2.22), (-3.65, 0.12, 0.12, 2.26),
+                          (-3.32, 0.09, 0.10, 2.26), (-3.38, 0.06, 0.07, 2.26)]:
         ring = []
         for i in range(14):
             ang = 2.0 * math.pi * i / 14
@@ -1126,7 +1455,7 @@ def build_vertical_tail(coll, mats):
                                      cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=1)
     assign_mat(scoop_obj, mats['airframe'])
 
-    # 3. Top Fin Tip SPECTRA EW Pod (elongated horizontal bullet/cigar pod at Z=5.26m, topping at Z=5.34m)
+    # 5. Top Fin Tip SPECTRA EW Pod
     pod_stations = [
         (-7.62, 5.26, 0.015, 0.015),
         (-7.45, 5.26, 0.065, 0.075),
@@ -1146,12 +1475,12 @@ def build_vertical_tail(coll, mats):
                                    cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=1)
     assign_mat(pod_obj, mats['sensor'])
 
-    # 4. Rear Parachute / ECM Fairing under the tail root (Y=-7.45m, Z=2.10m)
+    # 6. Rear Parachute / ECM Fairing under the tail root
     ddm_stations = [
-        (-7.58, 2.10, 0.02, 0.02),
-        (-7.35, 2.10, 0.09, 0.08),
-        (-6.75, 2.10, 0.11, 0.10),
-        (-6.20, 2.10, 0.06, 0.06),
+        (-7.58, 2.08, 0.02, 0.02),
+        (-7.35, 2.08, 0.09, 0.08),
+        (-6.75, 2.08, 0.11, 0.10),
+        (-6.20, 2.08, 0.06, 0.06),
     ]
     ddm_rings = []
     for yp, zp, rx, rz in ddm_stations:
@@ -1162,22 +1491,20 @@ def build_vertical_tail(coll, mats):
         ddm_rings.append(ring)
     ddm_obj = loft_closed_profiles("Rafale_Tail_Base_Fairing", ddm_rings,
                                    cap_start=True, cap_end=True, collection=coll, smooth=True, subsurf_levels=1)
-    assign_mat(ddm_obj, mats['airframe'])
+    assign_mat(ddm_obj, mats['airframe_alt'])
 
+
+# ==============================================================================
+# RECESSED EXHAUSTS & DETAILED LANDING GEAR + WHEEL WELLS
+# ==============================================================================
 
 def build_recessed_exhausts(coll, mats):
-    """
-    Builds the twin Snecma M88-2 recessed exhaust nozzles at X = ±0.415m, Y = -7.25m to -7.62m, Z = 1.54m.
-    Features an authentic annular outer shroud and 18 curved, ribbed convergent-divergent turkey-feather
-    petals per engine with an external metallic compression band and deep internal afterburner assembly.
-    """
     n_petals = 18
     for side in (-1.0, 1.0):
         side_name = "R" if side > 0 else "L"
         xc = side * 0.415
         zc = 1.54
 
-        # 1. Outer Fuselage Exhaust Shroud Ring (OPEN annular collar — cap_start=False, cap_end=False so it never blocks the nozzle!)
         shroud_rings = []
         for y, r in [(-6.50, 0.345), (-7.28, 0.345), (-7.30, 0.385), (-7.00, 0.418), (-6.40, 0.435), (-6.50, 0.345)]:
             ring = []
@@ -1189,8 +1516,6 @@ def build_recessed_exhausts(coll, mats):
                                           cap_start=False, cap_end=False, collection=coll, smooth=True, subsurf_levels=1)
         assign_mat(shroud_obj, mats['airframe'])
 
-        # 2. Recessed Convergent-Divergent Nozzle Petals (18 individual 3D curved & ribbed petals per nozzle)
-        # Each petal is subdivided into 3 angular sub-segments with a raised external structural spine rib
         petal_verts = []
         petal_faces = []
         for p in range(n_petals):
@@ -1200,7 +1525,6 @@ def build_recessed_exhausts(coll, mats):
             ang_R = ang_c + d_ang
 
             stations_p = [
-                # (y, r_base, rib_height)
                 (-7.15, 0.342, 0.010),
                 (-7.38, 0.318, 0.014),
                 (-7.52, 0.298, 0.012),
@@ -1209,12 +1533,10 @@ def build_recessed_exhausts(coll, mats):
             thick = 0.014
             base_idx = len(petal_verts)
 
-            # 6 vertices per longitudinal station:
-            # Outer Left (0), Outer Center Rib (1), Outer Right (2), Inner Right (3), Inner Center (4), Inner Left (5)
             for yp, r_base, rib_h in stations_p:
                 r_L = r_base
                 r_C = r_base + rib_h
-                r_R = r_base + 0.004  # shingle overlap
+                r_R = r_base + 0.004
                 petal_verts.append((xc + r_L * math.cos(ang_L), yp, zc + r_L * math.sin(ang_L)))
                 petal_verts.append((xc + r_C * math.cos(ang_c), yp, zc + r_C * math.sin(ang_c)))
                 petal_verts.append((xc + r_R * math.cos(ang_R), yp, zc + r_R * math.sin(ang_R)))
@@ -1229,7 +1551,6 @@ def build_recessed_exhausts(coll, mats):
                     nk = (k + 1) % 6
                     petal_faces.append((b1 + k, b1 + nk, b2 + nk, b2 + k))
 
-            # Aft tip cap at station -7.62m
             b_end = base_idx + (len(stations_p) - 1) * 6
             petal_faces.append((b_end + 0, b_end + 1, b_end + 4, b_end + 5))
             petal_faces.append((b_end + 1, b_end + 2, b_end + 3, b_end + 4))
@@ -1238,7 +1559,6 @@ def build_recessed_exhausts(coll, mats):
                                      collection=coll, smooth=True, subsurf_levels=0)
         assign_mat(petals_obj, mats['exhaust'])
 
-        # 3. External Actuator Compression Ring around the nozzle throat (Y = -7.36m)
         bpy.ops.mesh.primitive_torus_add(major_radius=0.332, minor_radius=0.012,
                                          major_segments=36, minor_segments=10,
                                          location=(xc, -7.36, zc), rotation=(math.radians(90), 0, 0))
@@ -1248,7 +1568,6 @@ def build_recessed_exhausts(coll, mats):
         bpy.context.scene.collection.objects.unlink(comp_ring)
         assign_mat(comp_ring, mats['exhaust'])
 
-        # 4. Deep Recessed Afterburner Liner Tube (OPEN front at Y=-7.58m, capped only at deep forward turbine wall Y=-5.90m!)
         liner_rings = []
         for y, r in [(-7.58, 0.268), (-7.38, 0.296), (-7.10, 0.318), (-5.90, 0.318)]:
             ring = []
@@ -1260,7 +1579,6 @@ def build_recessed_exhausts(coll, mats):
                                          cap_start=False, cap_end=True, collection=coll, smooth=True, subsurf_levels=0)
         assign_mat(liner_obj, mats['exhaust_inner'])
 
-        # 5. Turbine Cone & Flameholder Rings inside the open recessed exhaust cavity
         bpy.ops.mesh.primitive_cone_add(vertices=24, radius1=0.14, radius2=0.01, depth=0.48,
                                         location=(xc, -6.20, zc), rotation=(math.radians(-90), 0, 0))
         cone = bpy.context.active_object
@@ -1281,17 +1599,11 @@ def build_recessed_exhausts(coll, mats):
 
 
 def create_wheel_and_tire(name, loc, tire_radius, tire_width, coll, mats):
-    """
-    Creates a realistic aircraft tire with deep recessed wheel rim dish, brake caliper assembly,
-    lug bolts, and dark vulcanized rubber tire.
-    """
     cx, cy, cz = loc
     hw = tire_width * 0.5
     r_rim = tire_radius * 0.52
 
-    # 1. Tire Toroid (closed loop cross-section around the rim so it has real sidewall thickness and bead)
     tire_section = [
-        # (dx, r) around the tire cross-section
         (-hw * 0.72, r_rim * 0.96),
         (-hw * 0.96, tire_radius * 0.72),
         (-hw * 1.00, tire_radius * 0.86),
@@ -1307,26 +1619,34 @@ def create_wheel_and_tire(name, loc, tire_radius, tire_width, coll, mats):
     ]
 
     tire_rings = []
-    n_seg = 40
+    n_seg = 48
     for dx, rad in tire_section:
         ring = []
+        is_sidewall = abs(dx) > hw * 0.80
         for i in range(n_seg):
             ang = 2.0 * math.pi * i / n_seg
             y = cy + rad * math.cos(ang)
             z = cz + rad * math.sin(ang)
-            # Subtle static weight deflection where the tire meets the concrete apron at Z = 0.0
-            if z < 0.010:
-                z = max(0.0, z * 0.30)
-            ring.append((cx + dx, y, z))
+            if z < 0.022:
+                ground_prox = max(0.0, (0.022 - z) / 0.022)
+                z = max(0.0005, z * 0.12)
+                if is_sidewall:
+                    dx_bulge = math.copysign(hw * 0.09 * (ground_prox ** 0.7), dx)
+                else:
+                    dx_bulge = 0.0
+            elif z < 0.10 and is_sidewall:
+                ground_prox = max(0.0, (0.10 - z) / 0.10)
+                dx_bulge = math.copysign(hw * 0.06 * (ground_prox ** 1.2), dx)
+            else:
+                dx_bulge = 0.0
+            ring.append((cx + dx + dx_bulge, y, z))
         tire_rings.append(ring)
-    # Close the loop by repeating the first section
     tire_rings.append(tire_rings[0])
 
     tire_obj = loft_closed_profiles(f"{name}_Tire", tire_rings, cap_start=False, cap_end=False,
                                     collection=coll, smooth=True, subsurf_levels=1)
     assign_mat(tire_obj, mats['tire'])
 
-    # 2. Sculpted Recessed Wheel Rim Hub (revolved profile with outer flange, deep dish recess, and raised center hub cap)
     rim_section = [
         (-hw * 0.45, 0.005),
         (-hw * 0.45, r_rim * 0.32),
@@ -1358,14 +1678,13 @@ def create_wheel_and_tire(name, loc, tire_radius, tire_width, coll, mats):
                                    collection=coll, smooth=True, subsurf_levels=1)
     assign_mat(rim_obj, mats['gear_strut'])
 
-    # 3. Circle of 10 Lug Bolts / Brake Tie Bolts inside the wheel dish (both sides)
     n_bolts = 10
     r_bolt_circle = r_rim * 0.60
     for b in range(n_bolts):
         ang = 2.0 * math.pi * b / n_bolts
         by = cy + r_bolt_circle * math.cos(ang)
         bz = cz + r_bolt_circle * math.sin(ang)
-        bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=tire_radius * 0.032, depth=tire_width * 0.72,
+        bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=tire_radius * 0.030, depth=tire_width * 0.72,
                                             location=(cx, by, bz), rotation=(0, math.radians(90), 0))
         bolt = bpy.context.active_object
         bolt.name = f"{name}_Bolt_{b}"
@@ -1374,7 +1693,7 @@ def create_wheel_and_tire(name, loc, tire_radius, tire_width, coll, mats):
         assign_mat(bolt, mats['chrome'])
 
 
-def add_cylinder_between(name, p1, p2, radius, coll, mat, vertices=16):
+def add_cylinder_between(name, p1, p2, radius, coll, mat, vertices=24, clevis_ends=False):
     v1 = Vector(p1)
     v2 = Vector(p2)
     diff = v2 - v1
@@ -1385,6 +1704,8 @@ def add_cylinder_between(name, p1, p2, radius, coll, mat, vertices=16):
     bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=length, location=mid)
     obj = bpy.context.active_object
     obj.name = name
+    for poly in obj.data.polygons:
+        poly.use_smooth = True
     up = Vector((0, 0, 1))
     rot_quat = up.rotation_difference(diff.normalized())
     obj.rotation_mode = 'QUATERNION'
@@ -1393,156 +1714,270 @@ def add_cylinder_between(name, p1, p2, radius, coll, mat, vertices=16):
     coll.objects.link(obj)
     bpy.context.scene.collection.objects.unlink(obj)
     assign_mat(obj, mat)
+
+    if clevis_ends:
+        for idx, pt in enumerate((v1, v2)):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=radius * 1.32, depth=radius * 2.2,
+                                                location=pt, rotation=(0, math.radians(90), 0))
+            joint = bpy.context.active_object
+            joint.name = f"{name}_Joint_{idx}"
+            for poly in joint.data.polygons:
+                poly.use_smooth = True
+            coll.objects.link(joint)
+            bpy.context.scene.collection.objects.unlink(joint)
+            assign_mat(joint, mat)
     return obj
+
+
+def build_serrated_gear_door(name, corner_pts, thickness, serration_amp, n_teeth, coll, mat):
+    p0, p1, p2, p3 = [Vector(p) for p in corner_pts]
+    n_steps = n_teeth * 2
+    verts = []
+    faces = []
+
+    normal = (p1 - p0).cross(p3 - p0).normalized()
+    offset_vec = normal * thickness
+
+    for i in range(n_steps + 1):
+        t = i / n_steps
+        top_pt = p0.lerp(p1, t)
+        bot_pt = p3.lerp(p2, t)
+        tooth = serration_amp if (i % 2 == 1) else 0.0
+        bot_dir = (bot_pt - top_pt).normalized()
+        bot_pt = bot_pt + bot_dir * tooth
+
+        verts.append(tuple(top_pt))
+        verts.append(tuple(bot_pt))
+        verts.append(tuple(bot_pt + offset_vec))
+        verts.append(tuple(top_pt + offset_vec))
+
+    for i in range(n_steps):
+        b1 = i * 4
+        b2 = (i + 1) * 4
+        for k in range(4):
+            nk = (k + 1) % 4
+            faces.append((b1 + k, b1 + nk, b2 + nk, b2 + k))
+    faces.append((0, 3, 2, 1))
+    b_last = n_steps * 4
+    faces.append((b_last, b_last + 1, b_last + 2, b_last + 3))
+
+    door_obj = create_mesh_obj(name, verts, faces, collection=coll, smooth=False, subsurf_levels=0)
+    assign_mat(door_obj, mat)
+    return door_obj
 
 
 def build_landing_gear(coll, mats):
     """
-    Builds detailed Messier-Dowty tricycle landing gear resting squarely on Z = 0.0:
-    1. Nose Landing Gear at Y = +3.90m: Twin steerable wheels (r=0.22m), recessed wheel hubs,
-       shock absorber strut, oleo chrome cylinder, torque links, forward drag brace, twin landing lights,
-       and nose gear bay doors.
-    2. Main Landing Gear at Y = -1.80m, X = ±1.20m (Track 2.40m, Wheelbase 5.70m):
-       Single large main wheels (r=0.39m), multi-bolt recessed wheel hubs, carbon brake pack,
-       heavy trailing-link shock struts, hydraulic side braces, and contoured main gear bay doors.
+    Builds detailed Messier-Dowty nose and main landing gear with recessed wheel-well ribs
+    tucked strictly inside the hull cavity, smooth-shaded hydraulic cylinders and clevis joints,
+    braided hydraulic brake lines, and weighted tire contact on Z = 0.0.
     """
-    # --- NOSE LANDING GEAR (Y = +3.90m) ---
+    # --- 1. RECESSED NOSE WHEEL WELL & NOSE LANDING GEAR (Y = +3.90m) ---
     ny = 3.90
-    nr = 0.22
-    create_wheel_and_tire("Rafale_Nose_Wheel_L", (-0.118, ny, nr), nr, 0.11, coll, mats)
-    create_wheel_and_tire("Rafale_Nose_Wheel_R", ( 0.118, ny, nr), nr, 0.11, coll, mats)
+    nr = 0.215
+    nz_c = 0.208
 
-    # Axle
-    add_cylinder_between("Rafale_Nose_Axle", (-0.15, ny, nr), (0.15, ny, nr), 0.032, coll, mats['chrome'])
+    # Nose Wheel Well Interior Transverse Ribs (tucked inside the recessed cavity X in [-0.14, 0.14], Z = 1.15m)
+    for y_rib in (3.70, 3.90, 4.10, 4.30, 4.48):
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, y_rib, 1.16))
+        rib = bpy.context.active_object
+        rib.name = f"Rafale_Nose_Bay_Rib_{int(y_rib*100)}"
+        rib.scale = (0.14, 0.018, 0.08)
+        coll.objects.link(rib)
+        bpy.context.scene.collection.objects.unlink(rib)
+        assign_mat(rib, mats['gear_strut'])
 
-    # Lower chrome oleo piston
-    add_cylinder_between("Rafale_Nose_Oleo", (0.0, ny, nr), (0.0, ny + 0.04, 0.56), 0.042, coll, mats['chrome'])
+    create_wheel_and_tire("Rafale_Nose_Wheel_L", (-0.118, ny, nz_c), nr, 0.11, coll, mats)
+    create_wheel_and_tire("Rafale_Nose_Wheel_R", ( 0.118, ny, nz_c), nr, 0.11, coll, mats)
 
-    # Upper white main strut housing
-    add_cylinder_between("Rafale_Nose_Strut_Upper", (0.0, ny + 0.04, 0.52), (0.0, ny + 0.14, 1.18), 0.062, coll, mats['gear_strut'])
+    add_cylinder_between("Rafale_Nose_Axle", (-0.15, ny, nz_c), (0.15, ny, nz_c), 0.032, coll, mats['chrome'], clevis_ends=True)
+    add_cylinder_between("Rafale_Nose_Oleo", (0.0, ny, nz_c), (0.0, ny + 0.03, 0.55), 0.040, coll, mats['chrome'], clevis_ends=True)
+    add_cylinder_between("Rafale_Nose_Strut_Upper", (0.0, ny + 0.03, 0.52), (0.0, ny + 0.14, 1.22), 0.056, coll, mats['gear_strut'], clevis_ends=True)
 
-    # Steering actuator collar
-    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.082, depth=0.14,
-                                        location=(0.0, ny + 0.09, 0.82), rotation=(math.radians(-8), 0, 0))
-    steer = bpy.context.active_object
-    steer.name = "Rafale_Nose_Steering_Collar"
-    coll.objects.link(steer)
-    bpy.context.scene.collection.objects.unlink(steer)
-    assign_mat(steer, mats['gear_strut'])
+    for z_flange, rad_f in [(0.53, 0.070), (0.76, 0.078), (0.94, 0.072)]:
+        y_f = ny + 0.03 + (z_flange - 0.52) * 0.15
+        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=rad_f, depth=0.042,
+                                            location=(0.0, y_f, z_flange), rotation=(math.radians(-9), 0, 0))
+        fl = bpy.context.active_object
+        fl.name = f"Rafale_Nose_Collar_{int(z_flange*100)}"
+        for poly in fl.data.polygons:
+            poly.use_smooth = True
+        coll.objects.link(fl)
+        bpy.context.scene.collection.objects.unlink(fl)
+        assign_mat(fl, mats['gear_strut'])
 
-    # Forward diagonal drag brace / retraction actuator
-    add_cylinder_between("Rafale_Nose_Drag_Brace", (0.0, ny + 0.08, 0.68), (0.0, ny + 0.62, 1.16), 0.032, coll, mats['gear_strut'])
-    add_cylinder_between("Rafale_Nose_Actuator_Piston", (0.0, ny + 0.10, 0.72), (0.0, ny + 0.45, 0.98), 0.022, coll, mats['chrome'])
+    for sx in (-0.062, 0.062):
+        add_cylinder_between(f"Rafale_Nose_Steer_Cyl_{'R' if sx>0 else 'L'}",
+                             (sx, ny + 0.08, 0.78), (sx * 0.5, ny - 0.08, 0.62), 0.016, coll, mats['chrome'], clevis_ends=True)
 
-    # Scissor torque links (aft of nose strut)
-    add_cylinder_between("Rafale_Nose_Torque_Lower", (0.0, ny + 0.01, 0.26), (0.0, ny - 0.16, 0.40), 0.020, coll, mats['gear_strut'])
-    add_cylinder_between("Rafale_Nose_Torque_Upper", (0.0, ny - 0.16, 0.40), (0.0, ny + 0.04, 0.55), 0.020, coll, mats['gear_strut'])
+    knee_n = (0.0, ny + 0.36, 0.90)
+    add_cylinder_between("Rafale_Nose_Drag_Lower", (0.0, ny + 0.07, 0.66), knee_n, 0.026, coll, mats['gear_strut'], clevis_ends=True)
+    add_cylinder_between("Rafale_Nose_Drag_Upper", knee_n, (0.0, ny + 0.62, 1.20), 0.028, coll, mats['gear_strut'], clevis_ends=True)
+    add_cylinder_between("Rafale_Nose_Retract_Body", (0.0, ny + 0.56, 1.18), (0.0, ny + 0.26, 0.94), 0.024, coll, mats['gear_strut'])
+    add_cylinder_between("Rafale_Nose_Retract_Rod", (0.0, ny + 0.26, 0.94), (0.0, ny + 0.09, 0.72), 0.015, coll, mats['chrome'], clevis_ends=True)
 
-    # Twin Taxi / Landing Lights on nose strut
-    for lx in (-0.068, 0.068):
-        bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.035, depth=0.05,
-                                            location=(lx, ny + 0.12, 0.62), rotation=(math.radians(90), 0, 0))
+    add_cylinder_between("Rafale_Nose_Torque_Lower", (0.0, ny + 0.01, 0.25), (0.0, ny - 0.17, 0.39), 0.018, coll, mats['gear_strut'], clevis_ends=True)
+    add_cylinder_between("Rafale_Nose_Torque_Upper", (0.0, ny - 0.17, 0.39), (0.0, ny + 0.04, 0.54), 0.018, coll, mats['gear_strut'], clevis_ends=True)
+
+    for hp1, hp2 in [
+        ((0.046, ny + 0.15, 1.16), (0.052, ny + 0.06, 0.75)),
+        ((0.052, ny + 0.06, 0.75), (0.042, ny - 0.06, 0.42)),
+        ((0.042, ny - 0.06, 0.42), (0.036, ny, 0.24)),
+    ]:
+        add_cylinder_between("Rafale_Nose_Hyd_Line", hp1, hp2, 0.007, coll, mats['hydraulic'])
+
+    for lx in (-0.070, 0.070):
+        bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=0.034, depth=0.048,
+                                            location=(lx, ny + 0.11, 0.62), rotation=(math.radians(90), 0, 0))
         light_housing = bpy.context.active_object
         light_housing.name = f"Rafale_Nose_Gear_Light_{'R' if lx > 0 else 'L'}"
+        for poly in light_housing.data.polygons:
+            poly.use_smooth = True
         coll.objects.link(light_housing)
         bpy.context.scene.collection.objects.unlink(light_housing)
         assign_mat(light_housing, mats['gear_strut'])
 
-    # Nose Gear Bay Doors
     for side in (-1.0, 1.0):
         side_name = "R" if side > 0 else "L"
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 0.25, ny + 0.18, 0.94))
-        ndoor = bpy.context.active_object
-        ndoor.name = f"Rafale_Nose_Gear_Door_{side_name}"
-        ndoor.scale = (0.012, 0.44, 0.15)
-        ndoor.rotation_euler = (0.0, math.radians(side * -14), 0.0)
-        coll.objects.link(ndoor)
-        bpy.context.scene.collection.objects.unlink(ndoor)
-        assign_mat(ndoor, mats['airframe'])
+        c_pts = [
+            (side * 0.20, 3.62, 1.02),
+            (side * 0.19, 4.52, 1.04),
+            (side * 0.25, 4.48, 0.78),
+            (side * 0.26, 3.66, 0.76),
+        ]
+        if side < 0:
+            c_pts = [c_pts[1], c_pts[0], c_pts[3], c_pts[2]]
+        build_serrated_gear_door(f"Rafale_Nose_Gear_Door_{side_name}", c_pts,
+                                 thickness=0.014, serration_amp=0.024, n_teeth=5, coll=coll, mat=mats['airframe_alt'])
+        add_cylinder_between(f"Rafale_Nose_Door_Strut_{side_name}",
+                             (side * 0.15, 4.05, 1.10), (side * 0.21, 4.05, 0.88), 0.008, coll, mats['chrome'])
 
-    # --- MAIN LANDING GEAR (Y = -1.80m, X = ±1.20m) ---
+    # --- 2. RECESSED MAIN WHEEL WELLS & MAIN LANDING GEAR (Y = -1.80m, X = ±1.20m) ---
     my = -1.80
-    mr = 0.39
+    mr = 0.385
+    mz_c = 0.372
+
     for side in (-1.0, 1.0):
         side_name = "R" if side > 0 else "L"
         mx = side * 1.20
 
-        # Main Wheel & Tire with detailed recessed hub and lug bolts
-        create_wheel_and_tire(f"Rafale_Main_Wheel_{side_name}", (mx, my, mr), mr, 0.25, coll, mats)
+        # Main Wheel Well Internal Structural Bulkheads (tucked cleanly inside the recessed bay X in [0.46, 0.78], Z = 1.12m)
+        for y_mb in (-2.15, -1.88, -1.60, -1.32):
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 0.62, y_mb, 1.12))
+            mrib = bpy.context.active_object
+            mrib.name = f"Rafale_Main_Bay_Rib_{side_name}_{int(abs(y_mb)*100)}"
+            mrib.scale = (0.16, 0.022, 0.09)
+            coll.objects.link(mrib)
+            bpy.context.scene.collection.objects.unlink(mrib)
+            assign_mat(mrib, mats['gear_strut'])
 
-        # Carbon Brake Caliper Pack on inboard side of main wheel hub
-        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=mr * 0.44, depth=0.14,
-                                            location=(side * 1.09, my, mr), rotation=(0, math.radians(90), 0))
+        create_wheel_and_tire(f"Rafale_Main_Wheel_{side_name}", (mx, my, mz_c), mr, 0.25, coll, mats)
+
+        bpy.ops.mesh.primitive_cylinder_add(vertices=28, radius=mr * 0.45, depth=0.14,
+                                            location=(side * 1.08, my, mz_c), rotation=(0, math.radians(90), 0))
         brake_pack = bpy.context.active_object
         brake_pack.name = f"Rafale_Main_Brake_Pack_{side_name}"
+        for poly in brake_pack.data.polygons:
+            poly.use_smooth = True
         coll.objects.link(brake_pack)
         bpy.context.scene.collection.objects.unlink(brake_pack)
         assign_mat(brake_pack, mats['exhaust'])
 
-        # Heavy Trailing-Link / Inclined Main Strut
-        knuckle = (side * 1.02, my + 0.04, 0.42)
-        wheel_axle_in = (side * 1.02, my, mr)
-        wheel_axle_out = (side * 1.28, my, mr)
-        top_pivot = (side * 0.68, my + 0.28, 1.18)
+        for ang_deg in (30, 90, 150, 210, 270, 330):
+            ang = math.radians(ang_deg)
+            cy_p = my + (mr * 0.36) * math.cos(ang)
+            cz_p = mz_c + (mr * 0.36) * math.sin(ang)
+            bpy.ops.mesh.primitive_cylinder_add(vertices=14, radius=0.024, depth=0.17,
+                                                location=(side * 1.07, cy_p, cz_p), rotation=(0, math.radians(90), 0))
+            cal = bpy.context.active_object
+            cal.name = f"Rafale_Brake_Caliper_{side_name}_{ang_deg}"
+            for poly in cal.data.polygons:
+                poly.use_smooth = True
+            coll.objects.link(cal)
+            bpy.context.scene.collection.objects.unlink(cal)
+            assign_mat(cal, mats['chrome'])
 
-        # Axle & trailing arm knuckle
-        add_cylinder_between(f"Rafale_Main_Axle_{side_name}", wheel_axle_in, wheel_axle_out, 0.052, coll, mats['chrome'])
-        add_cylinder_between(f"Rafale_Main_Trailing_Arm_{side_name}", (side * 0.96, my + 0.24, 0.58), knuckle, 0.052, coll, mats['gear_strut'])
+        knuckle = (side * 1.01, my + 0.05, 0.41)
+        forward_knee = (side * 0.94, my + 0.34, 0.60)
+        strut_lower = (side * 0.87, my + 0.16, 0.72)
+        top_trunnion = (side * 0.66, my + 0.30, 1.20)
 
-        # Oleo Shock Absorber Cylinder
-        add_cylinder_between(f"Rafale_Main_Oleo_{side_name}", knuckle, (side * 0.88, my + 0.14, 0.74), 0.050, coll, mats['chrome'])
+        add_cylinder_between(f"Rafale_Main_Axle_{side_name}",
+                             (side * 1.00, my, mz_c), (side * 1.28, my, mz_c), 0.050, coll, mats['chrome'], clevis_ends=True)
+        add_cylinder_between(f"Rafale_Main_Trailing_Link_{side_name}",
+                             knuckle, forward_knee, 0.052, coll, mats['gear_strut'], clevis_ends=True)
 
-        # Main Heavy Upper Strut
-        add_cylinder_between(f"Rafale_Main_Strut_{side_name}", (side * 0.88, my + 0.14, 0.68), top_pivot, 0.076, coll, mats['gear_strut'])
+        add_cylinder_between(f"Rafale_Main_Oleo_Piston_{side_name}",
+                             knuckle, strut_lower, 0.044, coll, mats['chrome'], clevis_ends=True)
+        add_cylinder_between(f"Rafale_Main_Shock_Cylinder_{side_name}",
+                             strut_lower, (side * 0.74, my + 0.25, 1.05), 0.060, coll, mats['gear_strut'], clevis_ends=True)
 
-        # Side Brace & Retraction Actuator Struts
-        add_cylinder_between(f"Rafale_Main_Side_Brace_{side_name}",
-                             (side * 0.88, my + 0.14, 0.72), (side * 0.52, my + 0.68, 1.10), 0.036, coll, mats['gear_strut'])
+        add_cylinder_between(f"Rafale_Main_Upper_Post_{side_name}",
+                             forward_knee, top_trunnion, 0.068, coll, mats['gear_strut'], clevis_ends=True)
+
+        side_knee = (side * 0.68, my + 0.44, 0.92)
+        add_cylinder_between(f"Rafale_Main_Side_Brace_Low_{side_name}",
+                             (side * 0.86, my + 0.18, 0.74), side_knee, 0.032, coll, mats['gear_strut'], clevis_ends=True)
+        add_cylinder_between(f"Rafale_Main_Side_Brace_Up_{side_name}",
+                             side_knee, (side * 0.48, my + 0.68, 1.16), 0.034, coll, mats['gear_strut'], clevis_ends=True)
+        add_cylinder_between(f"Rafale_Main_Retract_Cyl_{side_name}",
+                             (side * 0.46, my + 0.24, 1.14), (side * 0.72, my + 0.20, 0.94), 0.030, coll, mats['gear_strut'])
+        add_cylinder_between(f"Rafale_Main_Retract_Rod_{side_name}",
+                             (side * 0.72, my + 0.20, 0.94), (side * 0.86, my + 0.18, 0.76), 0.018, coll, mats['chrome'], clevis_ends=True)
+
         add_cylinder_between(f"Rafale_Main_Rear_Brace_{side_name}",
-                             (side * 0.82, my + 0.18, 0.82), (side * 0.55, my - 0.35, 1.12), 0.032, coll, mats['gear_strut'])
+                             (side * 0.80, my + 0.22, 0.86), (side * 0.56, my - 0.34, 1.14), 0.030, coll, mats['gear_strut'], clevis_ends=True)
 
-        # Outer Main Gear Door
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 1.06, my + 0.15, 0.90))
-        mdoor_out = bpy.context.active_object
-        mdoor_out.name = f"Rafale_Main_Gear_Door_Out_{side_name}"
-        mdoor_out.scale = (0.015, 0.50, 0.22)
-        mdoor_out.rotation_euler = (0.0, math.radians(side * 20), 0.0)
-        coll.objects.link(mdoor_out)
-        bpy.context.scene.collection.objects.unlink(mdoor_out)
-        assign_mat(mdoor_out, mats['airframe'])
+        for h_off in (-0.025, 0.025):
+            for hp1, hp2 in [
+                ((side * 0.68, my + 0.32 + h_off, 1.16), (side * 0.92, my + 0.34 + h_off, 0.62)),
+                ((side * 0.92, my + 0.34 + h_off, 0.62), (side * 1.03, my + 0.08 + h_off, 0.42)),
+                ((side * 1.03, my + 0.08 + h_off, 0.42), (side * 1.06, my + h_off, mz_c + 0.08)),
+            ]:
+                add_cylinder_between(f"Rafale_Main_Hyd_Hose_{side_name}", hp1, hp2, 0.008, coll, mats['hydraulic'])
 
-        # Inner Belly Gear Door
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 0.42, my + 0.18, 0.82))
-        mdoor_in = bpy.context.active_object
-        mdoor_in.name = f"Rafale_Main_Gear_Door_In_{side_name}"
-        mdoor_in.scale = (0.014, 0.58, 0.18)
-        mdoor_in.rotation_euler = (0.0, math.radians(side * -18), 0.0)
-        coll.objects.link(mdoor_in)
-        bpy.context.scene.collection.objects.unlink(mdoor_in)
-        assign_mat(mdoor_in, mats['airframe'])
+        out_pts = [
+            (side * 0.98, my - 0.35, 1.02),
+            (side * 0.98, my + 0.62, 1.02),
+            (side * 1.08, my + 0.58, 0.64),
+            (side * 1.08, my - 0.32, 0.64),
+        ]
+        if side < 0:
+            out_pts = [out_pts[1], out_pts[0], out_pts[3], out_pts[2]]
+        build_serrated_gear_door(f"Rafale_Main_Gear_Door_Out_{side_name}", out_pts,
+                                 thickness=0.015, serration_amp=0.030, n_teeth=6, coll=coll, mat=mats['airframe_alt'])
+
+        in_pts = [
+            (side * 0.36, my - 0.38, 0.94),
+            (side * 0.36, my + 0.68, 0.94),
+            (side * 0.44, my + 0.64, 0.62),
+            (side * 0.44, my - 0.34, 0.62),
+        ]
+        if side > 0:
+            in_pts = [in_pts[1], in_pts[0], in_pts[3], in_pts[2]]
+        build_serrated_gear_door(f"Rafale_Main_Gear_Door_In_{side_name}", in_pts,
+                                 thickness=0.014, serration_amp=0.026, n_teeth=6, coll=coll, mat=mats['airframe_alt'])
+        add_cylinder_between(f"Rafale_Main_Door_Strut_{side_name}",
+                             (side * 0.46, my + 0.15, 1.06), (side * 0.40, my + 0.15, 0.76), 0.010, coll, mats['chrome'])
 
 
 def build_apron_environment(coll, mats):
-    """
-    Builds a large, simple, realistic concrete apron with painted yellow taxiway centerline
-    and nose-wheel stop bar.
-    """
-    bpy.ops.mesh.primitive_plane_add(size=240.0, location=(0.0, 0.0, 0.0))
+    bpy.ops.mesh.primitive_plane_add(size=260.0, location=(0.0, 0.0, 0.0))
     apron = bpy.context.active_object
     apron.name = "Concrete_Apron"
     coll.objects.link(apron)
     bpy.context.scene.collection.objects.unlink(apron)
     assign_mat(apron, mats['apron'])
 
-    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0.0, 2.0, 0.0015))
+    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0.0, 2.0, 0.0012))
     taxi_line = bpy.context.active_object
     taxi_line.name = "Apron_Taxi_Line"
-    taxi_line.scale = (0.18, 32.0, 1.0)
+    taxi_line.scale = (0.18, 36.0, 1.0)
     coll.objects.link(taxi_line)
     bpy.context.scene.collection.objects.unlink(taxi_line)
     assign_mat(taxi_line, mats['marking'])
 
-    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0.0, 3.90, 0.0018))
+    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0.0, 3.90, 0.0015))
     stop_bar = bpy.context.active_object
     stop_bar.name = "Apron_Nose_Stop_Bar"
     stop_bar.scale = (1.40, 0.16, 1.0)
@@ -1556,10 +1991,6 @@ def build_apron_environment(coll, mats):
 # ==============================================================================
 
 def setup_world_and_lighting(scene):
-    """
-    Sets up dramatic warm late-afternoon ("golden hour") lighting with rich sunset horizon
-    gradient, low-elevation warm amber key sun, and realistic crisp shadows & reflections.
-    """
     world = bpy.data.worlds.new("LateAfternoon_World")
     scene.world = world
     tree = world.node_tree
@@ -1569,7 +2000,7 @@ def setup_world_and_lighting(scene):
 
     out = nodes.new("ShaderNodeOutputWorld")
     bg = nodes.new("ShaderNodeBackground")
-    bg.inputs["Strength"].default_value = 0.42  # Balanced so sky never blows out to white
+    bg.inputs["Strength"].default_value = 0.44
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     sky = nodes.new("ShaderNodeTexSky")
@@ -1582,33 +2013,30 @@ def setup_world_and_lighting(scene):
     if hasattr(sky, "sun_disc"):
         sky.sun_disc = False
     if hasattr(sky, "sun_elevation"):
-        sky.sun_elevation = math.radians(6.5)   # True golden-hour low sun elevation
+        sky.sun_elevation = math.radians(6.8)
     if hasattr(sky, "sun_rotation"):
         sky.sun_rotation = math.radians(135.0)
     if hasattr(sky, "air_density"):
         sky.air_density = 1.65
     if hasattr(sky, "aerosol_density"):
-        sky.aerosol_density = 2.40
+        sky.aerosol_density = 2.35
     if hasattr(sky, "ozone_density"):
         sky.ozone_density = 1.80
 
     links.new(sky.outputs["Color"], bg.inputs["Color"])
 
-    # Primary Warm Late-Afternoon Sun Light (dramatic golden raking light)
     sun_data = bpy.data.lights.new(name="LateAfternoon_Sun", type='SUN')
     sun_data.energy = 6.8
-    sun_data.color = (1.0, 0.62, 0.30)  # Rich golden-amber late afternoon sunlight
+    sun_data.color = (1.0, 0.62, 0.30)
     if hasattr(sun_data, "angle"):
-        sun_data.angle = math.radians(0.85)  # Crisp yet natural shadow penumbra
+        sun_data.angle = math.radians(0.85)
 
     sun_obj = bpy.data.objects.new("LateAfternoon_Sun", sun_data)
     scene.collection.objects.link(sun_obj)
-    # Elevation ~10.5 degrees above horizon, raking across the front-left three-quarter view
     sun_obj.rotation_euler = (math.radians(79.5), math.radians(6.0), math.radians(-128.0))
 
-    # Subtle Cool Sky / Warm Apron Bounce Fill
     fill_data = bpy.data.lights.new(name="Sky_Bounce_Fill", type='AREA')
-    fill_data.energy = 110.0
+    fill_data.energy = 115.0
     fill_data.color = (0.65, 0.76, 0.98)
     fill_data.size = 14.0
     fill_obj = bpy.data.objects.new("Sky_Bounce_Fill", fill_data)
@@ -1676,7 +2104,7 @@ def configure_cycles(scene, width, height, samples=128):
             scene.view_settings.look = 'High Contrast'
         except Exception:
             pass
-    scene.view_settings.exposure = -0.25
+    scene.view_settings.exposure = -0.22
 
 
 def main():
@@ -1688,11 +2116,10 @@ def main():
     env_coll = bpy.data.collections.new("Environment_Apron")
     scene.collection.children.link(env_coll)
 
-    mats = create_materials()
+    mats = create_materials(outdir)
 
-    build_fuselage_and_radome(rafale_coll, mats)
+    build_unified_airframe_body(rafale_coll, mats)
     build_cockpit_and_canopy(rafale_coll, mats)
-    build_air_intakes(rafale_coll, mats)
     build_wings_and_canards(rafale_coll, mats)
     build_vertical_tail(rafale_coll, mats)
     build_recessed_exhausts(rafale_coll, mats)
@@ -1701,26 +2128,52 @@ def main():
 
     setup_world_and_lighting(scene)
 
-    # Create Cameras with full framing so the entire aircraft (nose probe to tailfin & wingtips) is framed cleanly:
-    # 1. Hero Front Three-Quarter Camera
+    # 1. Hero Front Three-Quarter Camera — Pulled back to (-12.8, 15.6, 1.82) with target shifted forward (Y=0.35m)
+    # so the nose tip & pitot probe have generous breathing room on the left of the 1920x1080 frame!
     cam_hero = create_aimed_camera(
         "Camera_Hero_Front3Q",
-        location=(-11.2, 13.8, 1.75),
-        target=(-0.15, -0.35, 2.05),
-        lens_mm=42.0,
+        location=(-12.8, 15.6, 1.82),
+        target=(0.15, 0.35, 2.05),
+        lens_mm=43.0,
         fstop=5.6,
         scene=scene,
     )
-    # 2. Side Profile Inspection Camera (backed out to X = -22.5m so full 15.3m length and 5.34m tail fit in frame)
-    cam_side = create_aimed_camera(
-        "Camera_Preview_Side",
-        location=(-22.5, -0.1, 2.35),
-        target=(0.0, -0.1, 2.35),
+
+    # 2. Close-up Diagnostic Cameras
+    cam_close_nose_intake = create_aimed_camera(
+        "Camera_Closeup_Nose_Intake",
+        location=(-4.6, 6.2, 1.68),
+        target=(0.0, 2.85, 1.65),
+        lens_mm=52.0,
+        fstop=8.0,
+        scene=scene,
+    )
+    cam_close_gear = create_aimed_camera(
+        "Camera_Closeup_Landing_Gear",
+        location=(-3.8, 1.2, 0.65),
+        target=(-0.4, -0.8, 0.58),
         lens_mm=45.0,
         fstop=8.0,
         scene=scene,
     )
-    # 3. Rear Three-Quarter / Exhaust Inspection Camera
+    cam_close_tail_controls = create_aimed_camera(
+        "Camera_Closeup_Tail_Controls",
+        location=(-6.8, -8.5, 2.55),
+        target=(-1.2, -4.5, 2.65),
+        lens_mm=48.0,
+        fstop=8.0,
+        scene=scene,
+    )
+
+    # 3. Full Side and Rear Previews
+    cam_side = create_aimed_camera(
+        "Camera_Preview_Side",
+        location=(-23.5, 0.0, 2.35),
+        target=(0.0, 0.0, 2.35),
+        lens_mm=45.0,
+        fstop=8.0,
+        scene=scene,
+    )
     cam_rear = create_aimed_camera(
         "Camera_Preview_Rear",
         location=(-9.6, -17.5, 2.35),
@@ -1731,40 +2184,43 @@ def main():
     )
 
     scene.camera = cam_hero
-
     blend_path = os.path.join(outdir, "dassault_rafale.blend")
 
-    if mode == "initial":
-        configure_cycles(scene, 1280, 720, samples=96)
-        shots = [
-            (cam_hero, "preview_initial_hero.png"),
-            (cam_side, "preview_initial_side.png"),
-            (cam_rear, "preview_initial_rear.png"),
-        ]
-        for cam, fname in shots:
+    if mode == "closeups":
+        configure_cycles(scene, 1280, 720, samples=128)
+        for cam, fname in [
+            (cam_close_nose_intake, "closeup_nose_intake.png"),
+            (cam_close_gear, "closeup_landing_gear.png"),
+            (cam_close_tail_controls, "closeup_tail_controls.png"),
+            (cam_side, "preview_revised_side.png"),
+        ]:
             scene.camera = cam
             scene.render.filepath = os.path.join(outdir, fname)
             bpy.ops.render.render(write_still=True)
-            print("Rendered:", scene.render.filepath)
+            print("Rendered close-up:", scene.render.filepath)
         scene.camera = cam_hero
         bpy.ops.wm.save_as_mainfile(filepath=blend_path)
     else:
-        # Render revised side & rear previews first
+        # Render updated close-ups, side & rear previews, and final 1920x1080 hero render
         configure_cycles(scene, 1280, 720, samples=128)
-        for cam, fname in [(cam_side, "preview_revised_side.png"), (cam_rear, "preview_revised_rear.png")]:
+        for cam, fname in [
+            (cam_close_nose_intake, "closeup_nose_intake.png"),
+            (cam_close_gear, "closeup_landing_gear.png"),
+            (cam_close_tail_controls, "closeup_tail_controls.png"),
+            (cam_side, "preview_revised_side.png"),
+            (cam_rear, "preview_revised_rear.png"),
+        ]:
             scene.camera = cam
             scene.render.filepath = os.path.join(outdir, fname)
             bpy.ops.render.render(write_still=True)
-            print("Rendered:", scene.render.filepath)
+            print("Rendered preview:", scene.render.filepath)
 
-        # Render final 1920x1080 hero render with high sample count
         scene.camera = cam_hero
-        configure_cycles(scene, 1920, 1080, samples=256)
+        configure_cycles(scene, 1920, 1080, samples=288)
         scene.render.filepath = os.path.join(outdir, "rafale_hero_final.png")
         bpy.ops.render.render(write_still=True)
         print("Rendered Final Hero:", scene.render.filepath)
 
-        # Save editable .blend file with Hero camera and 1920x1080 settings active
         bpy.ops.wm.save_as_mainfile(filepath=blend_path)
         print("Saved blend file:", blend_path)
 
