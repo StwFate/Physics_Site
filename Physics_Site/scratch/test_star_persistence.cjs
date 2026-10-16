@@ -39,22 +39,31 @@ async function main() {
     await page.locator('.h-14').waitFor()
     console.log('✓ Successfully signed in as Student Demo')
 
-    // 2. Solve Question 01 (Constant speed, Balanced forces)
+    // 2. Solve Question 01
     await page.getByRole('button', { name: '01', exact: true }).click()
+    await page.waitForTimeout(200)
     await page.locator('main').getByText('Constant speed', { exact: true }).click()
     await page.locator('main').getByText('Balanced forces', { exact: true }).click()
     await page.getByRole('button', { name: 'Check answer →' }).click()
     await page.waitForTimeout(400)
-    console.log('✓ Question 01 checked and solved')
+    const q1Feedback = await page.locator('.lg\\:col-span-6').last().innerText()
+    console.log('Q01 checked. Is correct?', q1Feedback.includes('Correct! Star Earned'))
 
-    // 3. Solve Question 02 (Speeding up, Unbalanced forces)
+    // 3. Solve Question 02
     await page.getByRole('button', { name: '02', exact: true }).click()
     await page.waitForTimeout(200)
-    await page.locator('main').getByText('Speeding up', { exact: true }).click()
+    await page.locator('main').getByText('Slowing down', { exact: true }).click()
     await page.locator('main').getByText('Unbalanced forces', { exact: true }).click()
     await page.getByRole('button', { name: 'Check answer →' }).click()
     await page.waitForTimeout(400)
-    console.log('✓ Question 02 checked and solved')
+    const q2Feedback = await page.locator('.lg\\:col-span-6').last().innerText()
+    console.log('Q02 checked. Is correct?', q2Feedback.includes('Correct! Star Earned'))
+
+    const storageDump = await page.evaluate(() => ({
+      completed: localStorage.getItem('physix_balanced_completed'),
+      answers: localStorage.getItem('physix_balanced_answers')
+    }))
+    console.log('Storage before logout:', storageDump)
 
     // Check stars before sign out
     const headerStarsBefore = await page.locator('.h-14').innerText()
