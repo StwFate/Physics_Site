@@ -3,6 +3,7 @@ import { Calculator, CheckCircle2, XCircle, Shuffle, BookOpen } from 'lucide-rea
 import confetti from 'canvas-confetti'
 import ForceSymbol from './ForceSymbol'
 import PhysicsVisualizer from './PhysicsVisualizer'
+import { resolveSolveItVisual } from '../utils/motionVisuals'
 import { createSeededRng, getStudentSeed, shuffleWithSeed } from '../utils/studentSeed'
 
 // Generates randomized problem parameters with authentic physics ranges deterministically per student
@@ -737,7 +738,8 @@ export default function SolveItModule({ currentUser }) {
           fNet={problemId <= 2 ? -currentProblem.target.Fnet : currentProblem.target.Fnet}
           initialVelocity={problemId <= 2 ? 8 : 2}
           motionDirection="rightward"
-          objectLabel="Box"
+          objectLabel={resolveSolveItVisual(problemId, currentProblem).title}
+          visual={resolveSolveItVisual(problemId, currentProblem)}
           stopAtRest={problemId <= 2}
           isSubmitted
           forces={[
