@@ -6,6 +6,7 @@ import ForceSymbol from './ForceSymbol'
 import PhysicsVisualizer from './PhysicsVisualizer'
 import { motionFromScenario } from '../utils/motionModel'
 import { getStudentSeed, shuffleWithSeed } from '../utils/studentSeed'
+import { backupUserProgress } from '../utils/authService'
 
 const FORCE_TYPES = [
   { code: 1, id: 'Fgrav', label: 'Gravity', sub: 'g', altSub: 'grav', hex: '#e11d48', color: 'text-rose-600 border-rose-300 bg-rose-50' },
@@ -49,6 +50,35 @@ export default function FBDModule({ currentUser }) {
       return {}
     }
   })
+
+  // Re-read progress whenever currentUser changes or storage updates
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const f = JSON.parse(localStorage.getItem('physix_fbd_completed') || '{}')
+        const ans = JSON.parse(localStorage.getItem('physix_fbd_answers') || '{}')
+        let changed = false
+        Object.entries(ans).forEach(([id, a]) => {
+          if (a && Object.keys(a.forces || {}).length > 0 && !f[id]) {
+            f[id] = true
+            changed = true
+          }
+        })
+        if (changed) {
+          localStorage.setItem('physix_fbd_completed', JSON.stringify(f))
+        }
+        setCompletedScenarios(f)
+        setSavedFbdAnswers(ans)
+      } catch {}
+    }
+    reload()
+    window.addEventListener('physix_progress_updated', reload)
+    window.addEventListener('storage', reload)
+    return () => {
+      window.removeEventListener('physix_progress_updated', reload)
+      window.removeEventListener('storage', reload)
+    }
+  }, [currentUser?.uid])
 
   const popoverRef = useRef(null)
   const currentScenario = scenarios[scenarioIndex] || scenarios[0]
@@ -205,6 +235,13 @@ export default function FBDModule({ currentUser }) {
       }
       setSavedFbdAnswers(updatedAnswers)
       localStorage.setItem('physix_fbd_answers', JSON.stringify(updatedAnswers))
+
+      if (currentUser?.uid) {
+        backupUserProgress(currentUser.uid)
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('physix_progress_updated'))
+      }
 
       if (Object.keys(updated).length === scenarios.length) {
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
