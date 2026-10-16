@@ -142,7 +142,7 @@ def add_cylinder_between(name, p1, p2, radius, collection, mat, segments=16):
     bmesh.ops.create_cone(
         bm,
         cap_ends=True,
-        cap_triangles=False,
+        cap_tris=False,
         segments=segments,
         radius1=radius,
         radius2=radius,
