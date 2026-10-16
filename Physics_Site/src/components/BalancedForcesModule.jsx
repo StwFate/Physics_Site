@@ -13,6 +13,7 @@ import BalancedForcesVisuals from './BalancedForcesVisuals'
 import { generateBalancedQuestions } from '../utils/balancedForcesGenerator'
 import { resolveQuestionVisual } from '../utils/motionVisuals'
 import { getStudentSeed, shuffleWithSeed, incrementStudentSeed } from '../utils/studentSeed'
+import { backupUserProgress } from '../utils/authService'
 
 const MASTERY_GOALS = {
   Apprentice: 8,
@@ -64,7 +65,32 @@ export default function BalancedForcesModule({ currentUser }) {
   const masteryGoal = MASTERY_GOALS[currentLevel] || 8
 
   useEffect(() => {
+    const reload = () => {
+      try {
+        const b = JSON.parse(localStorage.getItem('physix_balanced_completed') || '{}')
+        const ans = JSON.parse(localStorage.getItem('physix_balanced_answers') || '{}')
+        let changed = false
+        Object.entries(ans).forEach(([id, a]) => {
+          if (a && (a.isCorrect || a.isSubmitted) && !b[id]) {
+            b[id] = true
+            changed = true
+          }
+        })
+        if (changed) {
+          localStorage.setItem('physix_balanced_completed', JSON.stringify(b))
+        }
+        setCompletedQuestions(b)
+        setSavedAnswers(ans)
+      } catch {}
+    }
+    reload()
     setSeed(getStudentSeed(currentUser?.uid))
+    window.addEventListener('physix_progress_updated', reload)
+    window.addEventListener('storage', reload)
+    return () => {
+      window.removeEventListener('physix_progress_updated', reload)
+      window.removeEventListener('storage', reload)
+    }
   }, [currentUser?.uid])
 
   useEffect(() => {
@@ -89,7 +115,7 @@ export default function BalancedForcesModule({ currentUser }) {
       setIsSubmitted(false)
       setIsCorrect(false)
     }
-  }, [currentIndex, currentLevel, seed, currentQ?.id])
+  }, [currentIndex, currentLevel, seed, currentQ?.id, completedQuestions, savedAnswers])
 
   const handleLevelChange = (lvl) => {
     setCurrentLevel(lvl)
@@ -140,6 +166,13 @@ export default function BalancedForcesModule({ currentUser }) {
       }
       setSavedAnswers(newAnswers)
       localStorage.setItem('physix_balanced_answers', JSON.stringify(newAnswers))
+
+      if (currentUser?.uid) {
+        backupUserProgress(currentUser.uid)
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('physix_progress_updated'))
+      }
 
       const newlyCompletedInLevel = questions.filter((q) => newCompleted[q.id]).length
       if (newlyCompletedInLevel === masteryGoal || newlyCompletedInLevel === questions.length) {
