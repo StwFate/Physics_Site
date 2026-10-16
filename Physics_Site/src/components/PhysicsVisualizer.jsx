@@ -38,15 +38,27 @@ function VelocityGraph({ model, time }) {
 export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity = 0,
   label = 'Motion model', forces = [], isSubmitted = false, motionDirection = 'rightward',
   autoPlayKey = 0, initialVelocityVector, netForceVector, stopAtRest = false,
-  objectLabel = 'Object', illustrative = false, visual }) {
+  motionBehavior, objectLabel = 'Object', illustrative = false, visual }) {
   const id = `motion-${useId().replace(/:/g, '')}`
   // Compare values, rather than array identities, so parent progress updates don't reset a run.
-  const signature = JSON.stringify({ fNet, mass, initialVelocity, motionDirection, initialVelocityVector, netForceVector, stopAtRest, label, forces })
+  const signature = JSON.stringify({ fNet, mass, initialVelocity, motionDirection, initialVelocityVector, netForceVector, stopAtRest, motionBehavior, label, forces })
   const model = useMemo(() => createMotionModel(JSON.parse(signature)), [signature])
   const resolvedVisual = useMemo(() => resolveVisualMeta(visual, objectLabel, model), [visual, objectLabel, model])
+
+  const isBrakingSim = Boolean(model.stops || model.isBraking || motionBehavior === 'braking')
+  const availableSpeeds = useMemo(() => isBrakingSim ? [0.25, 0.5, 1] : [0.5, 1, 2], [isBrakingSim])
+  const defaultSpeed = isBrakingSim ? 0.5 : 1
+
+  const [prevSignature, setPrevSignature] = useState(signature)
+  const [rate, setRate] = useState(defaultSpeed)
+
+  if (prevSignature !== signature) {
+    setPrevSignature(signature)
+    setRate(defaultSpeed)
+  }
+
   const [time, setTime] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const [rate, setRate] = useState(1)
   const [showForces, setShowForces] = useState(true)
   const [showTrail, setShowTrail] = useState(true)
   const [sceneWidth, setSceneWidth] = useState(720)
@@ -92,9 +104,14 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
   const force = model.projectile ? Math.hypot(model.force.x, model.force.y) : vertical ? model.force.y : model.force.x
   const balanced = Math.abs(model.force.x) + Math.abs(model.force.y) < 0.001
   const atEnd = time >= model.duration - 0.0001
+  const isStoppedAtRest = Boolean((atEnd && (model.stops || model.isBraking)) || state.atRest)
+  const currentSpeed = isStoppedAtRest ? 0 : speed
   const power = state.vx * model.a.x + state.vy * model.a.y
-  const status = atEnd && model.stops ? 'At rest' : balanced ? 'Constant velocity' : power < -0.001 ? 'Slowing down' : 'Speeding up'
+  const status = isStoppedAtRest ? 'At rest' : balanced ? 'Constant velocity' : power < -0.001 ? 'Slowing down' : 'Speeding up'
   const visibleForces = forces.filter(f => f.value > 0)
+  const displayedForcesOnObject = (isStoppedAtRest && (model.stops || model.isBraking))
+    ? visibleForces.filter(f => f.dir !== 'left' && f.dir !== 'right')
+    : visibleForces
   const maxForce = Math.max(1, ...visibleForces.map(f => f.value))
   const { minX, maxX, minY, maxY } = model.bounds
   const compactScene = sceneWidth < 500
@@ -114,17 +131,17 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
   return <section className="motion-model" aria-label={label}>
     <div className="motion-header">
       <div className="motion-heading"><span className="motion-heading-icon"><Activity size={18} aria-hidden="true" /></span><div><h3>Motion model</h3><p>Follow the forces. See what changes.</p></div></div>
-      <div className={`motion-badge ${balanced ? 'is-balanced' : ''}`}><span className="motion-dot" />{isSubmitted ? status : 'Ready to explore'}</div>
+      <div className={`motion-badge ${balanced || isStoppedAtRest ? 'is-balanced' : ''}`}><span className="motion-dot" />{isSubmitted ? status : 'Ready to explore'}</div>
     </div>
     <div className="motion-metrics">
-      {[['Elapsed time', time, 's', 1], [velocityLabel, speed, 'm/s', 2], [model.projectile ? 'Acceleration magnitude' : 'Acceleration', acceleration, 'm/s²', 2], [model.projectile ? 'Net force magnitude' : 'Net force', force, 'N', 1]].map(([name, value, unit, digits]) => <div className="motion-metric" key={name}>
+      {[['Elapsed time', time, 's', 1], [velocityLabel, currentSpeed, 'm/s', 2], [model.projectile ? 'Acceleration magnitude' : 'Acceleration', acceleration, 'm/s²', 2], [model.projectile ? 'Net force magnitude' : 'Net force', force, 'N', 1]].map(([name, value, unit, digits]) => <div className="motion-metric" key={name}>
         <span className="motion-metric-label">{name}</span><span className="motion-metric-value">{display(value, digits)} <small>{unit}</small></span>
       </div>)}
     </div>
     <div className="motion-workspace">
       <div className="motion-stage" ref={stageRef}>
         <div className="motion-stage-top"><strong>{model.projectile ? 'Projectile motion' : vertical ? 'Vertical motion' : 'Horizontal motion'}</strong><span>{model.projectile ? '+x right · +y up' : vertical ? '+ upward' : '+ rightward'}</span></div>
-        <svg className="motion-scene" viewBox={`0 0 ${sceneWidth} 310`} role="img" aria-label={`${resolvedVisual.title || objectLabel} ${model.projectile ? 'following a projectile path' : `moving ${directionOf(speed, vertical)}`}. ${status}.`}>
+        <svg className="motion-scene" viewBox={`0 0 ${sceneWidth} 310`} role="img" aria-label={`${resolvedVisual.title || objectLabel} ${model.projectile ? 'following a projectile path' : `moving ${directionOf(currentSpeed, vertical)}`}. ${status}.`}>
           <defs>
             <pattern id={`${id}-grid`} width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e3ebf7" strokeWidth=".75" /></pattern>
             <linearGradient id={`${id}-body`} x1="0" y1="0" x2="0.5" y2="1"><stop stopColor="#4188ff" /><stop offset="1" stopColor="#0052ed" /></linearGradient>
@@ -153,17 +170,17 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
               projectile={model.projectile}
               mass={model.mass}
               wheelAngle={state.x * 28}
-              velocity={speed}
+              velocity={currentSpeed}
               motionDirection={motionDirection}
-              forces={visibleForces}
+              forces={displayedForcesOnObject}
               id={id}
             />
-            {showForces && isSubmitted && visibleForces.map((f, i) => {
+            {showForces && isSubmitted && displayedForcesOnObject.map((f, i) => {
               const length = f.value / maxForce * (compactScene || vertical ? 30 : 60)
               const dx = f.dir === 'right' ? 1 : f.dir === 'left' ? -1 : 0
               const dy = f.dir === 'up' ? -1 : f.dir === 'down' ? 1 : 0
               const start = dx ? (resolvedVisual.anchor?.rx || 46) : (resolvedVisual.anchor?.ry || 38)
-              const offset = visibleForces.filter((other, j) => j < i && other.dir === f.dir).length * 22
+              const offset = displayedForcesOnObject.filter((other, j) => j < i && other.dir === f.dir).length * 22
               const x1 = dx * start + (dy ? offset : 0), y1 = dy * start + (dx ? offset : 0)
               const x2 = x1 + dx * length, y2 = y1 + dy * length
               return <g key={`${f.name}-${i}`}>
@@ -174,10 +191,36 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
             })}
           </g>
           {isSubmitted && <g transform={`translate(${sceneWidth < 500 && vertical ? 18 : 32} 57)`}>
-            <text y="0" fontSize="9" fill="#52647e">velocity</text>
-            <line x1="70" y1="-4" x2={70 + (Math.abs(speed) < .001 ? 0 : Math.sign(speed) * 32)} y2="-4" stroke="#008575" strokeWidth="2.5" markerEnd={Math.abs(speed) < .001 ? undefined : `url(#${id}-velocity)`} transform={`rotate(${velocityAngle} 70 -4)`} />
-            <text y="26" fontSize="9" fill="#52647e">acceleration</text>
-            {Math.abs(acceleration) > .001 ? <line x1="70" y1="22" x2={70 + Math.sign(acceleration) * 32} y2="22" stroke="#c07a15" strokeWidth="2.5" markerEnd={`url(#${id}-acceleration)`} transform={vertical ? 'rotate(-90 70 22)' : model.projectile ? 'rotate(90 70 22)' : undefined} /> : <text x="70" y="26" fontSize="10" fill="#52647e">0</text>}
+            <text x="0" y="0" fontSize="9" fill="#52647e">velocity</text>
+            {!isStoppedAtRest && Math.abs(currentSpeed) >= 0.001 ? (
+              <line
+                x1="105"
+                y1="-4"
+                x2={105 + Math.sign(currentSpeed) * 30}
+                y2="-4"
+                stroke="#008575"
+                strokeWidth="2.5"
+                markerEnd={`url(#${id}-velocity)`}
+                transform={model.projectile ? `rotate(${velocityAngle} 105 -4)` : vertical ? `rotate(-90 105 -4)` : undefined}
+              />
+            ) : (
+              <text x="105" y="0" fontSize="10" fill="#52647e">0</text>
+            )}
+            <text x="0" y="26" fontSize="9" fill="#52647e">acceleration</text>
+            {!isStoppedAtRest && Math.abs(acceleration) >= 0.001 ? (
+              <line
+                x1="105"
+                y1="22"
+                x2={105 + Math.sign(acceleration) * 30}
+                y2="22"
+                stroke="#c07a15"
+                strokeWidth="2.5"
+                markerEnd={`url(#${id}-acceleration)`}
+                transform={vertical ? 'rotate(-90 105 22)' : model.projectile ? 'rotate(90 105 22)' : undefined}
+              />
+            ) : (
+              <text x="105" y="26" fontSize="10" fill="#52647e">0</text>
+            )}
           </g>}
         </svg>
         <div className="motion-stage-legend"><span><i className="motion-key" />Forces</span><span><i className="motion-key velocity" />Velocity</span>{showTrail && <span><i className="motion-key trail" />Equal-time positions</span>}</div>
@@ -185,14 +228,14 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
       <aside className="motion-inspector" aria-label="Motion insights">
         <div><h4 className="motion-inspector-title">{velocityLabel} / time</h4><VelocityGraph model={model} time={time} /></div>
         <div><h4 className="motion-inspector-title">Forces on the object</h4>{visibleForces.map((f, i) => <div className="motion-force-row" key={i}><span className="motion-force-label"><i className="motion-force-swatch" style={{ background: colorOf(f) }} /><ForceSymbol sub={forceSub(f)} /></span><span className="motion-force-row-value">{number(f.value)} N {({ up: '↑', down: '↓', left: '←', right: '→' })[f.dir]}</span></div>)}</div>
-        <p className="motion-observation"><strong>{atEnd ? 'Run complete. ' : 'What to notice. '}</strong>{balanced ? 'Equal and opposite forces cancel. The velocity stays the same.' : model.projectile ? 'Gravity changes vertical velocity. Horizontal velocity stays constant.' : model.stops ? 'Friction opposes the motion. This run ends when the object comes to rest.' : 'A net force changes velocity in its direction. Dots spread out as speed increases and move closer as speed decreases.'}</p>
+        <p className="motion-observation">{isStoppedAtRest && (model.stops || model.isBraking) ? <><strong>Run complete. At rest. </strong>This braking run ends when the object comes to rest. Retained force and acceleration values describe the active braking segment; once stopped, braking forces drop to zero so the object remains at rest rather than reversing.</> : <><strong>{atEnd ? 'Run complete. ' : 'What to notice. '}</strong>{balanced ? 'Equal and opposite forces cancel. The velocity stays the same.' : model.projectile ? 'Gravity changes vertical velocity. Horizontal velocity stays constant.' : model.stops ? 'Friction opposes the motion. This run ends when the object comes to rest.' : 'A net force changes velocity in its direction. Dots spread out as speed increases and move closer as speed decreases.'}</>}</p>
       </aside>
     </div>
     <div className="motion-toolbar">
       <div className="motion-controls">
         <button className="motion-play" onClick={togglePlayback} disabled={!isSubmitted}>{playing ? <Pause size={13} aria-hidden="true" /> : <Play size={13} aria-hidden="true" />}{playing ? 'Pause' : atEnd ? 'Replay' : time > 0 ? 'Resume' : 'Play'}</button>
         <button className="motion-restart" onClick={reset} disabled={!isSubmitted} aria-label="Reset motion to the beginning"><RotateCcw size={13} aria-hidden="true" />Reset</button>
-        <div className="motion-speeds" role="group" aria-label="Playback speed">{[0.5, 1, 2].map(r => <button key={r} onClick={() => setRate(r)} aria-pressed={rate === r} aria-label={`${r} times playback speed`}>{r}×</button>)}</div>
+        <div className="motion-speeds" role="group" aria-label="Playback speed">{availableSpeeds.map(r => <button key={r} onClick={() => setRate(r)} aria-pressed={rate === r} aria-label={`${r} times playback speed`}>{r}×</button>)}</div>
       </div>
       <div className="motion-options"><button className="motion-toggle" aria-pressed={showForces} onClick={() => setShowForces(v => !v)}><MoveRight size={13} aria-hidden="true" />Forces</button><button className="motion-toggle" aria-pressed={showTrail} onClick={() => setShowTrail(v => !v)}><CircleDot size={13} aria-hidden="true" />Motion trail</button></div>
     </div>
