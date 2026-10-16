@@ -34,33 +34,32 @@ async function main() {
       }
       localStorage.setItem('physix_demo_google_session', JSON.stringify(demoUser))
       localStorage.setItem('physix_cached_auth_user', JSON.stringify(demoUser))
+      localStorage.setItem('physix_student_seed_demo_google_student_123', '42')
     })
     page.on('console', msg => console.log('PAGE:', msg.text()))
     await page.reload()
     await page.locator('.h-14').waitFor()
     console.log('✓ Successfully signed in as Student Demo')
 
-    // Wait a brief moment for Firebase auth to initialize
     await page.waitForTimeout(500)
 
-    console.log('Main text on load:', (await page.locator('main').innerText()).slice(0, 300))
-
-    // 2. Solve Question 01
+    // 2. Solve Question 01 (Seed 42 -> apprentice-21: Slowing Down, Unbalanced)
     await page.getByRole('button', { name: '01', exact: true }).click()
     await page.waitForTimeout(200)
-    await page.locator('main').getByText('Constant speed', { exact: true }).click()
-    await page.locator('main').getByText('Balanced forces', { exact: true }).click()
+    await page.locator('main').getByText('Slowing down', { exact: true }).click()
+    await page.locator('main').getByText('Unbalanced forces', { exact: true }).click()
     await page.waitForTimeout(200)
     await page.getByRole('button', { name: 'Check answer →' }).click()
     await page.waitForTimeout(400)
     const q1Feedback = await page.locator('.lg\\:col-span-6').last().innerText()
-    console.log('Q01 checked. Feedback:\n', q1Feedback.slice(0, 200))
+    console.log('Q01 checked. Is correct?', q1Feedback.includes('Correct! Star Earned'))
 
-    // 3. Solve Question 02
+    // 3. Solve Question 02 (Seed 42 -> apprentice-4: Constant Speed, Balanced)
     await page.getByRole('button', { name: '02', exact: true }).click()
     await page.waitForTimeout(200)
-    await page.locator('main').getByText('Slowing down', { exact: true }).click()
-    await page.locator('main').getByText('Unbalanced forces', { exact: true }).click()
+    await page.locator('main').getByText('Constant speed', { exact: true }).click()
+    await page.locator('main').getByText('Balanced forces', { exact: true }).click()
+    await page.waitForTimeout(200)
     await page.getByRole('button', { name: 'Check answer →' }).click()
     await page.waitForTimeout(400)
     const q2Feedback = await page.locator('.lg\\:col-span-6').last().innerText()
