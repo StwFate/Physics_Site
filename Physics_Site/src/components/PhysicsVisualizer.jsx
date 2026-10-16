@@ -155,6 +155,7 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
               wheelAngle={state.x * 28}
               velocity={speed}
               motionDirection={motionDirection}
+              forces={visibleForces}
               id={id}
             />
             {showForces && isSubmitted && visibleForces.map((f, i) => {
