@@ -1,3 +1,5 @@
+import { resolveFBDVisual } from './motionVisuals.js'
+
 // Constant-force motion in SI units. Display scale never changes the physics.
 export function createMotionModel({ mass = 10, fNet = 0, initialVelocity = 0,
   motionDirection = 'rightward', initialVelocityVector, netForceVector, stopAtRest = false }) {
@@ -44,5 +46,6 @@ export function motionFromScenario(scenario) {
     initialVelocityVector: projectile ? { x: 6, y: scenario.id === 4 ? 8 : 0 } : undefined,
     stopAtRest: !projectile && forces.some(f => f.dir === 'left') && !forces.some(f => f.dir === 'right'),
     objectLabel: scenario.objectContext, illustrative: true,
+    visual: resolveFBDVisual(scenario),
   }
 }
