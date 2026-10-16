@@ -121,7 +121,7 @@ export default function BalancedForcesModule({ currentUser }) {
       setAutoPlayKey((k) => k + 1)
       setTimeout(() => {
         simRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-      }, 50)
+      }, 120)
 
       const newCompleted = { ...completedQuestions, [currentQ.id]: true }
       setCompletedQuestions(newCompleted)
@@ -569,19 +569,21 @@ export default function BalancedForcesModule({ currentUser }) {
         </div>
       </div>
 
-      {/* Physics Simulation */}
-      <div ref={simRef} className="scroll-mb-4">
-        <PhysicsVisualizer
-          fNet={fNet}
-          mass={10}
-          initialVelocity={initialV}
-          label={`${currentQ?.id ? currentQ.id.charAt(0).toUpperCase() + currentQ.id.slice(1) : ''} Motion Model`}
-          forces={simForces}
-          isSubmitted={isSubmitted}
-          motionDirection={currentQ?.motionDirection}
-          autoPlayKey={autoPlayKey}
-        />
-      </div>
+      {/* Physics Simulation - Only visible after correctly answering */}
+      {isCorrect && (
+        <div ref={simRef} className="scroll-mb-4 animate-in fade-in duration-300">
+          <PhysicsVisualizer
+            fNet={fNet}
+            mass={10}
+            initialVelocity={initialV}
+            label={`${currentQ?.id ? currentQ.id.charAt(0).toUpperCase() + currentQ.id.slice(1) : ''} Motion Model`}
+            forces={simForces}
+            isSubmitted={isSubmitted}
+            motionDirection={currentQ?.motionDirection}
+            autoPlayKey={autoPlayKey}
+          />
+        </div>
+      )}
     </div>
   )
 }
