@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Play, Pause, RotateCcw } from 'lucide-react'
+import { Play } from 'lucide-react'
 import ForceSymbol from './ForceSymbol'
 
 export default function PhysicsVisualizer({
@@ -9,11 +9,13 @@ export default function PhysicsVisualizer({
   label = 'Object Motion Simulation',
   forces = [],
   isSubmitted = false,
-  motionDirection = 'rightward'
+  motionDirection = 'rightward',
+  autoPlayKey = 0
 }) {
   const formattedLabel = label ? label.charAt(0).toUpperCase() + label.slice(1) : ''
   const [isPlaying, setIsPlaying] = useState(false)
   const [position, setPosition] = useState(50)
+  const [runId, setRunId] = useState(0)
 
   const isVertical =
     motionDirection === 'up' ||
@@ -58,10 +60,18 @@ export default function PhysicsVisualizer({
     }
 
     let lastTime = performance.now()
+    let elapsed = 0
+    const RUN_DURATION = 4 // seconds per simulation run
 
     const animate = (time) => {
       const dt = Math.min((time - lastTime) / 1000, 0.1)
       lastTime = time
+      elapsed += dt
+
+      if (elapsed >= RUN_DURATION) {
+        setIsPlaying(false)
+        return
+      }
 
       let curVel = stateRef.current.vel + accel * dt
 
@@ -96,15 +106,22 @@ export default function PhysicsVisualizer({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
     }
-  }, [isPlaying, accel])
+  }, [isPlaying, accel, runId])
 
-  const handleReset = () => {
-    setIsPlaying(false)
+  // Reset to the starting state and (re)run the simulation from the beginning
+  const startSimulation = () => {
     stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
     setPosition(50)
     setVelocity(effectiveInitialVelocity)
+    setRunId((id) => id + 1)
+    setIsPlaying(true)
   }
 
+  // Auto-run when the parent signals (e.g. after a correct answer)
+  useEffect(() => {
+    if (autoPlayKey > 0 && isSubmitted) startSimulation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlayKey])
   return (
     <div className="bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-xs">
       {/* Simulation Header */}
@@ -359,39 +376,20 @@ export default function PhysicsVisualizer({
             <span>Check your answer to unlock the simulation.</span>
           )}
         </p>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => isSubmitted && setIsPlaying(!isPlaying)}
-            disabled={!isSubmitted}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-              isSubmitted
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer shadow-2xs'
-                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-            }`}
-            title={isSubmitted ? (isPlaying ? 'Pause' : 'Simulate') : 'Submit your answer above to enable simulation'}
-            aria-label={isPlaying ? 'Pause motion simulation' : 'Play motion simulation'}
-          >
-            {isPlaying ? (
-              <Pause className="w-3.5 h-3.5" />
-            ) : (
-              <Play className="w-3.5 h-3.5 fill-current" />
-            )}
-            <span>{isPlaying ? 'Pause' : 'Simulate'}</span>
-          </button>
-          <button
-            onClick={handleReset}
-            disabled={!isSubmitted}
-            className={`p-1.5 rounded-md text-xs transition-colors ${
-              isSubmitted
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer shadow-2xs'
-                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-            }`}
-            title="Reset Simulation"
-            aria-label="Reset motion simulation"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <button
+          onClick={() => isSubmitted && startSimulation()}
+          disabled={!isSubmitted}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            isSubmitted
+              ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer shadow-2xs'
+              : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+          }`}
+          title={isSubmitted ? 'Simulate (restarts from the beginning)' : 'Submit your answer above to enable simulation'}
+          aria-label="Run motion simulation from the beginning"
+        >
+          <Play className="w-3.5 h-3.5 fill-current" />
+          <span>Simulate</span>
+        </button>
       </div>
     </div>
   )

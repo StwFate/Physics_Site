@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   CheckCircle2,
   XCircle,
@@ -32,6 +32,8 @@ export default function BalancedForcesModule({ currentUser }) {
   const [selectedForce, setSelectedForce] = useState(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [autoPlayKey, setAutoPlayKey] = useState(0)
+  const simRef = useRef(null)
   const [completedQuestions, setCompletedQuestions] = useState(() => {
     try {
       const saved = localStorage.getItem('physix_balanced_completed')
@@ -89,6 +91,12 @@ export default function BalancedForcesModule({ currentUser }) {
     setIsSubmitted(true)
 
     if (correct) {
+      // Auto-run the simulation and bring it into view
+      setAutoPlayKey((k) => k + 1)
+      setTimeout(() => {
+        simRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      }, 50)
+
       const newCompleted = { ...completedQuestions, [currentQ.id]: true }
       setCompletedQuestions(newCompleted)
       localStorage.setItem('physix_balanced_completed', JSON.stringify(newCompleted))
@@ -493,15 +501,18 @@ export default function BalancedForcesModule({ currentUser }) {
       </div>
 
       {/* Physics Simulation */}
-      <PhysicsVisualizer
-        fNet={fNet}
-        mass={10}
-        initialVelocity={initialV}
-        label={`${currentQ?.id ? currentQ.id.charAt(0).toUpperCase() + currentQ.id.slice(1) : ''} Motion Model`}
-        forces={simForces}
-        isSubmitted={isSubmitted}
-        motionDirection={currentQ?.motionDirection}
-      />
+      <div ref={simRef} className="scroll-mb-4">
+        <PhysicsVisualizer
+          fNet={fNet}
+          mass={10}
+          initialVelocity={initialV}
+          label={`${currentQ?.id ? currentQ.id.charAt(0).toUpperCase() + currentQ.id.slice(1) : ''} Motion Model`}
+          forces={simForces}
+          isSubmitted={isSubmitted}
+          motionDirection={currentQ?.motionDirection}
+          autoPlayKey={autoPlayKey}
+        />
+      </div>
     </div>
   )
 }
