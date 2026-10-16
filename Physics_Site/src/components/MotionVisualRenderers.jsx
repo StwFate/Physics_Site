@@ -126,7 +126,7 @@ export function EnvironmentBackdrop({ visual, sceneWidth, vertical, projectile, 
             <rect x="10" y={groundY} width={sceneWidth - 20} height="28" rx="3" fill={env === 'dirt' ? '#b45309' : env === 'gravel' ? '#78716c' : '#475569'} opacity="0.75" />
             <line x1="10" y1={groundY} x2={sceneWidth - 10} y2={groundY} stroke={env === 'dirt' ? '#92400e' : env === 'gravel' ? '#57534e' : '#334155'} strokeWidth="2" />
             {/* Soil texture stipples */}
-            {Array.from({ length: Math.floor((sceneWidth - 30) / 20) }, (_, i) => 18 + i * 20).map(x => (
+            {Array.from({ length: Math.floor((sceneWidth - 30) / 20) }, (_, i) => 18 + i * 20).map((x, i) => (
               <circle key={x} cx={x + (i % 3) * 3} cy={groundY + 8 + (i % 4) * 4} r={1.5} fill="#ffffff" opacity="0.3" />
             ))}
           </g>
