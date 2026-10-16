@@ -778,6 +778,7 @@ export default function SolveItModule({ currentUser }) {
           objectLabel={resolveSolveItVisual(problemId, currentProblem).title}
           visual={resolveSolveItVisual(problemId, currentProblem)}
           stopAtRest={problemId <= 2}
+          motionBehavior={problemId <= 2 ? 'braking' : 'accelerating'}
           isSubmitted
           forces={[
             { name: 'Fnorm', value: currentProblem.target.Fnorm, dir: 'up' },
