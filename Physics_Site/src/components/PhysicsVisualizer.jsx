@@ -168,9 +168,9 @@ export default function PhysicsVisualizer({
 
       {isVertical ? (
         /* Vertical Motion Track (Elevator / Payload / Rocket) */
-        <div className="relative h-28 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-center justify-center">
+        <div className="relative h-56 sm:h-64 bg-slate-50 rounded-lg border border-slate-200 overflow-hidden flex items-center justify-center">
           {/* Vertical Height Scale on Left */}
-          <div className="absolute left-3 inset-y-2 flex flex-col justify-between text-[10px] text-slate-700 font-semibold font-mono select-none border-r border-slate-300 pr-2">
+          <div className="absolute left-3 inset-y-3 flex flex-col justify-between text-[10px] text-slate-700 font-semibold font-mono select-none border-r border-slate-300 pr-2.5">
             <span>100m</span>
             <span>75m</span>
             <span>50m</span>
@@ -241,7 +241,7 @@ export default function PhysicsVisualizer({
         </div>
       ) : (
         /* Horizontal Motion Track (Carts / Crates) */
-        <div className="relative h-20 bg-white overflow-hidden flex flex-col justify-end my-1 select-none">
+        <div className="relative h-28 sm:h-32 bg-white overflow-hidden flex flex-col justify-end my-1 select-none">
           {/* Ground Track Line */}
           <div className="absolute inset-x-0 bottom-6 h-[1.5px] bg-slate-400"></div>
 
