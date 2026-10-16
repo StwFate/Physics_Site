@@ -38,20 +38,29 @@ export default function PhysicsVisualizer({
 
   const accel = mass > 0 ? fNet / mass : 0
 
+  const getInitialPosition = () => {
+    if (isVertical) {
+      return effectiveInitialVelocity > 0 ? 25 : 75
+    }
+    return effectiveInitialVelocity > 0 ? 18 : 82
+  }
+
   useEffect(() => {
-    stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
-    setPosition(50)
+    const initPos = getInitialPosition()
+    stateRef.current = { pos: initPos, vel: effectiveInitialVelocity }
+    setPosition(initPos)
     setVelocity(effectiveInitialVelocity)
-  }, [effectiveInitialVelocity, fNet, mass])
+  }, [effectiveInitialVelocity, fNet, mass, isVertical])
 
   useEffect(() => {
     if (!isSubmitted) {
       setIsPlaying(false)
-      stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
-      setPosition(50)
+      const initPos = getInitialPosition()
+      stateRef.current = { pos: initPos, vel: effectiveInitialVelocity }
+      setPosition(initPos)
       setVelocity(effectiveInitialVelocity)
     }
-  }, [isSubmitted, effectiveInitialVelocity])
+  }, [isSubmitted, effectiveInitialVelocity, isVertical])
 
   useEffect(() => {
     if (!isPlaying) {
@@ -60,37 +69,48 @@ export default function PhysicsVisualizer({
     }
 
     let lastTime = performance.now()
-    let elapsed = 0
-    const RUN_DURATION = 4 // seconds per simulation run
 
     const animate = (time) => {
-      const dt = Math.min((time - lastTime) / 1000, 0.1)
+      const dt = Math.min((time - lastTime) / 1000, 0.08)
       lastTime = time
-      elapsed += dt
 
-      if (elapsed >= RUN_DURATION) {
-        setIsPlaying(false)
-        return
-      }
-
+      // Update velocity continuously according to Fnet = ma
       let curVel = stateRef.current.vel + accel * dt
 
-      // If decelerating under opposing net force, come to a natural stop at 0
-      if ((stateRef.current.vel > 0 && curVel < 0) || (stateRef.current.vel < 0 && curVel > 0)) {
-        curVel = 0
-        stateRef.current.vel = 0
-        setVelocity(0)
-        setIsPlaying(false)
-        return
-      }
+      // Clamp velocity to a fun, readable maximum
+      const MAX_SPEED = 14
+      if (curVel > MAX_SPEED) curVel = MAX_SPEED
+      if (curVel < -MAX_SPEED) curVel = -MAX_SPEED
 
       let curPos = stateRef.current.pos + curVel * dt * 8
 
-      // Natural boundary loop/wrap-around
-      if (curPos > 90) {
-        curPos = 12
-      } else if (curPos < 10) {
-        curPos = 88
+      // Continuous motion loop without stopping at zero velocity
+      if (isVertical) {
+        // Vertical shaft: elevator, rocket, projectile
+        if (curPos > 82) {
+          curPos = 82
+          if (curVel > 0) curVel = -Math.abs(curVel) * 0.85
+        } else if (curPos < 18) {
+          curPos = 18
+          if (curVel < 0) curVel = Math.abs(curVel) * 0.85
+        }
+      } else {
+        // Horizontal track: cart, crate, puck
+        if (curPos > 92) {
+          if (accel === 0 || curVel > 0) {
+            curPos = 8 // wrap around for continuous glide
+          } else {
+            curPos = 92
+            curVel = -Math.abs(curVel) * 0.85
+          }
+        } else if (curPos < 8) {
+          if (accel === 0 || curVel < 0) {
+            curPos = 92 // wrap around for continuous glide
+          } else {
+            curPos = 8
+            curVel = Math.abs(curVel) * 0.85
+          }
+        }
       }
 
       stateRef.current.pos = curPos
@@ -106,12 +126,13 @@ export default function PhysicsVisualizer({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
     }
-  }, [isPlaying, accel, runId])
+  }, [isPlaying, accel, runId, isVertical])
 
-  // Reset to the starting state and (re)run the simulation from the beginning
+  // Reset to the starting state and run the simulation continuously from the beginning
   const startSimulation = () => {
-    stateRef.current = { pos: 50, vel: effectiveInitialVelocity }
-    setPosition(50)
+    const initPos = getInitialPosition()
+    stateRef.current = { pos: initPos, vel: effectiveInitialVelocity }
+    setPosition(initPos)
     setVelocity(effectiveInitialVelocity)
     setRunId((id) => id + 1)
     setIsPlaying(true)
