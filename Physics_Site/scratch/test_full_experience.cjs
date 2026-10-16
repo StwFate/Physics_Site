@@ -140,8 +140,11 @@ async function run() {
     console.log(`[Mod 2] Simulation visible before answer: ${simVisible} (Expected: false)`)
     assert.equal(simVisible, false, 'Simulation should be hidden in FBD before solving')
 
-    // Scenario 1: Crate pushed at constant speed
-    console.log('[Mod 2] Constructing FBD for Scenario 1 (Normal up, Gravity down, Applied right, Friction left)...')
+    // Scenario 1
+    const scenarioTitle = await page.locator('h3').first().innerText()
+    const scenarioDesc = await page.locator('p').first().innerText()
+    console.log(`[Mod 2] Current scenario title: "${scenarioTitle}"`)
+    console.log(`[Mod 2] Current scenario description: "${scenarioDesc}"`)
     const topPlus = page.locator('button[aria-label="Add force pointing up"]')
     if (await topPlus.isVisible()) {
       await topPlus.click()
