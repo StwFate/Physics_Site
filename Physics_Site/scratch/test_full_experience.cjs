@@ -18,7 +18,6 @@ async function run() {
       viewport: { width: 1920, height: 1080 },
     })
 
-    // Pre-populate student auth session in localStorage so it logs in directly
     const testUser = {
       uid: 'student_eval_1080p',
       displayName: 'Alex Rivers',
@@ -42,9 +41,8 @@ async function run() {
     console.log('🌐 Navigating to https://mr-williams-physics.web.app ...')
     await page.goto('https://mr-williams-physics.web.app', { waitUntil: 'networkidle' })
 
-    // Wait for the main app navigation tabs
     await page.getByRole('tab', { name: /Balanced forces/i }).waitFor({ timeout: 10000 })
-    console.log('✅ Successfully authenticated as Alex Rivers into Main Dashboard')
+    console.log('✅ Main Dashboard loaded for Alex Rivers')
 
     // ==========================================
     // MODULE 1: BALANCED VS UNBALANCED FORCES
@@ -53,44 +51,41 @@ async function run() {
     await page.getByRole('tab', { name: /Balanced forces/i }).click()
     await page.waitForTimeout(600)
 
-    // 1. Initial State Check: Simulation MUST NOT be visible
+    // 1. Initial State: simulation MUST NOT be visible
     let simVisible = await page.locator('.motion-model').isVisible()
-    console.log(`[Mod 1] Simulation visible before answer: ${simVisible} (Expected: false)`)
-    assert.equal(simVisible, false, 'Simulation should be hidden before answering')
-
-    // Capture clean initial 1080p viewport
+    console.log(`[Mod 1] Simulation visible before answering: ${simVisible} (Expected: false)`)
+    assert.equal(simVisible, false, 'Simulation must be hidden before answering')
     await page.screenshot({ path: path.join(outputDir, 'mod1_unanswered_1080p.png') })
 
-    // 2. Answer Question 01
-    // Read the question context to answer accurately
-    console.log('[Mod 1] Selecting answers for Question 01...')
-    await page.locator('label', { hasText: 'Constant speed' }).click()
-    await page.locator('label', { hasText: 'Balanced forces' }).click()
+    // 2. Select Answers using exact text
+    console.log('[Mod 1] Answering Question 01...')
+    await page.getByText('Constant speed', { exact: true }).click()
+    await page.getByText('Balanced forces', { exact: true }).click()
+    await page.waitForTimeout(200)
 
     const checkBtn = page.getByRole('button', { name: /Check answer/i })
     await checkBtn.click()
-    await page.waitForTimeout(800)
+    await page.waitForTimeout(1000)
 
-    // 3. Verify Simulation Appears
+    // 3. Verify simulation mounts and auto-plays
     simVisible = await page.locator('.motion-model').isVisible()
     console.log(`[Mod 1] Simulation visible after correct answer: ${simVisible} (Expected: true)`)
     assert.equal(simVisible, true, 'Simulation should mount after answering correctly')
 
-    // Inspect simulation elements & telemetry
     const model = page.locator('.motion-model')
     const metrics = await model.locator('.motion-metric-value').allInnerTexts()
     const metricLabels = await model.locator('.motion-metric-label').allInnerTexts()
-    console.log(`[Mod 1] Live Metrics:`, metricLabels.map((lbl, idx) => `${lbl}: ${metrics[idx]}`))
+    console.log(`[Mod 1] Telemetry:`, metricLabels.map((lbl, idx) => `${lbl}: ${metrics[idx]}`))
 
     // 4. Test Playback Controls
     const playBtn = model.locator('button.motion-play')
-    console.log(`[Mod 1] Play button status: "${await playBtn.innerText()}"`)
+    console.log(`[Mod 1] Play button text: "${await playBtn.innerText()}"`)
     
-    // Pause if currently playing
+    // Pause
     if ((await playBtn.innerText()).includes('Pause')) {
       await playBtn.click()
       await page.waitForTimeout(200)
-      console.log(`[Mod 1] Clicked Pause -> now "${await playBtn.innerText()}"`)
+      console.log(`[Mod 1] Paused -> button text: "${await playBtn.innerText()}"`)
     }
 
     // 5. Test Timeline Scrubber
@@ -103,34 +98,32 @@ async function run() {
     // 6. Test Feature Toggles: Forces & Trail
     const forcesToggle = model.getByRole('button', { name: /Forces/i })
     await forcesToggle.click()
-    console.log(`[Mod 1] Toggled forces off (pressed: ${await forcesToggle.getAttribute('aria-pressed')})`)
+    console.log(`[Mod 1] Forces toggled off: ${await forcesToggle.getAttribute('aria-pressed')}`)
     await forcesToggle.click()
-    console.log(`[Mod 1] Toggled forces back on (pressed: ${await forcesToggle.getAttribute('aria-pressed')})`)
+    console.log(`[Mod 1] Forces toggled on: ${await forcesToggle.getAttribute('aria-pressed')}`)
 
     const trailToggle = model.getByRole('button', { name: /Motion trail/i })
     await trailToggle.click()
-    console.log(`[Mod 1] Toggled trail off (pressed: ${await trailToggle.getAttribute('aria-pressed')})`)
+    console.log(`[Mod 1] Trail toggled off: ${await trailToggle.getAttribute('aria-pressed')}`)
     await trailToggle.click()
-    console.log(`[Mod 1] Toggled trail back on (pressed: ${await trailToggle.getAttribute('aria-pressed')})`)
+    console.log(`[Mod 1] Trail toggled on: ${await trailToggle.getAttribute('aria-pressed')}`)
 
-    // 7. Test Speed multipliers: 0.5x, 1x, 2x
+    // 7. Test Speeds: 0.5x, 1x, 2x
     for (const spd of ['0.5', '1', '2']) {
       const btn = model.getByRole('button', { name: `${spd} times playback speed` })
       await btn.click()
-      console.log(`[Mod 1] Selected speed ${spd}x (aria-pressed: ${await btn.getAttribute('aria-pressed')})`)
+      console.log(`[Mod 1] Speed ${spd}x active: ${await btn.getAttribute('aria-pressed')}`)
     }
 
     // 8. Test Reset Button
     const resetBtn = model.getByRole('button', { name: /Reset motion/i })
     await resetBtn.click()
     await page.waitForTimeout(200)
-    console.log(`[Mod 1] Clicked Reset -> Time: ${await model.locator('.motion-time').innerText()}`)
+    console.log(`[Mod 1] Reset -> Time: ${await model.locator('.motion-time').innerText()}`)
 
-    // 9. Play again
+    // 9. Resume Playback
     await playBtn.click()
     await page.waitForTimeout(600)
-
-    // Capture Mod 1 active simulation screenshot
     await page.screenshot({ path: path.join(outputDir, 'mod1_sim_active_1080p.png') })
 
     // ==========================================
@@ -171,17 +164,17 @@ async function run() {
     assert.equal(simVisible, true, 'Simulation should mount after correct FBD')
 
     const mod2Model = page.locator('.motion-model')
-    console.log(`[Mod 2] Observation text: "${await mod2Model.locator('.motion-observation').innerText()}"`)
+    console.log(`[Mod 2] Observation: "${await mod2Model.locator('.motion-observation').innerText()}"`)
     await page.screenshot({ path: path.join(outputDir, 'mod2_sim_scenario1_1080p.png') })
 
-    // Now test Scenario 4: Projectile Motion (flying baseball)
+    // Test Scenario 4: Projectile Motion (flying baseball)
     console.log('[Mod 2] Navigating to Scenario 4 (Projectile Motion)...')
     const s4Btn = page.getByRole('button', { name: /#4:/i })
     if (await s4Btn.isVisible()) {
       await s4Btn.click()
       await page.waitForTimeout(400)
 
-      // In Scenario 4 (baseball in flight without air resistance): ONLY gravity downwards
+      // Baseball in flight without air resistance: only downward gravity force
       const s4BottomPlus = page.locator('button[aria-label="Add force pointing down"]')
       if (await s4BottomPlus.isVisible()) {
         await s4BottomPlus.click()
@@ -213,37 +206,37 @@ async function run() {
     console.log(`[Mod 3] Simulation visible before answer: ${simVisible} (Expected: false)`)
     assert.equal(simVisible, false, 'Simulation should be hidden in Solve It before solving')
 
-    // Read problem target values and fill them
-    const problemValues = await page.evaluate(() => {
-      // Find problem data from DOM or state
-      const inputs = Array.from(document.querySelectorAll('input[type="number"], input[type="text"]'))
-      return inputs.map(i => ({ id: i.id, name: i.name || i.id }))
+    // In Solve It Problem 1:
+    // Standard Apprentice Problem 1:
+    // Box on horizontal surface with friction.
+    // Given values and target values:
+    // Let's inspect the inputs and their placeholders or aria-labels
+    const diagramFnorm = page.locator('#diagram-input-fnorm')
+    const diagramFgrav = page.locator('#diagram-input-fgrav')
+    const diagramFfrict = page.locator('#diagram-input-ffrict')
+    const tableMass = page.locator('#table-input-mass')
+    const tableA = page.locator('#table-input-a')
+    const tableFnet = page.locator('#table-input-fnet')
+
+    // Read the problem data from DOM or state to fill exact answers
+    const problemData = await page.evaluate(() => {
+      // Find given numbers on page to deduce targets
+      const text = document.querySelector('main')?.innerText || ''
+      return text
     })
-    console.log(`[Mod 3] Detected inputs:`, problemValues)
+    console.log('[Mod 3] Problem 1 text summary (first 200 chars):', problemData.slice(0, 200).replace(/\n+/g, ' '))
 
-    // Let's use the helper calculation from solveItProblems logic
-    // Problem 1 has known relationship: m = 10, a = 2, Fnet = m * a = 20, etc.
-    // Let's fill the inputs
-    for (const inp of problemValues) {
-      const el = page.locator(`#${inp.id}`)
-      if (await el.isVisible()) {
-        // Check label or context
-        const placeholder = await el.getAttribute('placeholder')
-        console.log(`Input ${inp.id} placeholder: ${placeholder}`)
-      }
-    }
-
-    // Solve Problem 1 by triggering input fills
-    await page.evaluate(() => {
-      // Find react component internal state or trigger answers
-      const inputs = Array.from(document.querySelectorAll('input'))
-      inputs.forEach(inp => {
-        // Set values if recognizable
-      })
+    // Let's solve Problem 1:
+    // In Problem 1, mass is typically 10 kg, a is given or calculated.
+    // Let's check which inputs are enabled (not disabled):
+    const enabledInputs = await page.evaluate(() => {
+      const inputs = Array.from(document.querySelectorAll('input:not([disabled])'))
+      return inputs.map(i => ({ id: i.id, placeholder: i.placeholder, ariaLabel: i.getAttribute('aria-label') }))
     })
+    console.log('[Mod 3] Enabled inputs to fill:', enabledInputs)
 
-    // Capture Solve It workspace screenshot
-    await page.screenshot({ path: path.join(outputDir, 'mod3_workspace_1080p.png') })
+    // Capture Solve It workspace before solving
+    await page.screenshot({ path: path.join(outputDir, 'mod3_unanswered_1080p.png') })
 
     // ==========================================
     // MOBILE VIEWPORT VERIFICATION (375x812)
@@ -251,13 +244,13 @@ async function run() {
     console.log('\n--- TESTING MOBILE RESPONSIVENESS (375x812) ---')
     await page.setViewportSize({ width: 375, height: 812 })
     await page.getByRole('tab', { name: /Balanced forces/i }).click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(600)
 
     // Verify simulation on mobile
     const mobileModel = page.locator('.motion-model')
     if (await mobileModel.isVisible()) {
       const noOverflow = await mobileModel.evaluate(el => el.scrollWidth <= el.clientWidth + 1)
-      console.log(`[Mobile] Simulation container horizontal overflow: ${!noOverflow} (Overflow <= 1px: ${noOverflow})`)
+      console.log(`[Mobile] Simulation container horizontal overflow: ${!noOverflow} (Fits cleanly: ${noOverflow})`)
       assert.ok(noOverflow, 'Mobile simulation container must not overflow viewport horizontally')
       await page.screenshot({ path: path.join(outputDir, 'mobile_375_balanced_sim.png') })
       console.log('[Mobile] Screenshot captured.')
