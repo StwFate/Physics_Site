@@ -361,15 +361,18 @@ export function PersonalizedMotionObject({ visual, vertical, projectile, mass, w
   // Render compact object badge / pill showing label and mass
   const renderIdentityBadge = (yOffset = -28) => {
     const rawTitle = visual?.title || 'Object'
-    const shortName = rawTitle
-      .replace(/^(Accelerating|Decelerating|Pushed|Ascending|Descending|Braking|Coasting|Rising|Skidding|Motorized|Automated|Deployed|High-Speed|Submerged|Deep-Sea|Heavy|Low-Friction)\s+/i, '')
-      .replace(/\s+(in Flight|at Apex|at Peak|on Surface)$/i, '')
+    let shortName = rawTitle
+      .replace(/^(Accelerating|Decelerating|Pushed|Ascending|Descending|Braking|Coasting|Rising|Skidding|Motorized|Automated|Deployed|High-Speed|Submerged|Deep-Sea|Heavy|Low-Friction|Vertical|Abyssal|Atmospheric|Exploration|Quadcopter)\s+/i, '')
+      .replace(/\s+(in Flight|at Apex|at Peak|on Surface|in Vacuum|with Drogue|with Safety Cable)$/i, '')
+    if (vertical && shortName.length > 12) {
+      shortName = shortName.split(' ').slice(-1)[0]
+    }
     const label = `${shortName} · ${Number(mass.toFixed(1))} kg`
-    const pillWidth = Math.max(64, label.length * 5.2 + 12)
+    const pillWidth = Math.min(vertical ? 98 : 136, Math.max(58, label.length * 4.9 + 10))
     return (
       <g transform={`translate(0 ${yOffset})`} pointerEvents="none">
-        <rect x={-pillWidth / 2} y="-8" width={pillWidth} height="15" rx="7.5" fill="#0f172a" fillOpacity="0.82" stroke="#64748b" strokeWidth="0.75" />
-        <text y="2.5" textAnchor="middle" fill="#f8fafc" fontSize="8.5" fontWeight="700">
+        <rect x={-pillWidth / 2} y="-7.5" width={pillWidth} height="14" rx="7" fill="#0f172a" fillOpacity="0.82" stroke="#64748b" strokeWidth="0.75" />
+        <text y="2.5" textAnchor="middle" fill="#f8fafc" fontSize="8" fontWeight="700">
           {label}
         </text>
       </g>
@@ -1078,8 +1081,8 @@ export function PersonalizedMotionObject({ visual, vertical, projectile, mass, w
       {renderIdentityBadge(
         family === 'crate' || family === 'elevator' ? 0 :
         family === 'car' || family === 'train' || family === 'submarine' || family === 'boat' ? 2 :
-        equip.parachute ? 0 :
-        family === 'ball' ? -26 : -32
+        equip.parachute ? 6 :
+        family === 'ball' ? -26 : -30
       )}
     </g>
   )
