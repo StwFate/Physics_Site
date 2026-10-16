@@ -26,14 +26,25 @@ export default function App() {
       const b = JSON.parse(localStorage.getItem('physix_balanced_completed') || '{}')
       const f = JSON.parse(localStorage.getItem('physix_fbd_completed') || '{}')
       const s = JSON.parse(localStorage.getItem('physix_solveit_completed') || '{}')
+      const bAns = JSON.parse(localStorage.getItem('physix_balanced_answers') || '{}')
+
+      // Self-healing: if an answer is recorded as correct, it must count as a star
+      let changed = false
+      Object.entries(bAns).forEach(([id, ans]) => {
+        if (ans && (ans.isCorrect || ans.isSubmitted) && !b[id]) {
+          b[id] = true
+          changed = true
+        }
+      })
+      if (changed) {
+        localStorage.setItem('physix_balanced_completed', JSON.stringify(b))
+      }
+
       setStats({
         balanced: Object.keys(b).length,
         fbd: Object.keys(f).length,
         solveit: Object.keys(s).length,
       })
-      if (currentUser?.uid) {
-        backupUserProgress(currentUser.uid)
-      }
     } catch {
       // ignore
     }
@@ -43,7 +54,11 @@ export default function App() {
     if (currentUser) {
       updateStats()
       const interval = setInterval(updateStats, 1000)
-      return () => clearInterval(interval)
+      window.addEventListener('physix_progress_updated', updateStats)
+      return () => {
+        clearInterval(interval)
+        window.removeEventListener('physix_progress_updated', updateStats)
+      }
     }
   }, [currentUser])
 
@@ -53,6 +68,9 @@ export default function App() {
       localStorage.removeItem('physix_balanced_completed')
       localStorage.removeItem('physix_fbd_completed')
       localStorage.removeItem('physix_solveit_completed')
+      localStorage.removeItem('physix_balanced_answers')
+      localStorage.removeItem('physix_fbd_answers')
+      localStorage.removeItem('physix_solveit_answers')
       backupUserProgress(currentUser.uid)
       updateStats()
       window.location.reload()
@@ -62,9 +80,11 @@ export default function App() {
   const handleLogout = async () => {
     if (!currentUser) return
     if (window.confirm(`Sign out of ${currentUser.displayName}'s account?`)) {
-      await signOutStudent(currentUser.uid)
+      const uid = currentUser.uid
+      backupUserProgress(uid)
       setCurrentUser(null)
       setStats({ balanced: 0, fbd: 0, solveit: 0 })
+      await signOutStudent(uid)
     }
   }
 
