@@ -2,6 +2,8 @@ import React, { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Activity, Play, Pause, RotateCcw, MoveRight, CircleDot } from 'lucide-react'
 import ForceSymbol, { FORCE_REGISTRY } from './ForceSymbol'
 import { createMotionModel } from '../utils/motionModel'
+import { resolveVisualMeta } from '../utils/motionVisuals'
+import { EnvironmentBackdrop, PersonalizedMotionObject } from './MotionVisualRenderers'
 import './PhysicsVisualizer.css'
 
 const COLORS = { Fgrav: '#ce3e61', F_grav: '#ce3e61', Fnorm: '#4677cc', F_norm: '#4677cc',
@@ -11,25 +13,6 @@ const colorOf = f => COLORS[f.name] || '#0052ff'
 const number = (v, digits = 1) => (Math.abs(v) < 0.0001 ? 0 : v).toFixed(digits)
 const directionOf = (v, vertical) => Math.abs(v) < 0.001 ? 'at rest' : vertical ? (v > 0 ? 'upward' : 'downward') : v > 0 ? 'rightward' : 'leftward'
 const forceSub = f => FORCE_REGISTRY[f.name]?.sub || String(f.name).replace(/^F_?/, '').replace('buoy', 'b')
-
-function MotionObject({ vertical, projectile, mass, label, id, wheelAngle }) {
-  if (projectile) return <g>
-    <circle r="19" fill={`url(#${id}-body)`} stroke="#003cc0" strokeWidth="1.5" />
-    <path d="M-10 -12 Q8 -19 13 -5" fill="none" stroke="#ffffff88" strokeWidth="3" strokeLinecap="round" />
-    <path d="M-15 9 Q0 2 15 9" stroke="#ffffff55" fill="none" />
-  </g>
-  return <g>
-    <ellipse cx="0" cy="35" rx="49" ry="5" fill="#1e4a8920" />
-    <rect x="-43" y="-25" width="86" height="51" rx="10" fill={`url(#${id}-body)`} stroke="#003cc0" strokeWidth="1.5" />
-    <rect x="-37" y="-20" width="74" height="3" rx="1.5" fill="#ffffff65" />
-    {vertical && <><rect x="-50" y="-20" width="5" height="42" rx="2" fill="#91a6c7" /><rect x="45" y="-20" width="5" height="42" rx="2" fill="#91a6c7" /></>}
-    <text y="-2" textAnchor="middle" fill="white" fontSize="10" fontWeight="700">{label.length > 13 ? 'Object' : label}</text>
-    <text y="14" textAnchor="middle" fill="#e2ecff" fontSize="11" fontWeight="600">{Number(mass.toFixed(2))} kg</text>
-    {!vertical && [-27, 27].map(x => <g key={x} transform={`translate(${x} 28) rotate(${wheelAngle})`}>
-      <circle r="9" fill="#173052" /><circle r="5" fill="#7f96b6" /><path d="M-4 0H4M0 -4V4" stroke="#d8e2f0" strokeWidth="1.5" /><circle r="1.5" fill="#173052" />
-    </g>)}
-  </g>
-}
 
 function VelocityGraph({ model, time }) {
   const values = model.points.map(p => model.projectile ? Math.hypot(p.vx, p.vy) : model.vertical ? p.vy : p.vx)
@@ -55,11 +38,12 @@ function VelocityGraph({ model, time }) {
 export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity = 0,
   label = 'Motion model', forces = [], isSubmitted = false, motionDirection = 'rightward',
   autoPlayKey = 0, initialVelocityVector, netForceVector, stopAtRest = false,
-  objectLabel = 'Object', illustrative = false }) {
+  objectLabel = 'Object', illustrative = false, visual }) {
   const id = `motion-${useId().replace(/:/g, '')}`
   // Compare values, rather than array identities, so parent progress updates don't reset a run.
   const signature = JSON.stringify({ fNet, mass, initialVelocity, motionDirection, initialVelocityVector, netForceVector, stopAtRest, label, forces })
   const model = useMemo(() => createMotionModel(JSON.parse(signature)), [signature])
+  const resolvedVisual = useMemo(() => resolveVisualMeta(visual, objectLabel, model), [visual, objectLabel, model])
   const [time, setTime] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [rate, setRate] = useState(1)
@@ -140,24 +124,44 @@ export default function PhysicsVisualizer({ fNet = 0, mass = 10, initialVelocity
     <div className="motion-workspace">
       <div className="motion-stage" ref={stageRef}>
         <div className="motion-stage-top"><strong>{model.projectile ? 'Projectile motion' : vertical ? 'Vertical motion' : 'Horizontal motion'}</strong><span>{model.projectile ? '+x right · +y up' : vertical ? '+ upward' : '+ rightward'}</span></div>
-        <svg className="motion-scene" viewBox={`0 0 ${sceneWidth} 310`} role="img" aria-label={`${objectLabel} ${model.projectile ? 'following a projectile path' : `moving ${directionOf(speed, vertical)}`}. ${status}.`}>
+        <svg className="motion-scene" viewBox={`0 0 ${sceneWidth} 310`} role="img" aria-label={`${resolvedVisual.title || objectLabel} ${model.projectile ? 'following a projectile path' : `moving ${directionOf(speed, vertical)}`}. ${status}.`}>
           <defs>
             <pattern id={`${id}-grid`} width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e3ebf7" strokeWidth=".75" /></pattern>
             <linearGradient id={`${id}-body`} x1="0" y1="0" x2="0.5" y2="1"><stop stopColor="#4188ff" /><stop offset="1" stopColor="#0052ed" /></linearGradient>
             {[['velocity', '#008575'], ['acceleration', '#c07a15']].map(([key, color]) => <marker key={key} id={`${id}-${key}`} markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill={color} /></marker>)}
           </defs>
           <rect width={sceneWidth} height="310" fill={`url(#${id}-grid)`} />
-          {!vertical && !model.projectile && <><rect x="20" y="215" width={sceneWidth - 40} height="7" rx="3.5" fill="#e1e9f5" /><line x1="20" y1="214" x2={sceneWidth - 20} y2="214" stroke="#b6c7df" />{(sceneWidth < 450 ? [0, 1] : [0, .25, .5, .75, 1]).map(v => { const p = toScreen({ x: minX + (maxX - minX) * v, y: 0 }); return <g key={v}><line x1={p.x} x2={p.x} y1="222" y2="228" stroke="#92a7c4" /><text x={p.x} y="243" textAnchor="middle" fill="#627692" fontSize="9">{number(minX + (maxX - minX) * v)} m</text></g> })}</>}
-          {vertical && <><rect x={sceneWidth / 2 - 59} y="48" width="118" height="206" rx="8" fill="#edf3fc" fillOpacity=".6" stroke="#d3deee" />{[-53, 53].map(x => <line key={x} x1={sceneWidth / 2 + x} x2={sceneWidth / 2 + x} y1="54" y2="248" stroke="#bacbe1" strokeWidth="3" />)}{[0, .5, 1].map(v => <text key={v} x={sceneWidth / 2 - 83} y={203 - v * 70} textAnchor="end" fill="#627692" fontSize="9">{number(minY + (maxY - minY) * v)} m</text>)}</>}
+          <EnvironmentBackdrop
+            visual={resolvedVisual}
+            sceneWidth={sceneWidth}
+            vertical={vertical}
+            projectile={model.projectile}
+            minX={minX}
+            maxX={maxX}
+            minY={minY}
+            maxY={maxY}
+            toScreen={toScreen}
+            number={number}
+            id={id}
+          />
           {model.projectile && <path d={model.points.map((p, i) => { const s = toScreen(p); return `${i ? 'L' : 'M'}${s.x},${s.y}` }).join(' ')} fill="none" stroke="#b9cbe4" strokeWidth="1.5" strokeDasharray="4 6" />}
           {showTrail && pastDots.map((p, i) => { const s = toScreen(p); return <circle key={i} cx={s.x} cy={s.y} r="3.5" fill="#94abc9" opacity={0.25 + i / 20} /> })}
           <g transform={`translate(${position.x} ${position.y})`}>
-            <MotionObject vertical={vertical} projectile={model.projectile} mass={model.mass} label={objectLabel} id={id} wheelAngle={state.x * 28} />
+            <PersonalizedMotionObject
+              visual={resolvedVisual}
+              vertical={vertical}
+              projectile={model.projectile}
+              mass={model.mass}
+              wheelAngle={state.x * 28}
+              velocity={speed}
+              motionDirection={motionDirection}
+              id={id}
+            />
             {showForces && isSubmitted && visibleForces.map((f, i) => {
               const length = f.value / maxForce * (compactScene || vertical ? 30 : 60)
               const dx = f.dir === 'right' ? 1 : f.dir === 'left' ? -1 : 0
               const dy = f.dir === 'up' ? -1 : f.dir === 'down' ? 1 : 0
-              const start = dx ? (model.projectile ? 23 : 49) : (model.projectile ? 23 : 40)
+              const start = dx ? (resolvedVisual.anchor?.rx || 46) : (resolvedVisual.anchor?.ry || 38)
               const offset = visibleForces.filter((other, j) => j < i && other.dir === f.dir).length * 22
               const x1 = dx * start + (dy ? offset : 0), y1 = dy * start + (dx ? offset : 0)
               const x2 = x1 + dx * length, y2 = y1 + dy * length
