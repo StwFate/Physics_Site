@@ -5,6 +5,7 @@ import ForceSymbol from './ForceSymbol'
 import PhysicsVisualizer from './PhysicsVisualizer'
 import { resolveSolveItVisual } from '../utils/motionVisuals'
 import { createSeededRng, getStudentSeed, shuffleWithSeed } from '../utils/studentSeed'
+import { backupUserProgress } from '../utils/authService'
 
 // Generates randomized problem parameters with authentic physics ranges deterministically per student
 function generateProblemInstance(problemId, variationSeed = 12345) {
@@ -199,6 +200,35 @@ export default function SolveItModule({ currentUser }) {
     }
   })
 
+  // Re-read progress whenever currentUser changes or storage updates
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const s = JSON.parse(localStorage.getItem('physix_solveit_completed') || '{}')
+        const ans = JSON.parse(localStorage.getItem('physix_solveit_answers') || '{}')
+        let changed = false
+        Object.entries(ans).forEach(([id, a]) => {
+          if (a && Object.keys(a.inputs || {}).length > 0 && !s[id]) {
+            s[id] = true
+            changed = true
+          }
+        })
+        if (changed) {
+          localStorage.setItem('physix_solveit_completed', JSON.stringify(s))
+        }
+        setCompletedProblems(s)
+        setSavedSolveItAnswers(ans)
+      } catch {}
+    }
+    reload()
+    window.addEventListener('physix_progress_updated', reload)
+    window.addEventListener('storage', reload)
+    return () => {
+      window.removeEventListener('physix_progress_updated', reload)
+      window.removeEventListener('storage', reload)
+    }
+  }, [currentUser?.uid])
+
   const loadNewProblem = (id, offsetOverride) => {
     const offset = offsetOverride !== undefined ? offsetOverride : (variationOffsets[id] || 0)
     const variationSeed = seed + offset * 10007
@@ -311,6 +341,13 @@ export default function SolveItModule({ currentUser }) {
       }
       setSavedSolveItAnswers(updatedAnswers)
       localStorage.setItem('physix_solveit_answers', JSON.stringify(updatedAnswers))
+
+      if (currentUser?.uid) {
+        backupUserProgress(currentUser.uid)
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('physix_progress_updated'))
+      }
 
       confetti({ particleCount: 70, spread: 65, origin: { y: 0.6 } })
     }
