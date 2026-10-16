@@ -214,10 +214,10 @@ export const SOLVE_IT_MAP = {
 }
 
 export function getDefaultAnchor(family, variant, equipment = {}) {
-  if (equipment.parachute) return { rx: 46, ry: 58 }
+  if (equipment.parachute) return { rx: 46, ry: 62 }
   if (equipment.cable) return { rx: 38, ry: 52 }
   switch (family) {
-    case 'ball': return { rx: 22, ry: 22 }
+    case 'ball': return { rx: 22, ry: 30 }
     case 'elevator': return { rx: 38, ry: 48 }
     case 'rocket': return variant === 'rocket-sled' ? { rx: 50, ry: 32 } : { rx: 32, ry: 50 }
     case 'skydiver': return { rx: 36, ry: 36 }
