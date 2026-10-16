@@ -617,7 +617,8 @@ export default function BalancedForcesModule({ currentUser }) {
             autoPlayKey={autoPlayKey}
             objectLabel={currentQ ? resolveQuestionVisual(currentQ).title : 'Object'}
             visual={currentQ ? resolveQuestionVisual(currentQ) : undefined}
-            stopAtRest={simForces.filter(f => f.dir === 'left' || f.dir === 'right').every(f => /frict|drag|air/i.test(f.name))}
+            stopAtRest={currentQ?.motionBehavior === 'braking' || currentQ?.simParams?.stopAtRest || currentQ?.stopAtRest || false}
+            motionBehavior={currentQ?.motionBehavior}
           />
         </div>
       )}
