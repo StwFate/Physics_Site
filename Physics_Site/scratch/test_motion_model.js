@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createMotionModel, motionFromScenario } from '../src/utils/motionModel.js'
 import { generateBalancedQuestions } from '../src/utils/balancedForcesGenerator.js'
+import { resolveQuestionVisual, resolveFBDVisual, resolveSolveItVisual } from '../src/utils/motionVisuals.js'
 
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`)
 let model = createMotionModel({ mass: 10, fNet: 0, initialVelocity: 4 })
@@ -36,7 +37,18 @@ for (const scenario of scenarios) {
     close(model.sample(1).vx, 6)
     close(model.sample(1).vy, (scenario.id === 4 ? 8 : 0) - 9.8)
   }
+  assert.ok(params.visual, `Scenario ${scenario.id} must include visual metadata`)
+  assert.ok(params.visual.family && params.visual.variant && params.visual.environment, `Scenario ${scenario.id} has incomplete visual metadata`)
+  assert.ok(params.visual.anchor.rx > 0 && params.visual.anchor.ry > 0, `Scenario ${scenario.id} has invalid anchor`)
 }
+
+// Solve It visual checks (problems 1 to 8)
+for (let problemId = 1; problemId <= 8; problemId++) {
+  const v = resolveSolveItVisual(problemId)
+  assert.ok(v.family && v.variant && v.environment, `Solve It problem ${problemId} visual incomplete`)
+  assert.ok(v.anchor.rx > 0 && v.anchor.ry > 0, `Solve It problem ${problemId} anchor invalid`)
+}
+
 let questionChecks = 0
 for (const seed of [0, 1, 42, 12345, 987654]) {
   for (const level of ['Apprentice', 'Master', 'Wizard']) {
@@ -48,8 +60,12 @@ for (const seed of [0, 1, 42, 12345, 987654]) {
         assert.ok(p.x >= model.bounds.minX - 1e-8 && p.x <= model.bounds.maxX + 1e-8, q.id)
         assert.ok(p.y >= model.bounds.minY - 1e-8 && p.y <= model.bounds.maxY + 1e-8, q.id)
       }
+      const v = resolveQuestionVisual(q)
+      assert.ok(v.family && v.variant && v.environment, `Question ${q.id} visual metadata incomplete`)
+      assert.ok(v.anchor.rx > 0 && v.anchor.ry > 0, `Question ${q.id} anchor invalid`)
       questionChecks++
     }
   }
 }
-console.log(`Motion checks passed: analytic motion, signs, stopping, 12 FBD scenarios, ${questionChecks} generated question instances.`)
+console.log(`Motion checks passed: analytic motion, signs, stopping, 12 FBD scenarios, 8 Solve It problems, ${questionChecks} generated question instances with personalized visuals.`)
+
