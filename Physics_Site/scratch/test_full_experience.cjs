@@ -57,10 +57,10 @@ async function run() {
     assert.equal(simVisible, false, 'Simulation must be hidden before answering')
     await page.screenshot({ path: path.join(outputDir, 'mod1_unanswered_1080p.png') })
 
-    // 2. Select Answers using exact text
+    // 2. Select Answers inside main question card
     console.log('[Mod 1] Answering Question 01...')
-    await page.getByText('Constant speed', { exact: true }).click()
-    await page.getByText('Balanced forces', { exact: true }).click()
+    await page.getByRole('main').getByText('Constant speed', { exact: true }).click()
+    await page.getByRole('main').getByText('Balanced forces', { exact: true }).click()
     await page.waitForTimeout(200)
 
     const checkBtn = page.getByRole('button', { name: /Check answer/i })
@@ -205,38 +205,44 @@ async function run() {
     simVisible = await page.locator('.motion-model').isVisible()
     console.log(`[Mod 3] Simulation visible before answer: ${simVisible} (Expected: false)`)
     assert.equal(simVisible, false, 'Simulation should be hidden in Solve It before solving')
-
-    // In Solve It Problem 1:
-    // Standard Apprentice Problem 1:
-    // Box on horizontal surface with friction.
-    // Given values and target values:
-    // Let's inspect the inputs and their placeholders or aria-labels
-    const diagramFnorm = page.locator('#diagram-input-fnorm')
-    const diagramFgrav = page.locator('#diagram-input-fgrav')
-    const diagramFfrict = page.locator('#diagram-input-ffrict')
-    const tableMass = page.locator('#table-input-mass')
-    const tableA = page.locator('#table-input-a')
-    const tableFnet = page.locator('#table-input-fnet')
-
-    // Read the problem data from DOM or state to fill exact answers
-    const problemData = await page.evaluate(() => {
-      // Find given numbers on page to deduce targets
-      const text = document.querySelector('main')?.innerText || ''
-      return text
-    })
-    console.log('[Mod 3] Problem 1 text summary (first 200 chars):', problemData.slice(0, 200).replace(/\n+/g, ' '))
-
-    // Let's solve Problem 1:
-    // In Problem 1, mass is typically 10 kg, a is given or calculated.
-    // Let's check which inputs are enabled (not disabled):
-    const enabledInputs = await page.evaluate(() => {
-      const inputs = Array.from(document.querySelectorAll('input:not([disabled])'))
-      return inputs.map(i => ({ id: i.id, placeholder: i.placeholder, ariaLabel: i.getAttribute('aria-label') }))
-    })
-    console.log('[Mod 3] Enabled inputs to fill:', enabledInputs)
-
-    // Capture Solve It workspace before solving
     await page.screenshot({ path: path.join(outputDir, 'mod3_unanswered_1080p.png') })
+
+    // Read the given values:
+    const massVal = Number(await page.locator('#table-input-mass').inputValue())
+    const ffrictVal = Number(await page.locator('#diagram-input-ffrict').inputValue())
+    console.log(`[Mod 3] Given Problem 1 values: mass = ${massVal} kg, Ffrict = ${ffrictVal} N`)
+
+    // In Problem 1:
+    // Fgrav = mass * 9.8
+    // Fnorm = Fgrav
+    // Fnet = Ffrict
+    // a = Fnet / mass
+    const fgravTarget = Math.round(massVal * 9.8 * 10) / 10
+    const fnormTarget = fgravTarget
+    const fnetTarget = ffrictVal
+    const aTarget = Math.round((fnetTarget / massVal) * 100) / 100
+
+    console.log(`[Mod 3] Calculated targets: Fnorm=${fnormTarget}, Fgrav=${fgravTarget}, Fnet=${fnetTarget}, a=${aTarget}`)
+
+    // Type the calculated answers into inputs
+    await page.locator('#diagram-input-fnorm').fill(String(fnormTarget))
+    await page.locator('#diagram-input-fgrav').fill(String(fgravTarget))
+    await page.locator('#table-input-a').fill(String(aTarget))
+    await page.locator('#table-input-fnet').fill(String(fnetTarget))
+    await page.waitForTimeout(200)
+
+    const checkSolveItBtn = page.getByRole('button', { name: /Check Answers/i })
+    await checkSolveItBtn.click()
+    await page.waitForTimeout(1000)
+
+    simVisible = await page.locator('.motion-model').isVisible()
+    console.log(`[Mod 3] Simulation visible after correct Solve It: ${simVisible} (Expected: true)`)
+    assert.equal(simVisible, true, 'Simulation should mount after correct Solve It calculation')
+
+    const mod3Model = page.locator('.motion-model')
+    const mod3Metrics = await mod3Model.locator('.motion-metric-value').allInnerTexts()
+    console.log(`[Mod 3] Telemetry:`, mod3Metrics)
+    await page.screenshot({ path: path.join(outputDir, 'mod3_sim_active_1080p.png') })
 
     // ==========================================
     // MOBILE VIEWPORT VERIFICATION (375x812)
