@@ -158,7 +158,7 @@ async function run() {
       await page.waitForTimeout(200)
     }
 
-    const checkFbdBtn = page.getByRole('button', { name: /Check Diagram/i })
+    const checkFbdBtn = page.getByRole('button', { name: /Evaluate Diagram/i })
     await checkFbdBtn.click()
     await page.waitForTimeout(800)
 
