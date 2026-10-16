@@ -39,19 +39,36 @@ export default function FBDModule({ currentUser }) {
       return {}
     }
   })
+  const [savedFbdAnswers, setSavedFbdAnswers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('physix_fbd_answers')
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
 
   const popoverRef = useRef(null)
   const currentScenario = scenarios[scenarioIndex] || scenarios[0]
 
-  // Reset when changing scenario
+  // Restore saved forces or reset when changing scenario
   useEffect(() => {
-    setForces({ right: 0, left: 0, up: 0, down: 0 })
-    setStrengths({ right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
+    const saved = savedFbdAnswers[currentScenario?.id]
+    if (saved) {
+      setForces(saved.forces || { right: 0, left: 0, up: 0, down: 0 })
+      setStrengths(saved.strengths || { right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
+      setIsSubmitted(true)
+      setIsCorrect(true)
+      setFeedback([])
+    } else {
+      setForces({ right: 0, left: 0, up: 0, down: 0 })
+      setStrengths({ right: 'standard', left: 'standard', up: 'standard', down: 'standard' })
+      setIsSubmitted(false)
+      setIsCorrect(false)
+      setFeedback(null)
+    }
     setActivePopover(null)
-    setIsSubmitted(false)
-    setIsCorrect(false)
-    setFeedback(null)
-  }, [scenarioIndex])
+  }, [scenarioIndex, currentScenario?.id])
 
   // Close popover when clicking outside
   useEffect(() => {
@@ -180,6 +197,13 @@ export default function FBDModule({ currentUser }) {
       setCompletedScenarios(updated)
       localStorage.setItem('physix_fbd_completed', JSON.stringify(updated))
 
+      const updatedAnswers = {
+        ...savedFbdAnswers,
+        [currentScenario.id]: { forces, strengths }
+      }
+      setSavedFbdAnswers(updatedAnswers)
+      localStorage.setItem('physix_fbd_answers', JSON.stringify(updatedAnswers))
+
       if (Object.keys(updated).length === scenarios.length) {
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
       }
@@ -227,9 +251,11 @@ export default function FBDModule({ currentUser }) {
             onClick={() => setScenarioIndex(i)}
             className={`px-2.5 py-1.5 rounded text-xs font-medium whitespace-nowrap transition-all border ${
               scenarioIndex === i
-                ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-sm'
+                ? completedScenarios[sc.id]
+                  ? 'bg-amber-500 border-amber-500 text-white font-bold shadow-sm ring-1 ring-amber-300'
+                  : 'bg-blue-600 border-blue-600 text-white font-semibold shadow-sm'
                 : completedScenarios[sc.id]
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                ? 'bg-amber-50 border-amber-300 text-amber-900 font-semibold hover:bg-amber-100 shadow-2xs'
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
