@@ -574,13 +574,15 @@ export default function BalancedForcesModule({ currentUser }) {
         <div ref={simRef} className="scroll-mb-4 animate-in fade-in duration-300">
           <PhysicsVisualizer
             fNet={fNet}
-            mass={10}
+            mass={(simForces.find(f => /grav/i.test(f.name))?.value || 98) / 9.8}
             initialVelocity={initialV}
             label={`${currentQ?.id ? currentQ.id.charAt(0).toUpperCase() + currentQ.id.slice(1) : ''} Motion Model`}
             forces={simForces}
             isSubmitted={isSubmitted}
             motionDirection={currentQ?.motionDirection}
             autoPlayKey={autoPlayKey}
+            objectLabel={['up', 'upward', 'down', 'downward'].includes(currentQ?.motionDirection) ? 'Payload' : 'Cart'}
+            stopAtRest={simForces.filter(f => f.dir === 'left' || f.dir === 'right').every(f => /frict|drag|air/i.test(f.name))}
           />
         </div>
       )}

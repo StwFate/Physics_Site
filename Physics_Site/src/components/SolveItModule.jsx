@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Calculator, CheckCircle2, XCircle, Shuffle, BookOpen } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import ForceSymbol from './ForceSymbol'
+import PhysicsVisualizer from './PhysicsVisualizer'
 import { createSeededRng, getStudentSeed, shuffleWithSeed } from '../utils/studentSeed'
 
 // Generates randomized problem parameters with authentic physics ranges deterministically per student
@@ -205,7 +206,12 @@ export default function SolveItModule({ currentUser }) {
     setProblemId(id)
 
     const saved = savedSolveItAnswers[id]
-    if (saved && saved.inputs) {
+    // A previous variation's answers must not unlock the new motion model.
+    const savedMatches = saved?.inputs && Object.entries(p.target).every(([key, expected]) => {
+      const value = Number.parseFloat(saved.inputs[key])
+      return Number.isFinite(value) && Math.abs(Math.abs(value) - Math.abs(expected)) <= Math.max(0.0001, Math.abs(expected) * 0.02)
+    })
+    if (savedMatches) {
       setInputs(saved.inputs)
       setIsSubmitted(true)
       const res = {}
@@ -724,6 +730,26 @@ export default function SolveItModule({ currentUser }) {
           </div>
         </div>
       </div>
+      {isSubmitted && Object.keys(fieldResults).length > 0 && Object.values(fieldResults).every(Boolean) && (
+        <PhysicsVisualizer
+          label={`Solve It problem ${problemId} motion model`}
+          mass={currentProblem.target.mass}
+          fNet={problemId <= 2 ? -currentProblem.target.Fnet : currentProblem.target.Fnet}
+          initialVelocity={problemId <= 2 ? 8 : 2}
+          motionDirection="rightward"
+          objectLabel="Box"
+          stopAtRest={problemId <= 2}
+          isSubmitted
+          forces={[
+            { name: 'Fnorm', value: currentProblem.target.Fnorm, dir: 'up' },
+            { name: 'Fgrav', value: currentProblem.target.Fgrav, dir: 'down' },
+            { name: 'Ffrict', value: currentProblem.target.Ffrict, dir: 'left' },
+            ...(currentProblem.target.Fapp !== undefined
+              ? [{ name: 'Fapp', value: currentProblem.target.Fapp, dir: 'right' }]
+              : []),
+          ]}
+        />
+      )}
     </div>
   )
 }

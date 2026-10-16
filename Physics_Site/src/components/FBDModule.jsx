@@ -3,6 +3,8 @@ import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Plus, X, Zap, ChevronLeft
 import confetti from 'canvas-confetti'
 import fbdScenarios from '../data/fbdScenarios.json'
 import ForceSymbol from './ForceSymbol'
+import PhysicsVisualizer from './PhysicsVisualizer'
+import { motionFromScenario } from '../utils/motionModel'
 import { getStudentSeed, shuffleWithSeed } from '../utils/studentSeed'
 
 const FORCE_TYPES = [
@@ -758,6 +760,13 @@ export default function FBDModule({ currentUser }) {
           )}
         </div>
       </div>
+      {isSubmitted && isCorrect && (
+        <PhysicsVisualizer
+          {...motionFromScenario(currentScenario)}
+          label={`${currentScenario.title} motion model`}
+          isSubmitted
+        />
+      )}
     </div>
   )
 }
