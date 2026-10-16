@@ -251,7 +251,7 @@ async function run() {
     await page.locator('#table-input-fnet').fill(String(fnetTarget))
     await page.waitForTimeout(200)
 
-    const checkSolveItBtn = page.getByRole('button', { name: /Check Answers/i })
+    const checkSolveItBtn = page.getByRole('button', { name: /Check Values/i })
     await checkSolveItBtn.click()
     await page.waitForTimeout(1000)
 
