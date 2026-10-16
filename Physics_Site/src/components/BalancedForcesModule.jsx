@@ -4,7 +4,8 @@ import {
   XCircle,
   ArrowRight,
   RotateCcw,
-  Shuffle
+  Shuffle,
+  Star
 } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import PhysicsVisualizer from './PhysicsVisualizer'
@@ -42,6 +43,14 @@ export default function BalancedForcesModule({ currentUser }) {
       return {}
     }
   })
+  const [savedAnswers, setSavedAnswers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('physix_balanced_answers')
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
 
   // Procedurally generate unique questions for the active level and pre-shuffle per student
   const questions = useMemo(() => {
@@ -58,11 +67,28 @@ export default function BalancedForcesModule({ currentUser }) {
   }, [currentUser?.uid])
 
   useEffect(() => {
-    setSelectedMotion(null)
-    setSelectedForce(null)
-    setIsSubmitted(false)
-    setIsCorrect(false)
-  }, [currentIndex, currentLevel, seed])
+    const qId = currentQ?.id
+    const isCompleted = !!completedQuestions[qId]
+    const saved = savedAnswers[qId]
+
+    if (saved && saved.isSubmitted) {
+      setSelectedMotion(saved.selectedMotion || null)
+      setSelectedForce(saved.selectedForce || null)
+      setIsSubmitted(true)
+      setIsCorrect(saved.isCorrect ?? isCompleted)
+    } else if (isCompleted) {
+      // Previously completed question: prefill correct answers for review
+      setSelectedMotion(currentQ?.motionAnswer || null)
+      setSelectedForce(currentQ?.forceAnswer || null)
+      setIsSubmitted(true)
+      setIsCorrect(true)
+    } else {
+      setSelectedMotion(null)
+      setSelectedForce(null)
+      setIsSubmitted(false)
+      setIsCorrect(false)
+    }
+  }, [currentIndex, currentLevel, seed, currentQ?.id])
 
   const handleLevelChange = (lvl) => {
     setCurrentLevel(lvl)
@@ -100,6 +126,19 @@ export default function BalancedForcesModule({ currentUser }) {
       const newCompleted = { ...completedQuestions, [currentQ.id]: true }
       setCompletedQuestions(newCompleted)
       localStorage.setItem('physix_balanced_completed', JSON.stringify(newCompleted))
+
+      // Persist student's answered choices so they can review how they solved it
+      const newAnswers = {
+        ...savedAnswers,
+        [currentQ.id]: {
+          selectedMotion,
+          selectedForce,
+          isSubmitted: true,
+          isCorrect: true
+        }
+      }
+      setSavedAnswers(newAnswers)
+      localStorage.setItem('physix_balanced_answers', JSON.stringify(newAnswers))
 
       const newlyCompletedInLevel = questions.filter((q) => newCompleted[q.id]).length
       if (newlyCompletedInLevel === masteryGoal || newlyCompletedInLevel === questions.length) {
@@ -261,11 +300,15 @@ export default function BalancedForcesModule({ currentUser }) {
               key={q.id}
               onClick={() => setCurrentIndex(idx)}
               className={`min-w-9 h-8 px-2 flex items-center justify-center rounded text-xs transition-all shrink-0 cursor-pointer ${
-                isCurrent
-                  ? 'border border-blue-600 text-blue-600 font-bold bg-white'
-                  : 'border border-slate-200 text-slate-800 bg-white hover:bg-slate-50 font-medium'
+                isMastered
+                  ? isCurrent
+                    ? 'border-2 border-amber-400 bg-amber-50/90 text-amber-950 font-bold ring-1 ring-amber-300 shadow-xs'
+                    : 'border-2 border-amber-300/90 bg-amber-50/50 text-amber-900 font-semibold hover:bg-amber-100/70 hover:border-amber-400 shadow-2xs'
+                  : isCurrent
+                  ? 'border-2 border-blue-600 text-blue-600 font-bold bg-white'
+                  : 'border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-medium'
               }`}
-              title={`Question ${num} ${isMastered ? '(Mastered ⭐)' : ''}`}
+              title={`Question ${num} ${isMastered ? '(Completed ⭐)' : ''}`}
             >
               {num}
             </button>
@@ -279,8 +322,16 @@ export default function BalancedForcesModule({ currentUser }) {
           {/* Left Column: Eyebrow, Headline, Subtitle, Canvas, Nav Buttons */}
           <div className="lg:col-span-6 p-5 flex flex-col justify-between">
             <div>
-              <div className="text-[11px] font-bold tracking-wider text-slate-900 uppercase mb-1">
-                QUESTION {String(currentIndex + 1).padStart(2, '0')} / {String(questions.length).padStart(2, '0')}
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-bold tracking-wider text-slate-900 uppercase">
+                  QUESTION {String(currentIndex + 1).padStart(2, '0')} / {String(questions.length).padStart(2, '0')}
+                </span>
+                {completedQuestions[currentQ?.id] && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full shadow-2xs">
+                    <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-600" />
+                    Completed
+                  </span>
+                )}
               </div>
               <h2 className="text-2xl xl:text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
                 {getHeadline()}
@@ -491,6 +542,24 @@ export default function BalancedForcesModule({ currentUser }) {
                           </button>
                         )
                       ) : null}
+
+                      {isCorrect && (
+                        <button
+                          onClick={() => {
+                            setIsSubmitted(false)
+                            setIsCorrect(false)
+                            setSelectedMotion(null)
+                            setSelectedForce(null)
+                            const nextAnswers = { ...savedAnswers }
+                            delete nextAnswers[currentQ.id]
+                            setSavedAnswers(nextAnswers)
+                            localStorage.setItem('physix_balanced_answers', JSON.stringify(nextAnswers))
+                          }}
+                          className="w-full mt-2.5 py-1.5 text-xs text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-colors cursor-pointer text-center"
+                        >
+                          Practice this question again
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
