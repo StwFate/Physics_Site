@@ -188,6 +188,14 @@ export default function SolveItModule({ currentUser }) {
       return {}
     }
   })
+  const [savedSolveItAnswers, setSavedSolveItAnswers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('physix_solveit_answers')
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
 
   const loadNewProblem = (id, offsetOverride) => {
     const offset = offsetOverride !== undefined ? offsetOverride : (variationOffsets[id] || 0)
@@ -196,13 +204,24 @@ export default function SolveItModule({ currentUser }) {
     setCurrentProblem(p)
     setProblemId(id)
 
-    const initialInputs = {}
-    Object.keys(p.given).forEach((k) => {
-      initialInputs[k] = p.given[k].toString()
-    })
-    setInputs(initialInputs)
-    setIsSubmitted(false)
-    setFieldResults({})
+    const saved = savedSolveItAnswers[id]
+    if (saved && saved.inputs) {
+      setInputs(saved.inputs)
+      setIsSubmitted(true)
+      const res = {}
+      Object.keys(p.target).forEach((k) => {
+        res[k] = true
+      })
+      setFieldResults(res)
+    } else {
+      const initialInputs = {}
+      Object.keys(p.given).forEach((k) => {
+        initialInputs[k] = p.given[k].toString()
+      })
+      setInputs(initialInputs)
+      setIsSubmitted(false)
+      setFieldResults({})
+    }
   }
 
   // Load problem when level or shuffled list changes
@@ -278,6 +297,14 @@ export default function SolveItModule({ currentUser }) {
       const updated = { ...completedProblems, [problemId]: true }
       setCompletedProblems(updated)
       localStorage.setItem('physix_solveit_completed', JSON.stringify(updated))
+
+      const updatedAnswers = {
+        ...savedSolveItAnswers,
+        [problemId]: { inputs }
+      }
+      setSavedSolveItAnswers(updatedAnswers)
+      localStorage.setItem('physix_solveit_answers', JSON.stringify(updatedAnswers))
+
       confetti({ particleCount: 70, spread: 65, origin: { y: 0.6 } })
     }
   }
@@ -326,12 +353,20 @@ export default function SolveItModule({ currentUser }) {
               onClick={() => loadNewProblem(id)}
               className={`px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1 border ${
                 problemId === id
-                  ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-sm'
+                  ? completedProblems[id]
+                    ? 'bg-amber-500 border-amber-500 text-white font-bold shadow-sm ring-1 ring-amber-300'
+                    : 'bg-blue-600 border-blue-600 text-white font-semibold shadow-sm'
+                  : completedProblems[id]
+                  ? 'bg-amber-50 border-amber-300 text-amber-900 font-semibold hover:bg-amber-100 shadow-2xs'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >
               <span>Problem {id}</span>
-              {completedProblems[id] && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+              {completedProblems[id] && (
+                <CheckCircle2
+                  className={`w-3 h-3 ${problemId === id ? 'text-white' : 'text-amber-600'}`}
+                />
+              )}
             </button>
           ))}
         </div>
