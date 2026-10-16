@@ -253,16 +253,17 @@ export function EnvironmentBackdrop({ visual, sceneWidth, vertical, projectile, 
 
   // Projectile sports field or atmospheric open sky
   const renderProjectileBackdrop = () => {
+    const projectileTicks = [0, 0.5, 1]
     return (
       <g className="env-projectile-field">
-        <rect x="10" y="214" width={sceneWidth - 20} height="28" rx="3" fill="#15803d" opacity="0.8" />
+        <rect x="10" y="214" width={sceneWidth - 20} height="28" rx="3" fill="#15803d" opacity="0.85" />
         <line x1="10" y1="214" x2={sceneWidth - 10} y2="214" stroke="#22c55e" strokeWidth="2" />
-        {ticks.map(v => {
+        {projectileTicks.map(v => {
           const p = toScreen({ x: minX + (maxX - minX) * v, y: 0 })
           return (
             <g key={v}>
-              <line x1={p.x} x2={p.x} y1="214" y2="226" stroke="#ffffff" strokeWidth="1.5" opacity="0.9" />
-              <text x={p.x} y="238" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="600">
+              <line x1={p.x} x2={p.x} y1="214" y2="224" stroke="#ffffff" strokeWidth="1.5" opacity="0.9" />
+              <text x={p.x} y="236" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="700">
                 {number(minX + (maxX - minX) * v)} m
               </text>
             </g>
@@ -271,6 +272,8 @@ export function EnvironmentBackdrop({ visual, sceneWidth, vertical, projectile, 
       </g>
     )
   }
+
+  const isDarkGround = ['road', 'runway', 'maglev-track', 'dirt', 'gravel', 'regolith', 'turf', 'track-lane', 'conveyor'].includes(env)
 
   return (
     <g className="motion-environment-backdrop" aria-hidden="true">
@@ -297,8 +300,18 @@ export function EnvironmentBackdrop({ visual, sceneWidth, vertical, projectile, 
             const p = toScreen({ x: minX + (maxX - minX) * v, y: 0 })
             return (
               <g key={v}>
-                <line x1={p.x} x2={p.x} y1="222" y2="228" stroke="#92a7c4" strokeWidth="1.25" />
-                <text x={p.x} y="243" textAnchor="middle" fill="#627692" fontSize="9" fontWeight="600">
+                <line x1={p.x} x2={p.x} y1="222" y2="228" stroke={isDarkGround ? '#e2e8f0' : '#92a7c4'} strokeWidth="1.25" />
+                <text
+                  x={p.x}
+                  y="240"
+                  textAnchor="middle"
+                  fill={isDarkGround ? '#f8fafc' : '#475569'}
+                  stroke={isDarkGround ? '#0f172a' : '#f8fbff'}
+                  strokeWidth="2.5"
+                  paintOrder="stroke"
+                  fontSize="9"
+                  fontWeight="700"
+                >
                   {number(minX + (maxX - minX) * v)} m
                 </text>
               </g>
@@ -345,18 +358,18 @@ export function PersonalizedMotionObject({ visual, vertical, projectile, mass, w
   const hasRightPull = forces.some(f => f.dir === 'right' && /tens|app|thrust/i.test(f.name))
   const hasLeftPull = forces.some(f => f.dir === 'left' && /tens|app|thrust/i.test(f.name))
 
-  // Render object badge / pill showing label and mass
-  const renderIdentityBadge = (yOffset = -30) => {
+  // Render compact object badge / pill showing label and mass
+  const renderIdentityBadge = (yOffset = -28) => {
     const rawTitle = visual?.title || 'Object'
     const shortName = rawTitle
-      .replace(/^(Accelerating|Decelerating|Pushed|Ascending|Descending|Braking|Coasting|Rising|Skidding|Motorized|Automated)\s+/i, '')
+      .replace(/^(Accelerating|Decelerating|Pushed|Ascending|Descending|Braking|Coasting|Rising|Skidding|Motorized|Automated|Deployed|High-Speed|Submerged|Deep-Sea|Heavy|Low-Friction)\s+/i, '')
       .replace(/\s+(in Flight|at Apex|at Peak|on Surface)$/i, '')
     const label = `${shortName} · ${Number(mass.toFixed(1))} kg`
-    const pillWidth = Math.max(76, label.length * 6.1 + 16)
+    const pillWidth = Math.max(64, label.length * 5.2 + 12)
     return (
       <g transform={`translate(0 ${yOffset})`} pointerEvents="none">
-        <rect x={-pillWidth / 2} y="-9" width={pillWidth} height="17" rx="8.5" fill="#0f172a" fillOpacity="0.88" stroke="#64748b" strokeWidth="0.75" />
-        <text y="3" textAnchor="middle" fill="#f8fafc" fontSize="9" fontWeight="700">
+        <rect x={-pillWidth / 2} y="-8" width={pillWidth} height="15" rx="7.5" fill="#0f172a" fillOpacity="0.82" stroke="#64748b" strokeWidth="0.75" />
+        <text y="2.5" textAnchor="middle" fill="#f8fafc" fontSize="8.5" fontWeight="700">
           {label}
         </text>
       </g>
