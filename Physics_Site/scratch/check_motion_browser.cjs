@@ -84,6 +84,42 @@ async function main() {
       await page.getByRole('button', { name: `#${i + 1}: ${ordered[i].objectContext}`, exact: true }).click()
       await model.waitFor()
       assert.equal(await model.getByRole('slider').inputValue(), '0', 'Changing scenarios resets playback')
+      if (ordered[i].id === 3) {
+        // Car skidding to a stop - Braking run verification
+        assert.ok(await model.getByRole('button', { name: '0.25 times playback speed' }).count() === 1, 'Braking must offer 0.25x')
+        assert.ok(await model.getByRole('button', { name: '0.5 times playback speed' }).count() === 1, 'Braking must offer 0.5x')
+        assert.ok(await model.getByRole('button', { name: '1 times playback speed' }).count() === 1, 'Braking must offer 1x')
+        assert.ok(await model.getByRole('button', { name: '2 times playback speed' }).count() === 0, 'Braking must not offer 2x')
+        assert.equal(await model.getByRole('button', { name: '0.5 times playback speed' }).getAttribute('aria-pressed'), 'true', 'Default braking speed is 0.5x')
+
+        // Test arrow-label clearance during active braking
+        await scrub(0.2)
+        const clearance = await model.evaluate(() => {
+          const texts = Array.from(document.querySelectorAll('text'))
+          const accLabel = texts.find(t => t.textContent === 'acceleration')
+          const accLine = document.querySelector('line[marker-end*="acceleration"]')
+          if (!accLabel || !accLine) return null
+          const lRect = accLabel.getBoundingClientRect()
+          const aRect = accLine.getBoundingClientRect()
+          return aRect.left - lRect.right
+        })
+        if (clearance !== null) {
+          assert.ok(clearance >= 15, `Arrow clearance (${clearance}px) must be at least 15px`)
+        }
+
+        // Test completion at rest
+        await scrub(100)
+        assert.ok((await model.locator('.motion-badge').innerText()).includes('At rest'), 'Status badge must show At rest')
+        assert.ok((await model.innerText()).includes('0.00 m/s'), 'Velocity display must be 0.00 m/s')
+        const observation = await model.locator('.motion-observation').innerText()
+        assert.ok(observation.includes('Run complete. At rest.'), 'Observation must indicate run complete at rest')
+        assert.ok(observation.includes('This braking run ends when the object comes to rest.'), 'Observation must explain braking termination')
+        await capture('braking-rest-desktop.png')
+        await page.setViewportSize({ width: 375, height: 900 })
+        await capture('braking-rest-mobile.png')
+        assert.ok(await model.evaluate(el => el.scrollWidth <= el.clientWidth + 1))
+        await page.setViewportSize({ width: 1440, height: 1100 })
+      }
       if (ordered[i].id === 4) {
         await scrub(1)
         assert.ok((await model.innerText()).includes('Projectile motion'))
@@ -106,6 +142,15 @@ async function main() {
       for (const id of ids) {
         await page.getByRole('button', { name: `Problem ${id}`, exact: true }).click()
         await model.waitFor()
+        if (id <= 2) {
+          // Problems 1 & 2 are braking: [0.25, 0.5, 1], default 0.5
+          assert.ok(await model.getByRole('button', { name: '0.25 times playback speed' }).count() === 1)
+          assert.equal(await model.getByRole('button', { name: '0.5 times playback speed' }).getAttribute('aria-pressed'), 'true')
+        } else {
+          // Problems 3-8 are non-braking: [0.5, 1, 2], default 1
+          assert.ok(await model.getByRole('button', { name: '2 times playback speed' }).count() === 1)
+          assert.equal(await model.getByRole('button', { name: '1 times playback speed' }).getAttribute('aria-pressed'), 'true')
+        }
         await scrub(0.5)
       }
     }
