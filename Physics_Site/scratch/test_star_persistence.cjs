@@ -94,7 +94,7 @@ async function main() {
     console.log('Body after sign out click:', (await page.locator('body').innerText()).slice(0, 300))
 
     // Verify user is on login screen and local active keys are cleared
-    const authScreenVisible = await page.locator('text=Put physics in motion.').isVisible()
+    const authScreenVisible = await page.getByRole('button', { name: 'Continue with Google' }).isVisible()
     assert.ok(authScreenVisible, 'AuthScreen must be visible after signing out')
     console.log('✓ Successfully signed out to login screen')
 
