@@ -11,6 +11,7 @@ import confetti from 'canvas-confetti'
 import PhysicsVisualizer from './PhysicsVisualizer'
 import BalancedForcesVisuals from './BalancedForcesVisuals'
 import { generateBalancedQuestions } from '../utils/balancedForcesGenerator'
+import { resolveQuestionVisual } from '../utils/motionVisuals'
 import { getStudentSeed, shuffleWithSeed, incrementStudentSeed } from '../utils/studentSeed'
 
 const MASTERY_GOALS = {
@@ -581,7 +582,8 @@ export default function BalancedForcesModule({ currentUser }) {
             isSubmitted={isSubmitted}
             motionDirection={currentQ?.motionDirection}
             autoPlayKey={autoPlayKey}
-            objectLabel={['up', 'upward', 'down', 'downward'].includes(currentQ?.motionDirection) ? 'Payload' : 'Cart'}
+            objectLabel={currentQ ? resolveQuestionVisual(currentQ).title : 'Object'}
+            visual={currentQ ? resolveQuestionVisual(currentQ) : undefined}
             stopAtRest={simForces.filter(f => f.dir === 'left' || f.dir === 'right').every(f => /frict|drag|air/i.test(f.name))}
           />
         </div>
