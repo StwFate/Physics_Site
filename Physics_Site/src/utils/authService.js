@@ -34,25 +34,66 @@ export function syncUserProgressOnLogin(uid) {
     const userProgressKey = `physix_google_${uid}_progress`
     const savedProgress = JSON.parse(localStorage.getItem(userProgressKey) || '{}')
 
-    if (savedProgress.balanced) {
-      localStorage.setItem('physix_balanced_completed', JSON.stringify(savedProgress.balanced))
-    } else {
-      localStorage.removeItem('physix_balanced_completed')
+    const b = { ...(savedProgress.balanced || {}) }
+    const bAns = { ...(savedProgress.balancedAnswers || {}) }
+    const f = { ...(savedProgress.fbd || {}) }
+    const fAns = { ...(savedProgress.fbdAnswers || {}) }
+    const s = { ...(savedProgress.solveit || {}) }
+    const sAns = { ...(savedProgress.solveitAnswers || {}) }
+
+    // Self-healing reconciliation: any answered correct problem in active storage or backup MUST count as a star
+    try {
+      const activeBAns = JSON.parse(localStorage.getItem('physix_balanced_answers') || '{}')
+      Object.entries(activeBAns).forEach(([id, ans]) => {
+        if (ans && (ans.isCorrect || ans.isSubmitted)) {
+          b[id] = true
+          bAns[id] = ans
+        }
+      })
+    } catch {}
+
+    Object.entries(bAns).forEach(([id, ans]) => {
+      if (ans && (ans.isCorrect || ans.isSubmitted)) {
+        b[id] = true
+      }
+    })
+
+    try {
+      const activeFAns = JSON.parse(localStorage.getItem('physix_fbd_answers') || '{}')
+      Object.entries(activeFAns).forEach(([id, ans]) => {
+        if (ans && Object.keys(ans.forces || {}).length > 0) {
+          f[id] = true
+          fAns[id] = ans
+        }
+      })
+    } catch {}
+
+    try {
+      const activeSAns = JSON.parse(localStorage.getItem('physix_solveit_answers') || '{}')
+      Object.entries(activeSAns).forEach(([id, ans]) => {
+        if (ans && Object.keys(ans.inputs || {}).length > 0) {
+          s[id] = true
+          sAns[id] = ans
+        }
+      })
+    } catch {}
+
+    localStorage.setItem('physix_balanced_completed', JSON.stringify(b))
+    localStorage.setItem('physix_balanced_answers', JSON.stringify(bAns))
+    localStorage.setItem('physix_fbd_completed', JSON.stringify(f))
+    localStorage.setItem('physix_fbd_answers', JSON.stringify(fAns))
+    localStorage.setItem('physix_solveit_completed', JSON.stringify(s))
+    localStorage.setItem('physix_solveit_answers', JSON.stringify(sAns))
+
+    if (savedProgress.studentSeed) {
+      localStorage.setItem(`physix_student_seed_${uid}`, String(savedProgress.studentSeed))
     }
 
-    if (savedProgress.fbd) {
-      localStorage.setItem('physix_fbd_completed', JSON.stringify(savedProgress.fbd))
-    } else {
-      localStorage.removeItem('physix_fbd_completed')
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('physix_progress_updated'))
     }
-
-    if (savedProgress.solveit) {
-      localStorage.setItem('physix_solveit_completed', JSON.stringify(savedProgress.solveit))
-    } else {
-      localStorage.removeItem('physix_solveit_completed')
-    }
-  } catch {
-    // ignore
+  } catch (err) {
+    console.error('Sync progress error:', err)
   }
 }
 
@@ -63,22 +104,64 @@ export function backupUserProgress(uid) {
   if (!uid) return
   try {
     const userProgressKey = `physix_google_${uid}_progress`
+    const prevBackup = JSON.parse(localStorage.getItem(userProgressKey) || '{}')
 
     const b = JSON.parse(localStorage.getItem('physix_balanced_completed') || '{}')
     const f = JSON.parse(localStorage.getItem('physix_fbd_completed') || '{}')
     const s = JSON.parse(localStorage.getItem('physix_solveit_completed') || '{}')
+    const bAns = JSON.parse(localStorage.getItem('physix_balanced_answers') || '{}')
+    const fAns = JSON.parse(localStorage.getItem('physix_fbd_answers') || '{}')
+    const sAns = JSON.parse(localStorage.getItem('physix_solveit_answers') || '{}')
+    const seed = localStorage.getItem(`physix_student_seed_${uid}`)
+
+    // Self-healing: reconcile any correct answers into completion stars
+    Object.entries(bAns).forEach(([id, ans]) => {
+      if (ans && (ans.isCorrect || ans.isSubmitted)) {
+        b[id] = true
+      }
+    })
+    Object.entries(fAns).forEach(([id, ans]) => {
+      if (ans && Object.keys(ans.forces || {}).length > 0) {
+        f[id] = true
+      }
+    })
+    Object.entries(sAns).forEach(([id, ans]) => {
+      if (ans && Object.keys(ans.inputs || {}).length > 0) {
+        s[id] = true
+      }
+    })
+
+    // Safety guard against logout race condition:
+    // If active storage was just wiped, NEVER overwrite an existing non-empty backup!
+    const activeCount = Object.keys(b).length + Object.keys(f).length + Object.keys(s).length + Object.keys(bAns).length
+    const prevCount = Object.keys(prevBackup.balanced || {}).length + Object.keys(prevBackup.fbd || {}).length + Object.keys(prevBackup.solveit || {}).length
+    if (activeCount === 0 && prevCount > 0) {
+      return
+    }
+
+    // Merge strictly additively so no previously earned stars are lost
+    const mergedBalanced = { ...(prevBackup.balanced || {}), ...b }
+    const mergedFbd = { ...(prevBackup.fbd || {}), ...f }
+    const mergedSolveit = { ...(prevBackup.solveit || {}), ...s }
+    const mergedBAns = { ...(prevBackup.balancedAnswers || {}), ...bAns }
+    const mergedFAns = { ...(prevBackup.fbdAnswers || {}), ...fAns }
+    const mergedSAns = { ...(prevBackup.solveitAnswers || {}), ...sAns }
 
     localStorage.setItem(
       userProgressKey,
       JSON.stringify({
-        balanced: b,
-        fbd: f,
-        solveit: s,
+        balanced: mergedBalanced,
+        fbd: mergedFbd,
+        solveit: mergedSolveit,
+        balancedAnswers: mergedBAns,
+        fbdAnswers: mergedFAns,
+        solveitAnswers: mergedSAns,
+        studentSeed: seed || prevBackup.studentSeed,
         lastUpdated: Date.now(),
       })
     )
-  } catch {
-    // ignore
+  } catch (err) {
+    console.error('Backup progress error:', err)
   }
 }
 
@@ -219,6 +302,9 @@ export async function signOutStudent(currentUid) {
     localStorage.removeItem('physix_balanced_completed')
     localStorage.removeItem('physix_fbd_completed')
     localStorage.removeItem('physix_solveit_completed')
+    localStorage.removeItem('physix_balanced_answers')
+    localStorage.removeItem('physix_fbd_answers')
+    localStorage.removeItem('physix_solveit_answers')
     await signOut(auth)
   } catch (err) {
     console.error('Sign out error:', err)
