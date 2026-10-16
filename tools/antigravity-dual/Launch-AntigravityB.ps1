@@ -75,6 +75,12 @@ $taskStart.FileName = $taskApp
 $taskStart.Arguments = '"--user-data-dir={0}"' -f $taskData
 $taskStart.WorkingDirectory = Split-Path -Parent $taskApp
 $taskStart.UseShellExecute = $false
+# Keep the app's output pipes alive for its full lifetime. Inheriting the
+# short-lived launcher/tool pipes causes electron-log to throw EPIPE.
+$taskStart.CreateNoWindow = $true
+$taskStart.RedirectStandardOutput = $true
+$taskStart.RedirectStandardError = $true
+$taskStart.RedirectStandardInput = $true
 # Child-only environment: the normal Windows session and original app keep theirs.
 $taskStart.EnvironmentVariables['HOME'] = $taskHome
 $taskStart.EnvironmentVariables['USERPROFILE'] = $taskHome
@@ -85,6 +91,23 @@ $taskStart.EnvironmentVariables['LOCALAPPDATA'] = Join-Path $taskHome 'AppData\L
 $taskStart.EnvironmentVariables['SSH_CONNECTION'] = '127.0.0.1 50000 127.0.0.1 22'
 $taskStart.EnvironmentVariables['SSH_CLIENT'] = '127.0.0.1 50000 22'
 $taskProcess = [Diagnostics.Process]::Start($taskStart)
+$taskProcess.StandardInput.Close()
 $taskProcess.Id | Set-Content -LiteralPath (Join-Path $taskRoot 'last-launch.pid')
-Write-Output "Started the separate B profile as the current Windows user (process $($taskProcess.Id))."
-Write-Output 'Sign in manually. Account isolation and token refresh still require runtime verification.'
+$taskLogDirectory = Join-Path $taskRoot 'launcher-logs'
+$null = New-Item -ItemType Directory -Path $taskLogDirectory -Force
+$taskLogName = '{0}-{1}' -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $taskProcess.Id
+$taskStdoutFile = [IO.File]::Create((Join-Path $taskLogDirectory "$taskLogName.stdout.log"))
+$taskStderrFile = [IO.File]::Create((Join-Path $taskLogDirectory "$taskLogName.stderr.log"))
+try {
+    # Stream to local files without copying potentially sensitive log content
+    # into chat, and keep the hidden supervisor alive until the app exits.
+    $taskStdoutCopy = $taskProcess.StandardOutput.BaseStream.CopyToAsync($taskStdoutFile)
+    $taskStderrCopy = $taskProcess.StandardError.BaseStream.CopyToAsync($taskStderrFile)
+    $taskProcess.WaitForExit()
+    $taskStdoutCopy.GetAwaiter().GetResult()
+    $taskStderrCopy.GetAwaiter().GetResult()
+} finally {
+    $taskStdoutFile.Dispose()
+    $taskStderrFile.Dispose()
+    $taskProcess.Dispose()
+}
