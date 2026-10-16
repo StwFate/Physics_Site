@@ -106,9 +106,9 @@ export default function PhysicsVisualizer({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+    <div className="bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-xs">
       {/* Simulation Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <span className="font-extrabold text-base text-slate-900 tracking-tight">
           Motion model
         </span>
@@ -130,7 +130,7 @@ export default function PhysicsVisualizer({
 
       {isVertical ? (
         /* Vertical Motion Track (Elevator / Payload / Rocket) */
-        <div className="relative h-36 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-center justify-center">
+        <div className="relative h-28 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-center justify-center">
           {/* Vertical Height Scale on Left */}
           <div className="absolute left-3 inset-y-2 flex flex-col justify-between text-[10px] text-slate-700 font-semibold font-mono select-none border-r border-slate-300 pr-2">
             <span>100m</span>
@@ -203,7 +203,7 @@ export default function PhysicsVisualizer({
         </div>
       ) : (
         /* Horizontal Motion Track (Carts / Crates) */
-        <div className="relative h-24 bg-white overflow-hidden flex flex-col justify-end my-2 select-none">
+        <div className="relative h-20 bg-white overflow-hidden flex flex-col justify-end my-1 select-none">
           {/* Ground Track Line */}
           <div className="absolute inset-x-0 bottom-6 h-[1.5px] bg-slate-400"></div>
 

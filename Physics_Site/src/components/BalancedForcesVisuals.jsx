@@ -142,7 +142,7 @@ export function ForceDiagramView({ renderData, motionDirection }) {
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center p-0">
-      <svg viewBox="0 0 400 300" className="w-full max-w-[560px] aspect-[4/3] max-h-[350px] select-none rounded-lg border border-slate-200 bg-white shadow-2xs">
+      <svg viewBox="0 0 400 300" className="w-full max-w-[560px] aspect-[4/3] max-h-[min(300px,32vh)] select-none rounded-lg border border-slate-200 bg-white shadow-2xs">
         <defs>
           {/* Cartesian Grid Pattern */}
           <pattern id="cartesian-grid" width="20" height="20" patternUnits="userSpaceOnUse">

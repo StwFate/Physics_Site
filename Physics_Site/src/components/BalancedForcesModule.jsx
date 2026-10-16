@@ -143,7 +143,7 @@ export default function BalancedForcesModule({ currentUser }) {
   const cleanStem = currentQ?.stem || 'A cargo trunk is moving to the right. Each arrow shows a force; its length shows the magnitude.'
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Level Selector & Mastery Control Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Level Switcher Pills */}
@@ -267,28 +267,28 @@ export default function BalancedForcesModule({ currentUser }) {
 
       {/* Main Question Workspace Card */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[500px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12">
           {/* Left Column: Eyebrow, Headline, Subtitle, Canvas, Nav Buttons */}
-          <div className="lg:col-span-6 p-6 sm:p-7 flex flex-col justify-between">
+          <div className="lg:col-span-6 p-5 flex flex-col justify-between">
             <div>
               <div className="text-[11px] font-bold tracking-wider text-slate-900 uppercase mb-1">
                 QUESTION {String(currentIndex + 1).padStart(2, '0')} / {String(questions.length).padStart(2, '0')}
               </div>
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
+              <h2 className="text-2xl xl:text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
                 {getHeadline()}
               </h2>
-              <p className="text-sm text-slate-600 leading-relaxed mb-4">
+              <p className="text-sm text-slate-600 leading-relaxed mb-2">
                 {cleanStem}
               </p>
 
               {/* Dynamic Force Diagram Canvas */}
-              <div className="flex-1 flex items-center justify-center my-3">
+              <div className="flex-1 flex items-center justify-center my-1">
                 <BalancedForcesVisuals question={currentQ} />
               </div>
             </div>
 
             {/* Bottom Nav Controls */}
-            <div className="flex items-center justify-between pt-4 mt-2">
+            <div className="flex items-center justify-between pt-2">
               <button
                 onClick={handlePrev}
                 disabled={currentIndex === 0}
@@ -307,13 +307,13 @@ export default function BalancedForcesModule({ currentUser }) {
           </div>
 
           {/* Right Column: Make your prediction, Q1, Divider, Q2, Check answer */}
-          <div className="lg:col-span-6 border-t lg:border-t-0 lg:border-l border-slate-200 p-6 sm:p-7 flex flex-col justify-between">
+          <div className="lg:col-span-6 border-t lg:border-t-0 lg:border-l border-slate-200 p-5 flex flex-col justify-between">
             <div>
-              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-6">
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-3">
                 Make your prediction.
               </h2>
 
-              <div className="space-y-5">
+              <div className="space-y-3">
                 {/* Q1: State of motion */}
                 <div className="space-y-3">
                   <div className="text-sm sm:text-base font-bold text-slate-900 flex items-center">
@@ -331,7 +331,7 @@ export default function BalancedForcesModule({ currentUser }) {
                         <div
                           key={val}
                           onClick={() => !isSubmitted && setSelectedMotion(val)}
-                          className={`flex items-center px-4 py-3 rounded-lg border transition-all cursor-pointer ${
+                          className={`flex items-center px-4 py-2 rounded-lg border transition-all cursor-pointer ${
                             isSelected
                               ? 'border-blue-600 bg-blue-50/30'
                               : 'border-slate-200 hover:border-slate-300 bg-white'
@@ -352,7 +352,7 @@ export default function BalancedForcesModule({ currentUser }) {
                 </div>
 
                 {/* Horizontal Divider */}
-                <div className="border-t border-slate-200 my-4"></div>
+                <div className="border-t border-slate-200 my-2"></div>
 
                 {/* Q2: Balanced or Unbalanced */}
                 <div className="space-y-3">
@@ -370,7 +370,7 @@ export default function BalancedForcesModule({ currentUser }) {
                         <div
                           key={val}
                           onClick={() => !isSubmitted && setSelectedForce(val)}
-                          className={`flex items-center px-4 py-3 rounded-lg border transition-all cursor-pointer ${
+                          className={`flex items-center px-4 py-2 rounded-lg border transition-all cursor-pointer ${
                             isSelected
                               ? 'border-blue-600 bg-blue-50/30'
                               : 'border-slate-200 hover:border-slate-300 bg-white'
@@ -393,7 +393,7 @@ export default function BalancedForcesModule({ currentUser }) {
             </div>
 
             {/* Check answer & Feedback */}
-            <div className="mt-6 pt-2">
+            <div className="mt-3">
               {!isSubmitted ? (
                 <button
                   onClick={handleSubmit}

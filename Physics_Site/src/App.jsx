@@ -187,7 +187,7 @@ export default function App() {
       </nav>
 
       {/* Main Interactive Content */}
-      <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-3 sm:py-4">
+      <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-3">
         {activeTab === 'balanced' && <BalancedForcesModule currentUser={currentUser} />}
         {activeTab === 'fbd' && <FBDModule currentUser={currentUser} />}
         {activeTab === 'solveit' && <SolveItModule currentUser={currentUser} />}
