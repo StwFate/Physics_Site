@@ -90,8 +90,11 @@ async function run() {
 
     // 5. Test Timeline Scrubber
     const slider = model.locator('input[type="range"]')
-    await slider.fill('3.0')
-    await slider.dispatchEvent('input')
+    await slider.evaluate((el) => {
+      el.value = '3.0'
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    })
     await page.waitForTimeout(200)
     console.log(`[Mod 1] Scrubbed to 3.0s -> Readout: ${await model.locator('.motion-time').innerText()}`)
 
