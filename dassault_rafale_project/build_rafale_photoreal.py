@@ -427,7 +427,7 @@ def build_materials():
 
     ap_bump = ap_nodes.new('ShaderNodeBump')
     ap_bump.inputs['Strength'].default_value = 0.035
-    ap_links.new(ap_noise.outputs['Fac'], bump.inputs['Height'])
+    ap_links.new(ap_noise.outputs['Fac'], ap_bump.inputs['Height'])
     ap_links.new(ap_bump.outputs['Normal'], ap_bsdf.inputs['Normal'])
 
     mats['apron'] = mat_apron
@@ -439,6 +439,13 @@ def build_materials():
         roughness=0.48,
         metallic=0.0
     )
+
+    # 10. 3D Insignia & Markings Materials (French Air Force Cocarde & Fin Flash)
+    mats['roundel_blue'] = create_pbr_material("Mat_Roundel_Blue", (0.04, 0.12, 0.45, 1.0), roughness=0.40)
+    mats['roundel_white'] = create_pbr_material("Mat_Roundel_White", (0.86, 0.86, 0.87, 1.0), roughness=0.40)
+    mats['roundel_red'] = create_pbr_material("Mat_Roundel_Red", (0.68, 0.08, 0.08, 1.0), roughness=0.40)
+    mats['ejection_yellow'] = create_pbr_material("Mat_Ejection_Yellow", (0.88, 0.72, 0.05, 1.0), roughness=0.35)
+    mats['stencil_red'] = create_pbr_material("Mat_Stencil_Red", (0.75, 0.12, 0.08, 1.0), roughness=0.45)
 
     return mats
 
@@ -758,6 +765,15 @@ def build_delta_wings(coll, mats):
                              (rail_x, -2.75, 1.25), (rail_x, -2.85, 1.25),
                              0.055, coll, mats['radome'], segments=12)
 
+        # 5. Underside 3D Elevon Actuator Hinge Fairings (at X = ±2.30m and X = ±3.80m)
+        fair1 = add_cylinder_between(f"Rafale_Elevon_Fairing1_{side}",
+                                     (sign * 2.30, -2.25, 1.30), (sign * 2.30, -2.75, 1.30),
+                                     0.045, coll, mats['airframe_dark'], segments=12)
+        fair2 = add_cylinder_between(f"Rafale_Elevon_Fairing2_{side}",
+                                     (sign * 3.80, -3.15, 1.25), (sign * 3.80, -3.65, 1.25),
+                                     0.038, coll, mats['airframe_dark'], segments=12)
+        wing_objs.extend([fair1, fair2])
+
     return wing_objs
 
 
@@ -817,22 +833,28 @@ def build_vertical_tail(coll, mats):
 
     # 4. Top SPECTRA Electronic Warfare Pod
     pod_main = add_cylinder_between("Rafale_SPECTRA_Pod",
-                                    (0.0, -4.15, 5.30), (0.0, -6.10, 5.30),
+                                    (0.0, -4.15, 5.30), (0.0, -5.95, 5.30),
                                     0.115, coll, mats['airframe'], segments=20)
     tail_objs.append(pod_main)
 
     # Forward bullet sensor cap
     pod_cap = add_cylinder_between("Rafale_SPECTRA_Cap",
-                                   (0.0, -4.00, 5.30), (0.0, -4.15, 5.30),
+                                   (0.0, -3.98, 5.30), (0.0, -4.15, 5.30),
                                    0.105, coll, mats['radome'], segments=16)
     tail_objs.append(pod_cap)
 
+    # Stepped Aft Box on SPECTRA pod
+    pod_aft = add_cylinder_between("Rafale_SPECTRA_Aft_Box",
+                                   (0.0, -5.95, 5.30), (0.0, -6.32, 5.30),
+                                   0.095, coll, mats['airframe_dark'], segments=16)
+    tail_objs.append(pod_aft)
+
     # Aft blade antenna
     ant_verts = [
-        (0.015, -6.05, 5.30), (-0.015, -6.05, 5.30),
-        (-0.015, -6.45, 5.30), (0.015, -6.45, 5.30),
-        (0.005, -6.05, 5.52), (-0.005, -6.05, 5.52),
-        (-0.005, -6.40, 5.42), (0.005, -6.40, 5.42)
+        (0.015, -6.15, 5.30), (-0.015, -6.15, 5.30),
+        (-0.015, -6.50, 5.30), (0.015, -6.50, 5.30),
+        (0.005, -6.15, 5.52), (-0.005, -6.15, 5.52),
+        (-0.005, -6.45, 5.42), (0.005, -6.45, 5.42)
     ]
     ant_faces = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (2, 6, 7, 3), (0, 3, 7, 4), (1, 5, 6, 2)]
     ant = create_mesh_obj("Rafale_Tail_Blade_Antenna", ant_verts, ant_faces, coll, True, 1, mats['airframe_dark'])
@@ -842,6 +864,21 @@ def build_vertical_tail(coll, mats):
     add_cylinder_between("Rafale_Fin_Root_Scoop",
                          (0.0, -0.98, 2.16), (0.0, -1.25, 2.16),
                          0.085, coll, mats['airframe_dark'], segments=12)
+
+    # 6. Aft Chaff / Flare Dispenser Box at fin base (Z = 2.10m, Y = -5.15m to -5.65m)
+    flare_verts = [
+        (-0.10, -5.15, 2.10), (0.10, -5.15, 2.10),
+        (0.10,  -5.65, 2.05), (-0.10, -5.65, 2.05),
+        (-0.08, -5.15, 2.26), (0.08, -5.15, 2.26),
+        (0.08,  -5.65, 2.20), (-0.08, -5.65, 2.20),
+    ]
+    flare_faces = [
+        (0, 1, 2, 3), (4, 7, 6, 5),
+        (0, 4, 5, 1), (2, 6, 7, 3),
+        (0, 3, 7, 4), (1, 5, 6, 2)
+    ]
+    flare_box = create_mesh_obj("Rafale_Flare_Dispenser_Box", flare_verts, flare_faces, coll, True, 1, mats['airframe_dark'])
+    tail_objs.append(flare_box)
 
     return tail_objs
 
@@ -913,31 +950,40 @@ def build_cockpit_and_canopy(coll, mats):
                          (0.0, 2.64, 2.14), (0.0, 2.64, 2.21),
                          0.12, coll, mats['seat_cushion'], segments=12)
 
+    # Yellow Ejection Pull Loop on top of headrest
+    add_cylinder_between("Rafale_Ejection_Loop",
+                         (0.0, 2.65, 2.21), (0.0, 2.65, 2.28),
+                         0.035, coll, mats['ejection_yellow'], segments=8)
+
     # 4. HUD (Head-Up Display)
     hud_pane1 = add_cylinder_between("Rafale_HUD_Pane1",
                                      (-0.12, 3.95, 1.98), (0.12, 3.95, 1.98),
                                      0.08, coll, mats['hud_glass'], segments=4)
     cockpit_objs.append(hud_pane1)
 
-    # 5. Fixed IFR (In-Flight Refueling) Probe
-    probe_shaft = add_cylinder_between("Rafale_IFR_Probe_Shaft",
-                                       (0.52, 4.35, 1.65), (0.58, 5.85, 1.76),
-                                       0.032, coll, mats['airframe_dark'])
-    cockpit_objs.append(probe_shaft)
-    probe_head = add_cylinder_between("Rafale_IFR_Probe_Head",
-                                      (0.58, 5.85, 1.76), (0.60, 6.05, 1.78),
-                                      0.048, coll, mats['gear_strut'])
-    cockpit_objs.append(probe_head)
+    # 5. Fixed IFR (In-Flight Refueling) Probe with authentic L-offset elbow
+    shaft = add_cylinder_between("Rafale_IFR_Shaft",
+                                 (0.50, 4.30, 1.62), (0.58, 5.70, 1.76),
+                                 0.032, coll, mats['airframe_dark'])
+    elbow = add_cylinder_between("Rafale_IFR_Elbow",
+                                 (0.58, 5.70, 1.76), (0.64, 5.95, 1.76),
+                                 0.034, coll, mats['airframe_dark'])
+    nozzle = add_cylinder_between("Rafale_IFR_Nozzle",
+                                  (0.64, 5.95, 1.76), (0.65, 6.22, 1.76),
+                                  0.048, coll, mats['gear_strut'])
+    cockpit_objs.extend([shaft, elbow, nozzle])
 
     # 6. Nose OSF (Optronique Secteur Frontal) Sensor Turret
+    osf_base = add_cylinder_between("Rafale_OSF_Base",
+                                    (0.0, 4.86, 1.80), (0.0, 4.92, 1.82),
+                                    0.22, coll, mats['airframe_dark'], segments=12)
     osf_ball = add_cylinder_between("Rafale_OSF_IRST_Ball",
-                                    (-0.16, 4.88, 1.82), (-0.16, 4.88, 1.84),
-                                    0.075, coll, mats['radome'], segments=16)
-    cockpit_objs.append(osf_ball)
+                                    (-0.16, 4.88, 1.83), (-0.16, 4.88, 1.85),
+                                    0.082, coll, mats['canopy_glass'], segments=16)
     osf_wedge = add_cylinder_between("Rafale_OSF_Laser_Wedge",
-                                     (0.16, 4.88, 1.80), (0.16, 4.88, 1.83),
-                                     0.065, coll, mats['gear_strut'], segments=8)
-    cockpit_objs.append(osf_wedge)
+                                     (0.16, 4.88, 1.81), (0.16, 4.88, 1.84),
+                                     0.070, coll, mats['gear_strut'], segments=8)
+    cockpit_objs.extend([osf_base, osf_ball, osf_wedge])
 
     return cockpit_objs
 
@@ -1127,6 +1173,101 @@ def build_landing_gear(coll, mats):
     return gear_objs
 
 
+def build_insignia_and_markings(coll, mats):
+    """
+    Constructs 100% 3D geometry insignia:
+      - French Air Force roundels (cocardes) on the intake flanks
+      - Tricolor fin flash on the vertical stabilizer
+    """
+    insignia_objs = []
+
+    # 1. French Air Force Roundels on Intake Flanks (X = ±1.25m, Y = 0.65m, Z = 1.35m)
+    for side, sign in [("L", -1.0), ("R", 1.0)]:
+        x_cen = sign * 1.25
+        y_cen = 0.65
+        z_cen = 1.35
+        n_seg = 24
+
+        # Outer Red Ring (radius 0.12m to 0.18m)
+        r_verts = []
+        r_faces = []
+        for i in range(n_seg):
+            th = 2.0 * math.pi * i / n_seg
+            dy_o = 0.18 * math.cos(th)
+            dz_o = 0.18 * math.sin(th)
+            dy_i = 0.12 * math.cos(th)
+            dz_i = 0.12 * math.sin(th)
+            dx = sign * 0.002
+            r_verts.append((x_cen + dx, y_cen + dy_o, z_cen + dz_o))
+            r_verts.append((x_cen + dx, y_cen + dy_i, z_cen + dz_i))
+        for i in range(n_seg):
+            i1 = 2 * i
+            i2 = 2 * i + 1
+            ni1 = 2 * ((i + 1) % n_seg)
+            ni2 = 2 * ((i + 1) % n_seg) + 1
+            if sign > 0:
+                r_faces.append((i1, ni1, ni2, i2))
+            else:
+                r_faces.append((i1, i2, ni2, ni1))
+        red_ring = create_mesh_obj(f"Rafale_Roundel_Red_{side}", r_verts, r_faces, coll, True, 0, mats['roundel_red'])
+        insignia_objs.append(red_ring)
+
+        # Middle White Ring (radius 0.06m to 0.12m)
+        w_verts = []
+        w_faces = []
+        for i in range(n_seg):
+            th = 2.0 * math.pi * i / n_seg
+            dy_o = 0.12 * math.cos(th)
+            dz_o = 0.12 * math.sin(th)
+            dy_i = 0.06 * math.cos(th)
+            dz_i = 0.06 * math.sin(th)
+            dx = sign * 0.0022
+            w_verts.append((x_cen + dx, y_cen + dy_o, z_cen + dz_o))
+            w_verts.append((x_cen + dx, y_cen + dy_i, z_cen + dz_i))
+        for i in range(n_seg):
+            i1 = 2 * i
+            i2 = 2 * i + 1
+            ni1 = 2 * ((i + 1) % n_seg)
+            ni2 = 2 * ((i + 1) % n_seg) + 1
+            if sign > 0:
+                r_faces.append((i1, ni1, ni2, i2))
+            else:
+                r_faces.append((i1, i2, ni2, ni1))
+        white_ring = create_mesh_obj(f"Rafale_Roundel_White_{side}", w_verts, w_faces, coll, True, 0, mats['roundel_white'])
+        insignia_objs.append(white_ring)
+
+        # Center Blue Disc (radius 0.00m to 0.06m)
+        b_verts = [(x_cen + sign * 0.0024, y_cen, z_cen)]
+        b_faces = []
+        for i in range(n_seg):
+            th = 2.0 * math.pi * i / n_seg
+            dy = 0.06 * math.cos(th)
+            dz = 0.06 * math.sin(th)
+            b_verts.append((x_cen + sign * 0.0024, y_cen + dy, z_cen + dz))
+        for i in range(n_seg):
+            p1 = 1 + i
+            p2 = 1 + ((i + 1) % n_seg)
+            if sign > 0:
+                b_faces.append((0, p1, p2))
+            else:
+                b_faces.append((0, p2, p1))
+        blue_disc = create_mesh_obj(f"Rafale_Roundel_Blue_{side}", b_verts, b_faces, coll, True, 0, mats['roundel_blue'])
+        insignia_objs.append(blue_disc)
+
+    # 2. Tricolor Fin Flash on Vertical Fin (Y = -3.75m to -3.96m, Z = 4.35m to 4.65m)
+    for side, sign in [("L", -1.0), ("R", 1.0)]:
+        fx = sign * 0.062
+        b_strip = [(fx, -3.75, 4.35), (fx, -3.82, 4.35), (fx, -3.82, 4.65), (fx, -3.75, 4.65)]
+        w_strip = [(fx, -3.82, 4.35), (fx, -3.89, 4.35), (fx, -3.89, 4.65), (fx, -3.82, 4.65)]
+        r_strip = [(fx, -3.89, 4.35), (fx, -3.96, 4.35), (fx, -3.96, 4.65), (fx, -3.89, 4.65)]
+
+        insignia_objs.append(create_mesh_obj(f"Rafale_FinFlash_Blue_{side}", b_strip, [(0, 1, 2, 3) if sign > 0 else (0, 3, 2, 1)], coll, True, 0, mats['roundel_blue']))
+        insignia_objs.append(create_mesh_obj(f"Rafale_FinFlash_White_{side}", w_strip, [(0, 1, 2, 3) if sign > 0 else (0, 3, 2, 1)], coll, True, 0, mats['roundel_white']))
+        insignia_objs.append(create_mesh_obj(f"Rafale_FinFlash_Red_{side}", r_strip, [(0, 1, 2, 3) if sign > 0 else (0, 3, 2, 1)], coll, True, 0, mats['roundel_red']))
+
+    return insignia_objs
+
+
 def build_apron_environment(coll, mats):
     """
     Constructs the concrete airport apron ground plane (60m x 60m):
@@ -1292,6 +1433,7 @@ def build_scene():
     build_cockpit_and_canopy(coll, mats)
     build_exhaust_nozzles(coll, mats)
     build_landing_gear(coll, mats)
+    build_insignia_and_markings(coll, mats)
 
     # 2. Apron Ground Environment
     build_apron_environment(coll, mats)
@@ -1303,9 +1445,9 @@ def build_scene():
     # Hero Camera: Dramatic front three-quarter view from eye level, warm late-afternoon light
     cam_hero = create_camera(
         "Camera_Hero_Front3Q",
-        loc=(-13.8, 15.0, 2.2),
-        target=(0.2, 1.8, 1.55),
-        lens=40.0,
+        loc=(-13.6, 14.2, 2.05),
+        target=(0.2, 1.8, 1.48),
+        lens=42.0,
         scene=scene
     )
 
