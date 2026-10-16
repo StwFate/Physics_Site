@@ -8,6 +8,22 @@ import {
 } from 'firebase/auth'
 
 const DEMO_SESSION_KEY = 'physix_demo_google_session'
+export const AUTH_USER_CACHE_KEY = 'physix_cached_auth_user'
+
+/**
+ * Retrieve synchronously cached student session to eliminate login screen flicker on reload
+ */
+export function getCachedAuthUser() {
+  try {
+    const cached = localStorage.getItem(AUTH_USER_CACHE_KEY)
+    if (cached) return JSON.parse(cached)
+    const demo = localStorage.getItem(DEMO_SESSION_KEY)
+    if (demo) return JSON.parse(demo)
+  } catch {
+    return null
+  }
+  return null
+}
 
 /**
  * Sync user's saved progress to the active module storage keys
@@ -74,14 +90,16 @@ export async function signInWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider)
     const user = result.user
     syncUserProgressOnLogin(user.uid)
+    const userData = {
+      uid: user.uid,
+      displayName: user.displayName || user.email?.split('@')[0] || 'Student',
+      email: user.email,
+      photoURL: user.photoURL,
+    }
+    localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(userData))
     return {
       success: true,
-      user: {
-        uid: user.uid,
-        displayName: user.displayName || user.email?.split('@')[0] || 'Student',
-        email: user.email,
-        photoURL: user.photoURL,
-      },
+      user: userData,
     }
   } catch (err) {
     console.error('Google Sign-In Error:', err)
@@ -126,6 +144,7 @@ export function signInWithDemoGoogle(name = 'Demo Student', email = 'student@sch
     isDemo: true,
   }
   localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(demoUser))
+  localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(demoUser))
   syncUserProgressOnLogin(demoUser.uid)
   return demoUser
 }
@@ -140,12 +159,14 @@ export function subscribeToAuth(callback) {
       if (result && result.user) {
         const user = result.user
         syncUserProgressOnLogin(user.uid)
-        callback({
+        const userData = {
           uid: user.uid,
           displayName: user.displayName || user.email?.split('@')[0] || 'Student',
           email: user.email,
           photoURL: user.photoURL,
-        })
+        }
+        localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(userData))
+        callback(userData)
       }
     })
     .catch((err) => {
@@ -156,24 +177,28 @@ export function subscribeToAuth(callback) {
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
       syncUserProgressOnLogin(firebaseUser.uid)
-      callback({
+      const userData = {
         uid: firebaseUser.uid,
         displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Student',
         email: firebaseUser.email,
         photoURL: firebaseUser.photoURL,
-      })
+      }
+      localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(userData))
+      callback(userData)
     } else {
       // Check if demo user active
       try {
         const demo = JSON.parse(localStorage.getItem(DEMO_SESSION_KEY) || 'null')
         if (demo) {
           syncUserProgressOnLogin(demo.uid)
+          localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(demo))
           callback(demo)
           return
         }
       } catch {
         // ignore
       }
+      localStorage.removeItem(AUTH_USER_CACHE_KEY)
       callback(null)
     }
   })
@@ -189,6 +214,7 @@ export async function signOutStudent(currentUid) {
     if (currentUid) {
       backupUserProgress(currentUid)
     }
+    localStorage.removeItem(AUTH_USER_CACHE_KEY)
     localStorage.removeItem(DEMO_SESSION_KEY)
     localStorage.removeItem('physix_balanced_completed')
     localStorage.removeItem('physix_fbd_completed')
