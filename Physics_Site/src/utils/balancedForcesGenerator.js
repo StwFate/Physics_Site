@@ -18,6 +18,45 @@ function createRng(seed) {
 const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)]
 const randInt = (rng, min, max) => Math.floor(rng() * (max - min + 1)) + min
 
+
+export const BRAKING_QUESTION_IDS = new Set([
+  'apprentice-3', 'apprentice-10', 'apprentice-14', 'apprentice-16', 'apprentice-21',
+  'master-3', 'master-6', 'master-9', 'master-12', 'master-17', 'master-20',
+  'master-28', 'master-30', 'master-35', 'master-37', 'master-41',
+  'wizard-3', 'wizard-6', 'wizard-9', 'wizard-12', 'wizard-15', 'wizard-24',
+  'wizard-26', 'wizard-30', 'wizard-34', 'wizard-36', 'wizard-39', 'wizard-43',
+  'wizard-48', 'wizard-52', 'wizard-53', 'wizard-57'
+])
+
+export const REVERSAL_QUESTION_IDS = new Set([
+  'apprentice-8', 'master-23'
+])
+
+export const CONTINUED_QUESTION_IDS = new Set([
+  'apprentice-13', 'master-26', 'wizard-18', 'wizard-56'
+])
+
+export function tagQuestionMotion(q) {
+  if (BRAKING_QUESTION_IDS.has(q.id)) {
+    q.motionBehavior = 'braking'
+    q.stopAtRest = true
+    if (q.simParams) q.simParams.stopAtRest = true
+  } else if (REVERSAL_QUESTION_IDS.has(q.id)) {
+    q.motionBehavior = 'reversal'
+    q.stopAtRest = false
+    if (q.simParams) q.simParams.stopAtRest = false
+  } else if (CONTINUED_QUESTION_IDS.has(q.id)) {
+    q.motionBehavior = 'continued'
+    q.stopAtRest = false
+    if (q.simParams) q.simParams.stopAtRest = false
+  } else {
+    q.motionBehavior = q.motionAnswer === 'Constant Speed' ? 'constant' : 'accelerating'
+    q.stopAtRest = false
+    if (q.simParams) q.simParams.stopAtRest = false
+  }
+  return q
+}
+
 export function generateBalancedQuestions(level, seed = 0) {
   const rng = createRng(seed)
 
@@ -93,8 +132,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'rightward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: `Vertical forces balance (FN and Fg are equal in magnitude and opposite in direction). The only horizontal force is leftward friction (Ff). Because the net force is directed opposite to the rightward motion, the object slows down under an unbalanced net force.`,
-      simParams: { fNet: -frict3, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: frict3, dir: 'left' }] },
+      simParams: { stopAtRest: true,  fNet: -frict3, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: frict3, dir: 'left' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -210,8 +250,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'upward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'reversal',
       explanation: `The object moves upward, but the only force acting is downward gravity (Fg). The unbalanced downward force opposes the upward motion, causing the object to slow down.`,
-      simParams: { fNet: -grav8, initialV: 6, forces: [{ name: 'F_grav', value: grav8, dir: 'down' }] },
+      simParams: { stopAtRest: false,  fNet: -grav8, initialV: 6, forces: [{ name: 'F_grav', value: grav8, dir: 'down' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -255,8 +296,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'leftward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: `The normal force and gravity cancel each other vertically. The only horizontal force is rightward friction (Ff), which directly opposes the leftward motion. This unbalanced net force causes the object to slow down.`,
-      simParams: { fNet: frict10, initialV: -6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: frict10, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: frict10, initialV: -6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: frict10, dir: 'right' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -324,8 +366,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'downward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'continued',
       explanation: `The upward air resistance (Fair) arrow is longer than the downward gravity (Fg) arrow. This upward net force opposes the downward direction of motion, causing the descending object to slow down under unbalanced forces.`,
-      simParams: { fNet: air13 - grav13, initialV: -8, forces: [{ name: 'F_air', value: air13, dir: 'up' }, { name: 'F_grav', value: grav13, dir: 'down' }] },
+      simParams: { stopAtRest: false,  fNet: air13 - grav13, initialV: -8, forces: [{ name: 'F_air', value: air13, dir: 'up' }, { name: 'F_grav', value: grav13, dir: 'down' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -347,8 +390,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'rightward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: `Vertical forces cancel (FN = Fg). The leftward braking friction arrow (Ff) is longer than the rightward drive arrow (Fa). Because the net force points leftward, opposing the rightward motion, the vehicle slows down under unbalanced forces.`,
-      simParams: { fNet: -(frict14 - drive14), initialV: 8, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: frict14, dir: 'left' }, { name: 'F_app', value: drive14, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: -(frict14 - drive14), initialV: 8, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: frict14, dir: 'left' }, { name: 'F_app', value: drive14, dir: 'right' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -394,8 +438,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'leftward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: `Vertical forces balance (FN = Fg). The rightward friction arrow (Ff) is longer than the leftward applied push arrow (Fa). Because the net force points rightward, opposing the leftward motion, the object slows down under unbalanced forces.`,
-      simParams: { fNet: frict16 - push16, initialV: -7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: frict16, dir: 'right' }, { name: 'F_app', value: push16, dir: 'left' }] },
+      simParams: { stopAtRest: true,  fNet: frict16 - push16, initialV: -7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: frict16, dir: 'right' }, { name: 'F_app', value: push16, dir: 'left' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -509,8 +554,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'upward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: `The downward gravity arrow (Fg) is longer than the upward cable tension arrow (FT). Because the net force points downward, directly opposing the upward motion, the object slows down under unbalanced forces.`,
-      simParams: { fNet: -(grav21 - tens21), initialV: 5, forces: [{ name: 'F_tens', value: tens21, dir: 'up' }, { name: 'F_grav', value: grav21, dir: 'down' }] },
+      simParams: { stopAtRest: true,  fNet: -(grav21 - tens21), initialV: 5, forces: [{ name: 'F_tens', value: tens21, dir: 'up' }, { name: 'F_grav', value: grav21, dir: 'down' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -589,7 +635,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       }
     })
 
-    return questions
+    return questions.map(tagQuestionMotion)
   }
 
   // ==========================================
@@ -636,8 +682,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'positive',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The slope of the position-time curve decreases toward zero (flattening out). A decreasing slope means decreasing velocity (slowing down). Changing velocity requires an unbalanced force.',
-      simParams: { fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 30, dir: 'left' }] },
+      simParams: { stopAtRest: true,  fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 30, dir: 'left' }] },
       renderData: { type: 'position_time_graph', curveType: 'slowing_down_pos' }
     })
 
@@ -678,8 +725,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'negative',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The negative slope of the curve becomes less steep (flatter) over time. Because the magnitude of velocity is decreasing, the object is slowing down. An unbalanced force opposing the negative motion produces this deceleration.',
-      simParams: { fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
       renderData: { type: 'position_time_graph', curveType: 'slowing_down_neg' }
     })
 
@@ -720,8 +768,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'positive',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The curve bends and its slope decreases toward zero (horizontal). Decreasing slope represents decreasing speed, meaning the skateboard is slowing down. An unbalanced opposing friction force produces this effect.',
-      simParams: { fNet: -24, initialV: 6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 30, dir: 'left' }] },
+      simParams: { stopAtRest: true,  fNet: -24, initialV: 6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 30, dir: 'left' }] },
       renderData: { type: 'position_time_graph', curveType: 'slowing_down_pos' }
     })
 
@@ -762,8 +811,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'negative',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The slope of the position-time curve transitions from a steep negative angle toward horizontal (zero slope). Since speed is the steepness of slope, the rover is slowing down. An unbalanced force opposing the negative motion causes this deceleration.',
-      simParams: { fNet: 26, initialV: -6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: 26, initialV: -6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
       renderData: { type: 'position_time_graph', curveType: 'slowing_down_neg' }
     })
 
@@ -833,8 +883,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'rightward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The spacing between successive drops becomes progressively smaller. Traveling less distance each interval indicates the vehicle is slowing down. Deceleration requires an unbalanced net force opposing motion.',
-      simParams: { fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
+      simParams: { stopAtRest: true,  fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
       renderData: { type: 'dot_diagram', pattern: 'decelerating', direction: 'right' }
     })
 
@@ -875,8 +926,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'leftward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The spacing between dots shrinks as the sled travels leftward. The sled covers less distance per second and is slowing down due to an unbalanced rightward friction force.',
-      simParams: { fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
       renderData: { type: 'dot_diagram', pattern: 'decelerating', direction: 'left' }
     })
 
@@ -917,8 +969,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'upward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'reversal',
       explanation: 'The gap between successive flashes becomes smaller near the top. Traveling less distance each interval means the ball is slowing down. The downward force of gravity opposes the upward motion, creating an unbalanced decelerating force.',
-      simParams: { fNet: -25, initialV: 7, forces: [{ name: 'F_grav', value: 25, dir: 'down' }] },
+      simParams: { stopAtRest: false,  fNet: -25, initialV: 7, forces: [{ name: 'F_grav', value: 25, dir: 'down' }] },
       renderData: { type: 'dot_diagram', pattern: 'decelerating', direction: 'up' }
     })
 
@@ -959,8 +1012,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'downward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'continued',
       explanation: 'The downward spacing between markers contracts steadily. The payload travels less distance during each time step, which means it is slowing down under an upward net force from the parachute.',
-      simParams: { fNet: 25, initialV: -8, forces: [{ name: 'F_air', value: 55, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }] },
+      simParams: { stopAtRest: false,  fNet: 25, initialV: -8, forces: [{ name: 'F_air', value: 55, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }] },
       renderData: { type: 'dot_diagram', pattern: 'decelerating', direction: 'down' }
     })
 
@@ -987,8 +1041,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'leftward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The spacing between marks shrinks progressively in the direction of leftward travel. Because the puck travels less distance each interval, it is slowing down due to opposing friction.',
-      simParams: { fNet: 26, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: 26, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
       renderData: { type: 'dot_diagram', pattern: 'decelerating', direction: 'left' }
     })
 
@@ -1029,8 +1084,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'rightward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The leftward friction force (Ff) exceeds the rightward applied push (Fa), as shown by the longer leftward arrow. The net horizontal force points to the left, opposing the rightward motion and causing the trunk to slow down under unbalanced forces.',
-      simParams: { fNet: -(fFrict30 - fApp30), initialV: 6, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: fFrict30, dir: 'left' }, { name: 'F_app', value: fApp30, dir: 'right' }] },
+      simParams: { stopAtRest: true,  fNet: -(fFrict30 - fApp30), initialV: 6, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: fFrict30, dir: 'left' }, { name: 'F_app', value: fApp30, dir: 'right' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -1142,8 +1198,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'leftward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The rightward restraining force arrow (Ff) is visibly longer than the leftward force arrow (Fa). Because the net force is directed to the right, opposing the leftward motion, the container slows down under unbalanced forces.',
-      simParams: { fNet: fOpp35 - fFwd35, initialV: -6, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: fOpp35, dir: 'right' }, { name: 'F_app', value: fFwd35, dir: 'left' }] },
+      simParams: { stopAtRest: true,  fNet: fOpp35 - fFwd35, initialV: -6, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: fOpp35, dir: 'right' }, { name: 'F_app', value: fFwd35, dir: 'left' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -1188,8 +1245,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'downward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The upward tension arrow (FT) is longer than the downward gravity arrow (Fg). Because the net force points upward, opposite to the downward direction of motion, the elevator slows down under unbalanced forces.',
-      simParams: { fNet: fTens37 - fGrav37, initialV: -7, forces: [{ name: 'F_tens', value: fTens37, dir: 'up' }, { name: 'F_grav', value: fGrav37, dir: 'down' }] },
+      simParams: { stopAtRest: true,  fNet: fTens37 - fGrav37, initialV: -7, forces: [{ name: 'F_tens', value: fTens37, dir: 'up' }, { name: 'F_grav', value: fGrav37, dir: 'down' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -1279,8 +1337,9 @@ export function generateBalancedQuestions(level, seed = 0) {
       motionDirection: 'upward',
       motionAnswer: 'Slowing Down',
       forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
       explanation: 'The downward gravity arrow (Fg) is longer than the upward cable tension arrow (FT). This net downward force opposes the upward direction of motion, causing the pallet to slow down under unbalanced forces.',
-      simParams: { fNet: -(fGrav41 - fTens41), initialV: 5, forces: [{ name: 'F_tens', value: fTens41, dir: 'up' }, { name: 'F_grav', value: fGrav41, dir: 'down' }] },
+      simParams: { stopAtRest: true,  fNet: -(fGrav41 - fTens41), initialV: 5, forces: [{ name: 'F_tens', value: fTens41, dir: 'up' }, { name: 'F_grav', value: fGrav41, dir: 'down' }] },
       renderData: {
         type: 'force_diagram',
         forces: [
@@ -1314,7 +1373,7 @@ export function generateBalancedQuestions(level, seed = 0) {
       }
     })
 
-    return questions
+    return questions.map(tagQuestionMotion)
   }
 
   // ==========================================
@@ -1360,8 +1419,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The line slopes downward toward the time axis (velocity decreases toward zero). The magnitude of velocity is decreasing, meaning the object is slowing down. An unbalanced force produces this deceleration.',
-    simParams: { fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
     renderData: { type: 'velocity_time_graph', curveType: 'slowing_down_pos' }
   })
 
@@ -1402,8 +1462,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'negative',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The line begins at a negative velocity and slopes upward toward the zero axis. The magnitude of velocity (|v|) decreases toward zero. The object is slowing down due to an unbalanced positive net force.',
-    simParams: { fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+    simParams: { stopAtRest: true,  fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
     renderData: { type: 'velocity_time_graph', curveType: 'slowing_down_neg' }
   })
 
@@ -1444,8 +1505,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Velocity remains positive but approaches zero as time advances. Because the speed (|v|) is decreasing, the vehicle is slowing down. An unbalanced backward friction force causes this deceleration.',
-    simParams: { fNet: -26, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -26, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
     renderData: { type: 'velocity_time_graph', curveType: 'slowing_down_pos' }
   })
 
@@ -1486,8 +1548,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'negative',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Velocity starts negative and heads toward zero. The absolute magnitude of velocity is shrinking, meaning the car is slowing down. An unbalanced positive friction force opposes the negative motion.',
-    simParams: { fNet: 24, initialV: -6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 34, dir: 'right' }] },
+    simParams: { stopAtRest: true,  fNet: 24, initialV: -6, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 34, dir: 'right' }] },
     renderData: { type: 'velocity_time_graph', curveType: 'slowing_down_neg' }
   })
 
@@ -1528,8 +1591,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The velocity-time line slopes downward toward the time axis. Velocity magnitude decreases over time, confirming that the hauler is slowing down under an unbalanced opposing force.',
-    simParams: { fNet: -28, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: 38, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -28, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: 38, dir: 'left' }] },
     renderData: { type: 'velocity_time_graph', curveType: 'slowing_down_pos' }
   })
 
@@ -1570,8 +1634,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'negative',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'continued',
     explanation: 'The downward velocity is negative, but the curve slopes upward toward the zero axis. The descent speed is decreasing, which means the capsule is slowing down. An unbalanced upward aerodynamic drag force produces this deceleration.',
-    simParams: { fNet: 28, initialV: -8, forces: [{ name: 'F_air', value: 65, dir: 'up' }, { name: 'F_grav', value: 37, dir: 'down' }] },
+    simParams: { stopAtRest: false,  fNet: 28, initialV: -8, forces: [{ name: 'F_air', value: 65, dir: 'up' }, { name: 'F_grav', value: 37, dir: 'down' }] },
     renderData: { type: 'velocity_time_graph', curveType: 'slowing_down_neg' }
   })
 
@@ -1690,8 +1755,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Calculating the displacement each second: Δx = 10 m, then 8 m, 6 m, 4 m, 2 m. The distance covered each second decreases over time, showing that the object is slowing down. An unbalanced opposing force causes this deceleration.',
-    simParams: { fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
     renderData: {
       type: 'kinematic_table',
       colHeader: 'Position (m)',
@@ -1740,8 +1806,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'negative',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Displacements per second are -10 m, -8 m, -6 m, -4 m, -2 m. The magnitude of distance traveled each second decreases, confirming that the object is slowing down. Deceleration requires an unbalanced force.',
-    simParams: { fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+    simParams: { stopAtRest: true,  fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
     renderData: {
       type: 'kinematic_table',
       colHeader: 'Position (m)',
@@ -1842,8 +1909,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The successive displacements per second are 12 m, 9 m, 6 m, 3 m, 0 m. As the distance traveled per second decreases to zero, the vehicle is slowing down under an unbalanced opposing force.',
-    simParams: { fNet: -25, initialV: 8, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -25, initialV: 8, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
     renderData: {
       type: 'kinematic_table',
       colHeader: 'Position (m)',
@@ -1945,8 +2013,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The velocity drops steadily toward zero over time. The speed decreases each interval, so the object is slowing down. An unbalanced net force opposing motion causes this change.',
-    simParams: { fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -25, initialV: 7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'left' }] },
     renderData: {
       type: 'kinematic_table',
       colHeader: 'Velocity (m/s)',
@@ -1995,8 +2064,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'negative',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Velocity is negative, but its magnitude (|v|) drops from 15.0 m/s down to 0.0 m/s. The vehicle is slowing down in the negative direction, driven by an unbalanced positive force.',
-    simParams: { fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
+    simParams: { stopAtRest: true,  fNet: 25, initialV: -7, forces: [{ name: 'F_norm', value: 20, dir: 'up' }, { name: 'F_grav', value: 20, dir: 'down' }, { name: 'F_frict', value: 35, dir: 'right' }] },
     renderData: {
       type: 'kinematic_table',
       colHeader: 'Velocity (m/s)',
@@ -2070,8 +2140,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'positive',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Velocity drops by 12.0 m/s each second until reaching a taxi speed. Because speed is dropping over time, the aircraft is slowing down under an unbalanced opposing braking force.',
-    simParams: { fNet: -28, initialV: 8, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 40, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -28, initialV: 8, forces: [{ name: 'F_norm', value: 25, dir: 'up' }, { name: 'F_grav', value: 25, dir: 'down' }, { name: 'F_frict', value: 40, dir: 'left' }] },
     renderData: {
       type: 'kinematic_table',
       colHeader: 'Velocity (m/s)',
@@ -2166,8 +2237,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'rightward',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Vertical forces balance (FN = Fg). The only horizontal force is leftward kinetic friction (Ff), opposing the rightward motion as shown in the force diagram. This unbalanced net force opposes motion, causing the car to slow down.',
-    simParams: { fNet: -fSkid43, initialV: 8, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: fSkid43, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -fSkid43, initialV: 8, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_frict', value: fSkid43, dir: 'left' }] },
     renderData: {
       type: 'force_diagram',
       forces: [
@@ -2261,8 +2333,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'upward',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The downward gravity arrow (Fg) is longer than the upward cable tension arrow (FT). This net downward force opposes the upward motion, slowing the elevator down under unbalanced forces.',
-    simParams: { fNet: -(fGrav48 - fTens48), initialV: 5, forces: [{ name: 'F_tens', value: fTens48, dir: 'up' }, { name: 'F_grav', value: fGrav48, dir: 'down' }] },
+    simParams: { stopAtRest: true,  fNet: -(fGrav48 - fTens48), initialV: 5, forces: [{ name: 'F_tens', value: fTens48, dir: 'up' }, { name: 'F_grav', value: fGrav48, dir: 'down' }] },
     renderData: {
       type: 'force_diagram',
       forces: [
@@ -2351,8 +2424,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'downward',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The upward thrust arrow (Fthrust) is longer than the downward gravity arrow (Fg). This net upward force opposes the downward velocity of descent, causing the lander to slow down under unbalanced forces.',
-    simParams: { fNet: fThrust52 - fGrav52, initialV: -6, forces: [{ name: 'F_thrust', value: fThrust52, dir: 'up' }, { name: 'F_grav', value: fGrav52, dir: 'down' }] },
+    simParams: { stopAtRest: true,  fNet: fThrust52 - fGrav52, initialV: -6, forces: [{ name: 'F_thrust', value: fThrust52, dir: 'up' }, { name: 'F_grav', value: fGrav52, dir: 'down' }] },
     renderData: {
       type: 'force_diagram',
       forces: [
@@ -2372,8 +2446,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'rightward',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'Vertical forces balance (FN = Fg). The only horizontal force is leftward drag (Ff + Fair), which directly opposes the rightward motion. This unbalanced net force causes the cart to slow down.',
-    simParams: { fNet: -fDrag53, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_drag', value: fDrag53, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: -fDrag53, initialV: 7, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_drag', value: fDrag53, dir: 'left' }] },
     renderData: {
       type: 'force_diagram',
       forces: [
@@ -2442,8 +2517,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'downward',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'continued',
     explanation: 'The upward aerodynamic drag arrow (Fair) is longer than the downward gravity arrow (Fg). The net upward force opposes the downward velocity, causing the paratrooper to slow down under unbalanced forces.',
-    simParams: { fNet: fChute56 - fGrav56, initialV: -7, forces: [{ name: 'F_air', value: fChute56, dir: 'up' }, { name: 'F_grav', value: fGrav56, dir: 'down' }] },
+    simParams: { stopAtRest: false,  fNet: fChute56 - fGrav56, initialV: -7, forces: [{ name: 'F_air', value: fChute56, dir: 'up' }, { name: 'F_grav', value: fGrav56, dir: 'down' }] },
     renderData: {
       type: 'force_diagram',
       forces: [
@@ -2464,8 +2540,9 @@ export function generateBalancedQuestions(level, seed = 0) {
     motionDirection: 'leftward',
     motionAnswer: 'Slowing Down',
     forceAnswer: 'Unbalanced',
+      motionBehavior: 'braking',
     explanation: 'The rightward cable tension arrow (FT) is longer than the leftward applied push arrow (Fa). Because the net force points rightward, directly opposing the leftward motion, the crate slows down under unbalanced forces.',
-    simParams: { fNet: fTeth57 - fPush57, initialV: -6, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_tens', value: fTeth57, dir: 'right' }, { name: 'F_app', value: fPush57, dir: 'left' }] },
+    simParams: { stopAtRest: true,  fNet: fTeth57 - fPush57, initialV: -6, forces: [{ name: 'F_norm', value: 30, dir: 'up' }, { name: 'F_grav', value: 30, dir: 'down' }, { name: 'F_tens', value: fTeth57, dir: 'right' }, { name: 'F_app', value: fPush57, dir: 'left' }] },
     renderData: {
       type: 'force_diagram',
       forces: [
@@ -2543,5 +2620,5 @@ export function generateBalancedQuestions(level, seed = 0) {
     }
   })
 
-  return questions
+  return questions.map(tagQuestionMotion)
 }
