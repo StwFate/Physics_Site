@@ -322,14 +322,22 @@ export function PersonalizedMotionObject({ visual, vertical, projectile, mass, w
   const effectiveWheelAngle = equip.lockedWheels ? 0 : wheelAngle
 
   // Render object badge / pill showing label and mass
-  const renderIdentityBadge = (yOffset = -33) => (
-    <g transform={`translate(0 ${yOffset})`} pointerEvents="none">
-      <rect x="-38" y="-9" width="76" height="17" rx="8" fill="#0f172a" fillOpacity="0.82" stroke="#64748b" strokeWidth="0.75" />
-      <text y="3" textAnchor="middle" fill="#f8fafc" fontSize="9" fontWeight="700">
-        {title.length > 12 ? title.slice(0, 11) + '…' : title} · {Number(mass.toFixed(1))} kg
-      </text>
-    </g>
-  )
+  const renderIdentityBadge = (yOffset = -30) => {
+    const rawTitle = visual?.title || 'Object'
+    const shortName = rawTitle
+      .replace(/^(Accelerating|Decelerating|Pushed|Ascending|Descending|Braking|Coasting|Rising|Skidding|Motorized|Automated)\s+/i, '')
+      .replace(/\s+(in Flight|at Apex|at Peak|on Surface)$/i, '')
+    const label = `${shortName} · ${Number(mass.toFixed(1))} kg`
+    const pillWidth = Math.max(76, label.length * 6.3 + 16)
+    return (
+      <g transform={`translate(0 ${yOffset})`} pointerEvents="none">
+        <rect x={-pillWidth / 2} y="-9" width={pillWidth} height="17" rx="8.5" fill="#0f172a" fillOpacity="0.88" stroke="#64748b" strokeWidth="0.75" />
+        <text y="3" textAnchor="middle" fill="#f8fafc" fontSize="9" fontWeight="700">
+          {label}
+        </text>
+      </g>
+    )
+  }
 
   // Equipment overlays: Parachute, Tension Cable, Thruster Flame, Rotors, Propellers
   const renderEquipment = () => (
@@ -813,7 +821,12 @@ export function PersonalizedMotionObject({ visual, vertical, projectile, mass, w
       </g>
 
       {/* Unflipped, upright identity & mass badge */}
-      {renderIdentityBadge(vertical ? -36 : equip.parachute ? -64 : family === 'ball' ? -26 : -32)}
+      {renderIdentityBadge(
+        family === 'crate' || family === 'elevator' ? 0 :
+        family === 'car' || family === 'train' || family === 'submarine' || family === 'boat' ? 2 :
+        equip.parachute ? 0 :
+        family === 'ball' ? -26 : -32
+      )}
     </g>
   )
 }
