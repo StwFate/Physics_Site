@@ -1198,7 +1198,7 @@ def setup_lighting(scene):
     sky.sun_rotation = math.radians(65.0)   # Rakes dramatically across front 3/4
     sky.altitude = 12.0
     sky.air_density = 1.15
-    sky.dust_density = 2.20                  # Warm sunset haze
+    sky.aerosol_density = 2.20              # Warm sunset haze
     sky.ozone_density = 1.40
     sky.sun_intensity = 0.95
     sky.sun_size = math.radians(1.65)       # Soft realistic sun disc and shadows
