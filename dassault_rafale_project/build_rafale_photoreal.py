@@ -471,6 +471,9 @@ def build_fuselage(coll, mats):
         t = max(0.0, min(1.0, (v - e0) / (e1 - e0))) if abs(e1 - e0) > 1e-6 else 0.0
         return t * t * (3.0 - 2.0 * t)
 
+    profiles_body = []
+    profiles_radome = []
+
     for y in y_stations:
         ring = []
 
@@ -543,10 +546,23 @@ def build_fuselage(coll, mats):
                 z = z_mid + 0.5 * (z_top - z_bot) * sin_t + twin_lobe
                 ring.append((x, y, z))
 
-        profiles.append(ring)
+        if y >= 5.55:
+            profiles_radome.append(ring)
+        if y <= 5.55:
+            profiles_body.append(ring)
 
-    fuselage = loft_profiles("Rafale_Fuselage", profiles, cap_start=True, cap_end=True,
+    fuselage = loft_profiles("Rafale_Fuselage_Body", profiles_body, cap_start=True, cap_end=False,
                              collection=coll, smooth=True, subsurf=2, mat=mats['airframe'])
+    radome = loft_profiles("Rafale_Nose_Radome", profiles_radome, cap_start=False, cap_end=True,
+                           collection=coll, smooth=True, subsurf=2, mat=mats['radome'])
+
+    # Anti-glare shield on upper nose deck in front of windshield (Y = 4.25 to 5.45)
+    ag_verts = [
+        (-0.28, 4.25, 1.86), (0.28, 4.25, 1.86),
+        (0.18, 5.45, 1.76), (-0.18, 5.45, 1.76)
+    ]
+    ag_faces = [(0, 1, 2, 3)]
+    create_mesh_obj("Rafale_AntiGlare_Shield", ag_verts, ag_faces, coll, True, 0, mats['airframe_dark'])
 
     # Nose tip pitot tube
     add_cylinder_between("Rafale_Nose_Pitot", (0, 7.60, 1.38), (0, 7.95, 1.38), 0.012, coll, mats['gear_strut'])
@@ -764,35 +780,40 @@ def build_vertical_tail(coll, mats):
         {'z': 5.25, 'y_le': -4.50, 'chord': 1.25, 't_ratio': 0.040},  # Fin Top
     ]
 
-    # 1. Main Vertical Fin Box (u = 0.00 to 0.738)
+    # 1. Main Vertical Fin (Unified aerodynamic profile, perfectly watertight without subsurf boundary gap)
     fin_profiles = []
     for st in fin_stations:
         ring = make_airfoil_ring(st['chord'], st['t_ratio'], camber=0.0,
-                                 u_min=0.0, u_max=0.738, n_pts=16,
+                                 u_min=0.0, u_max=1.00, n_pts=20,
                                  le_pos=(0.0, st['y_le'], st['z']), vertical=True)
         fin_profiles.append(ring)
 
-    fin_box = loft_profiles("Rafale_Vertical_Fin_Box", fin_profiles, cap_start=True, cap_end=True,
-                            collection=coll, smooth=True, subsurf=2, mat=mats['airframe'])
-    tail_objs.append(fin_box)
+    fin = loft_profiles("Rafale_Vertical_Fin", fin_profiles, cap_start=True, cap_end=True,
+                        collection=coll, smooth=True, subsurf=2, mat=mats['airframe'])
+    tail_objs.append(fin)
 
-    # 2. Tightly Integrated 3D Rudder (u = 0.742 to 1.00)
-    rudder_profiles = []
-    for st in fin_stations:
-        ring = make_airfoil_ring(st['chord'], st['t_ratio'], camber=0.0,
-                                 u_min=0.742, u_max=1.00, n_pts=12,
-                                 le_pos=(0.0, st['y_le'], st['z']), vertical=True)
-        rudder_profiles.append(ring)
+    # 2. Dorsal Spine Fillet (blends dorsal spine into fin root, Y = +0.50m to -1.25m)
+    fillet_verts = [
+        (-0.06,  0.50, 2.06), (0.06,  0.50, 2.06),
+        (0.08,  -1.25, 2.22), (-0.08, -1.25, 2.22),
+        (-0.02,  0.50, 2.08), (0.02,  0.50, 2.08),
+        (0.02,  -1.25, 2.55), (-0.02, -1.25, 2.55)
+    ]
+    fillet_faces = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (2, 6, 7, 3), (0, 3, 7, 4), (1, 5, 6, 2)]
+    fillet = create_mesh_obj("Rafale_Dorsal_Fin_Fillet", fillet_verts, fillet_faces, coll, True, 1, mats['airframe'])
+    tail_objs.append(fillet)
 
-    rudder = loft_profiles("Rafale_Rudder", rudder_profiles, cap_start=True, cap_end=True,
-                           collection=coll, smooth=True, subsurf=1, mat=mats['airframe_dark'])
-    tail_objs.append(rudder)
-
-    # 3. Internal Rudder Hinge Spar Tube (prevents light leak through the 8mm seam!)
-    spar_p1 = (0.0, fin_stations[0]['y_le'] - 0.740 * fin_stations[0]['chord'], fin_stations[0]['z'])
-    spar_p2 = (0.0, fin_stations[-1]['y_le'] - 0.740 * fin_stations[-1]['chord'], fin_stations[-1]['z'])
-    spar = add_cylinder_between("Rafale_Rudder_Hinge_Spar", spar_p1, spar_p2, 0.045, coll, mats['airframe_dark'])
-    tail_objs.append(spar)
+    # 3. Streamlined Rudder Actuator Blisters along hinge line (Z = 2.85m and Z = 4.15m)
+    for z_act in [2.85, 4.15]:
+        st_match = min(fin_stations, key=lambda s: abs(s['z'] - z_act))
+        y_act = st_match['y_le'] - 0.74 * st_match['chord']
+        blister_l = add_cylinder_between(f"Rafale_Rudder_Actuator_L_{int(z_act*10)}",
+                                         (-0.06, y_act + 0.15, z_act), (-0.06, y_act - 0.25, z_act),
+                                         0.045, coll, mats['airframe_dark'])
+        blister_r = add_cylinder_between(f"Rafale_Rudder_Actuator_R_{int(z_act*10)}",
+                                         (0.06, y_act + 0.15, z_act), (0.06, y_act - 0.25, z_act),
+                                         0.045, coll, mats['airframe_dark'])
+        tail_objs.extend([blister_l, blister_r])
 
     # 4. Top SPECTRA Electronic Warfare Pod
     pod_main = add_cylinder_between("Rafale_SPECTRA_Pod",
@@ -936,6 +957,12 @@ def build_exhaust_nozzles(coll, mats):
     n_petals = 18
 
     for side, x_cen in [("L", -0.52), ("R", 0.52)]:
+        # 0. Aft Nacelle Titanium Heat Shroud
+        shroud = add_cylinder_between(f"Rafale_Heat_Shroud_{side}",
+                                      (x_cen, -5.95, 1.25), (x_cen, -6.65, 1.25),
+                                      0.455, coll, mats['exhaust_metal'], segments=24)
+        exhaust_objs.append(shroud)
+
         # 1. Outer Articulated Titanium Petals
         petal_verts = []
         petal_faces = []
@@ -1276,27 +1303,27 @@ def build_scene():
     # Hero Camera: Dramatic front three-quarter view from eye level, warm late-afternoon light
     cam_hero = create_camera(
         "Camera_Hero_Front3Q",
-        loc=(-11.8, 9.4, 1.85),
-        target=(0.0, 0.8, 1.45),
-        lens=48.0,
+        loc=(-13.8, 15.0, 2.2),
+        target=(0.2, 1.8, 1.55),
+        lens=40.0,
         scene=scene
     )
 
     # Side Preview Camera: Orthographic-like profile inspection
     cam_side = create_camera(
         "Camera_Preview_Side",
-        loc=(-19.5, 0.0, 2.20),
-        target=(0.0, 0.0, 2.00),
-        lens=52.0,
+        loc=(-21.5, 0.0, 2.2),
+        target=(0.0, 0.0, 1.8),
+        lens=48.0,
         scene=scene
     )
 
     # Rear Preview Camera: Rear 3/4 view inspecting exhausts, rudder, and wings
     cam_rear = create_camera(
         "Camera_Preview_Rear",
-        loc=(-10.5, -13.5, 2.20),
-        target=(0.0, -2.5, 1.85),
-        lens=44.0,
+        loc=(-11.0, -14.5, 2.2),
+        target=(0.0, -2.5, 1.8),
+        lens=42.0,
         scene=scene
     )
 
