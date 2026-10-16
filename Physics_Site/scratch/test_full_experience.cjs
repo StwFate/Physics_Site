@@ -7,6 +7,8 @@ async function run() {
   const outputDir = path.resolve(__dirname, '../output/playwright/eval')
   fs.mkdirSync(outputDir, { recursive: true })
 
+  const fbdScenarios = JSON.parse(fs.readFileSync(path.join(__dirname, '../src/data/fbdScenarios.json')))
+
   console.log('🚀 Launching Chromium at 1920x1080 (1080p)...')
   const browser = await chromium.launch({
     executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -140,46 +142,41 @@ async function run() {
     console.log(`[Mod 2] Simulation visible before answer: ${simVisible} (Expected: false)`)
     assert.equal(simVisible, false, 'Simulation should be hidden in FBD before solving')
 
-    // Scenario 1
-    const scenarioTitle = await page.locator('h3').first().innerText()
-    const scenarioDesc = await page.locator('p').first().innerText()
-    console.log(`[Mod 2] Current scenario title: "${scenarioTitle}"`)
-    console.log(`[Mod 2] Current scenario description: "${scenarioDesc}"`)
-    const topPlus = page.locator('button[aria-label="Add force pointing up"]')
-    if (await topPlus.isVisible()) {
-      await topPlus.click()
-      await page.waitForTimeout(200)
-      await page.getByRole('button', { name: /Normal Force/i }).click()
-      await page.waitForTimeout(200)
+    // Identify active scenario
+    const activeTitle = await page.locator('span.text-xs.font-bold.text-slate-900').first().innerText()
+    const activeScenario = fbdScenarios.find(s => s.title.trim() === activeTitle.trim()) || fbdScenarios[0]
+    console.log(`[Mod 2] Active Scenario: "${activeScenario.title}" (ID: ${activeScenario.id})`)
+
+    // Helper: Add required forces for a scenario
+    const solveCurrentFBD = async (scen) => {
+      for (const [dir, f] of Object.entries(scen.vectors)) {
+        if (!f || f.code === 0) continue
+        const plusBtn = page.locator(`button[aria-label="Add ${dir === 'up' ? 'upward' : dir === 'down' ? 'downward' : dir === 'left' ? 'leftward' : 'rightward'} force"]`)
+        if (await plusBtn.isVisible()) {
+          await plusBtn.click()
+          await page.waitForTimeout(200)
+          // Find force by name
+          const forceNameRegex = new RegExp(f.name, 'i')
+          await page.getByRole('button', { name: forceNameRegex }).click()
+          await page.waitForTimeout(200)
+
+          if (f.magnitude === 2) {
+            // Toggle to Strong
+            const strengthBtn = page.locator(`button[aria-label^="${dir === 'up' ? 'Upward' : dir === 'down' ? 'Downward' : dir === 'left' ? 'Leftward' : 'Rightward'} force strength"]`)
+            if (await strengthBtn.isVisible()) {
+              await strengthBtn.click()
+              await page.waitForTimeout(200)
+            }
+          }
+        }
+      }
     }
 
-    const bottomPlus = page.locator('button[aria-label="Add force pointing down"]')
-    if (await bottomPlus.isVisible()) {
-      await bottomPlus.click()
-      await page.waitForTimeout(200)
-      await page.getByRole('button', { name: /Gravity Force/i }).click()
-      await page.waitForTimeout(200)
-    }
-
-    const rightPlus = page.locator('button[aria-label="Add force pointing right"]')
-    if (await rightPlus.isVisible()) {
-      await rightPlus.click()
-      await page.waitForTimeout(200)
-      await page.getByRole('button', { name: /Applied Force/i }).click()
-      await page.waitForTimeout(200)
-    }
-
-    const leftPlus = page.locator('button[aria-label="Add force pointing left"]')
-    if (await leftPlus.isVisible()) {
-      await leftPlus.click()
-      await page.waitForTimeout(200)
-      await page.getByRole('button', { name: /Friction Force/i }).click()
-      await page.waitForTimeout(200)
-    }
+    await solveCurrentFBD(activeScenario)
 
     const checkFbdBtn = page.getByRole('button', { name: /Evaluate Diagram/i })
     await checkFbdBtn.click()
-    await page.waitForTimeout(800)
+    await page.waitForTimeout(1000)
 
     simVisible = await page.locator('.motion-model').isVisible()
     console.log(`[Mod 2] Simulation visible after correct FBD: ${simVisible} (Expected: true)`)
@@ -189,32 +186,32 @@ async function run() {
     console.log(`[Mod 2] Observation: "${await mod2Model.locator('.motion-observation').innerText()}"`)
     await page.screenshot({ path: path.join(outputDir, 'mod2_sim_scenario1_1080p.png') })
 
-    // Test Scenario 4: Projectile Motion (flying baseball)
-    console.log('[Mod 2] Navigating to Scenario 4 (Projectile Motion)...')
-    const s4Btn = page.getByRole('button', { name: /#4:/i })
-    if (await s4Btn.isVisible()) {
-      await s4Btn.click()
-      await page.waitForTimeout(400)
-
-      // Baseball in flight without air resistance: only downward gravity force
-      const s4BottomPlus = page.locator('button[aria-label="Add force pointing down"]')
-      if (await s4BottomPlus.isVisible()) {
-        await s4BottomPlus.click()
-        await page.waitForTimeout(200)
-        await page.getByRole('button', { name: /Gravity Force/i }).click()
-        await page.waitForTimeout(200)
+    // Now test Projectile Motion (Scenario 4 or Scenario 9)
+    console.log('[Mod 2] Finding Projectile Motion Scenario...')
+    const projectileScenario = fbdScenarios.find(s => s.id === 4)
+    // Find the strip button for projectile scenario
+    const stripButtons = await page.locator('div.flex.items-center.gap-1.overflow-x-auto button').all()
+    for (const btn of stripButtons) {
+      const text = await btn.innerText()
+      if (text.includes(projectileScenario.objectContext)) {
+        console.log(`[Mod 2] Clicking projectile scenario strip button: "${text}"`)
+        await btn.click()
+        await page.waitForTimeout(500)
+        break
       }
+    }
 
-      await checkFbdBtn.click()
-      await page.waitForTimeout(800)
+    // Solve the projectile scenario (Only gravity downwards)
+    await solveCurrentFBD(projectileScenario)
+    await checkFbdBtn.click()
+    await page.waitForTimeout(1000)
 
-      const s4Model = page.locator('.motion-model')
-      const isProjectileVisible = await s4Model.isVisible()
-      console.log(`[Mod 2] Scenario 4 Projectile Simulation visible: ${isProjectileVisible}`)
-      if (isProjectileVisible) {
-        console.log(`[Mod 2] Motion heading: ${await s4Model.locator('.motion-stage-top').innerText()}`)
-        await page.screenshot({ path: path.join(outputDir, 'mod2_sim_projectile_1080p.png') })
-      }
+    const s4Model = page.locator('.motion-model')
+    const isProjectileVisible = await s4Model.isVisible()
+    console.log(`[Mod 2] Projectile Simulation visible: ${isProjectileVisible}`)
+    if (isProjectileVisible) {
+      console.log(`[Mod 2] Motion heading: ${await s4Model.locator('.motion-stage-top').innerText()}`)
+      await page.screenshot({ path: path.join(outputDir, 'mod2_sim_projectile_1080p.png') })
     }
 
     // ==========================================
@@ -234,7 +231,7 @@ async function run() {
     const ffrictVal = Number(await page.locator('#diagram-input-ffrict').inputValue())
     console.log(`[Mod 3] Given Problem 1 values: mass = ${massVal} kg, Ffrict = ${ffrictVal} N`)
 
-    // In Problem 1:
+    // Problem 1 formulas:
     // Fgrav = mass * 9.8
     // Fnorm = Fgrav
     // Fnet = Ffrict
@@ -246,7 +243,7 @@ async function run() {
 
     console.log(`[Mod 3] Calculated targets: Fnorm=${fnormTarget}, Fgrav=${fgravTarget}, Fnet=${fnetTarget}, a=${aTarget}`)
 
-    // Type the calculated answers into inputs
+    // Fill inputs
     await page.locator('#diagram-input-fnorm').fill(String(fnormTarget))
     await page.locator('#diagram-input-fgrav').fill(String(fgravTarget))
     await page.locator('#table-input-a').fill(String(aTarget))
