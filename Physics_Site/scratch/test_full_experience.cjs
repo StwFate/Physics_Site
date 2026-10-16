@@ -154,11 +154,12 @@ async function run() {
         const plusBtn = page.locator(`button[aria-label="Add ${dir === 'up' ? 'upward' : dir === 'down' ? 'downward' : dir === 'left' ? 'leftward' : 'rightward'} force"]`)
         if (await plusBtn.isVisible()) {
           await plusBtn.click()
-          await page.waitForTimeout(200)
-          // Find force by name
-          const forceNameRegex = new RegExp(f.name, 'i')
-          await page.getByRole('button', { name: forceNameRegex }).click()
-          await page.waitForTimeout(200)
+          await page.waitForTimeout(250)
+          
+          // Click the force matching f.type or f.code inside the active popover
+          const forceBtn = page.locator('div.absolute button').filter({ hasText: f.type }).first()
+          await forceBtn.click()
+          await page.waitForTimeout(250)
 
           if (f.magnitude === 2) {
             // Toggle to Strong
